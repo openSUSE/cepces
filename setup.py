@@ -58,6 +58,7 @@ setup(
 
     packages=[
               'cepces',
+              'cepces.xml',
     ],
 
     install_requires=[],
