@@ -1,0 +1,2 @@
+# Include all tests
+recursive-include tests *.py
