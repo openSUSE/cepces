@@ -25,7 +25,7 @@ class TestToClarkNotation(unittest.TestCase):
         '''Name should not be changed when namespace is None'''
         name = 'TestName'
 
-        self.assertEqual(util.to_clarke(name), name)
+        self.assertEqual(util.to_clark(name), name)
 
     def testNameAndNamespace(self):
         '''Result should follow Clarks's notation'''
@@ -33,7 +33,7 @@ class TestToClarkNotation(unittest.TestCase):
         namespace = 'TestNameSpace'
 
         self.assertEqual(
-            util.to_clarke(name, namespace),
+            util.to_clark(name, namespace),
             '{{{1:s}}}{0:s}'.format(name, namespace)
         )
 
@@ -42,14 +42,14 @@ class TestToClarkNotation(unittest.TestCase):
         namespace = 'TestNameSpace'
 
         with self.assertRaises(TypeError):
-            util.to_clarke(None, namespace)
+            util.to_clark(None, namespace)
 
 
 class TestFromClarkNotation(unittest.TestCase):
     def testOnlyName(self):
         '''Input should be returned unaltered'''
         name = 'TestName'
-        rname, rnamespace = util.from_clarke(name)
+        rname, rnamespace = util.from_clark(name)
 
         self.assertEqual(rname, name)
         self.assertEqual(rnamespace, None)
@@ -59,8 +59,8 @@ class TestFromClarkNotation(unittest.TestCase):
         name = 'TestName'
         namespace = 'TestNamespace'
 
-        clarke = util.to_clarke(name, namespace)
-        rname, rnamespace = util.from_clarke(clarke)
+        clarke = util.to_clark(name, namespace)
+        rname, rnamespace = util.from_clark(clarke)
 
         self.assertEqual(name, rname)
         self.assertEqual(namespace, rnamespace)
@@ -70,4 +70,4 @@ class TestFromClarkNotation(unittest.TestCase):
         string = '{TestNamespace}'
 
         with self.assertRaises(ValueError):
-            util.from_clarke(string)
+            util.from_clark(string)

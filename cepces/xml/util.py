@@ -18,7 +18,7 @@
 import re
 
 
-def to_clarke(name, namespace=None):
+def to_clark(name, namespace=None):
     """Returns an element name in Clark's Notation."""
     if namespace:
         return '{{{1:s}}}{0:s}'.format(name, namespace)
@@ -26,7 +26,7 @@ def to_clarke(name, namespace=None):
         return str(name)
 
 
-def from_clarke(string):
+def from_clark(string):
     """Returns a (name, namespace) tuple from an element name following Clark's
     notation.
 
