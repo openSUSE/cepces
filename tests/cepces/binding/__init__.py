@@ -18,6 +18,8 @@
 import unittest
 from cepces.binding import ListingMeta
 from cepces.binding import XMLDescriptor
+from cepces.binding import XMLNode
+from xml.etree import ElementTree
 
 
 class TestXMLDescriptor(unittest.TestCase):
@@ -82,3 +84,29 @@ class TestListingMeta(unittest.TestCase):
         super(TestListingMeta, self).tearDown()
 
         self._dummy = None
+
+
+class TestXMLNode(unittest.TestCase):
+    def setUp(self):
+        super(TestXMLNode, self).setUp()
+
+        self.element = ElementTree.Element('root')
+        self.node = XMLNode(self.element)
+
+    def testValidConstructorArgument(self):
+        '''Test should not fail with valid constructor argument'''
+        self.assertIsInstance(self.node, XMLNode)
+        self.assertEqual(self.node._bindings, {})
+        self.assertIs(self.node._element, self.element)
+
+    def testInvalidConstructorArgument(self):
+        '''Test should fail with invalid constructor argument'''
+        self.assertRaises(TypeError, XMLNode, 'string')
+
+    def testInvalidConstructorElement(self):
+        '''Test should fail with empty node'''
+        self.assertRaises(NotImplementedError, XMLNode, None)
+
+    def testCreate(self):
+        '''Test should fail on abstract method'''
+        self.assertRaises(NotImplementedError, self.node.create)

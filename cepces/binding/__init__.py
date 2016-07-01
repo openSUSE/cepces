@@ -16,7 +16,9 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 from cepces.xml import util
+from xml.etree import ElementTree
 import inspect
+from abc import abstractmethod
 
 
 class XMLDescriptor(object):
@@ -71,3 +73,38 @@ class ListingMeta(type):
         klass.__listing__ = sorted(members, key=lambda i: i[1]._index)
 
         return klass
+
+
+class XMLNode(metaclass=ListingMeta):
+    """Base class for all binding nodes."""
+
+    def __init__(self, element=None):
+        """Initializes a new `BindingNode`.
+
+        If no base element is provided, the instance is instructed to create a
+        new element (and possibly child elements).
+
+        Args:
+            element (Element): The root Element on which to bind.
+
+        Raises:
+            TypeError: If `element` is of the wrong type.
+        """
+        # ElementTree.Element is a class in 2.7 and a function in 2.6.
+        # Calling ElementTree.Element yields the following in:
+        # * 2.6: <class xml.etree.ElementTree._ElementInterface at [addr]>
+        # * 2.7: <class 'xml.etree.ElementTree.Element'>
+        if element is None:
+            element = self.create()
+        elif not isinstance(element, ElementTree.Element):
+            raise TypeError('Expected {0:s}, got {1:s}'.format(
+                ElementTree.__name__,
+                element.__class__.__name__))
+
+        self._element = element
+        self._bindings = {}
+
+    @staticmethod
+    @abstractmethod
+    def create():
+        raise NotImplementedError()
