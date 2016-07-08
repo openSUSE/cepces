@@ -22,46 +22,58 @@ from cepces.binding import XMLNode
 from xml.etree import ElementTree
 
 
+class MockXMLDescriptor(XMLDescriptor):
+    def __get__(self, instance, _owner=None):
+        return instance._test_value
+
+    def __set__(self, instance, value):
+        instance._test_value = value
+
+    def __delete__(self, instance):
+        pass
+
+
 class TestXMLDescriptor(unittest.TestCase):
     def testOnlyName(self):
-        '''Qualified name should be equal to name'''
-        descriptor = XMLDescriptor('name')
+        """Qualified name should be equal to name"""
+        descriptor = MockXMLDescriptor('name')
 
         self.assertEqual(descriptor._name, 'name')
         self.assertEqual(descriptor._namespace, None)
         self.assertEqual(descriptor._qname, 'name')
 
     def testNameAndNameSpace(self):
-        '''Qualified name should be in Clark's notation'''
-        descriptor = XMLDescriptor('name', 'namespace')
+        """Qualified name should be in Clark's notation"""
+        descriptor = MockXMLDescriptor('name', 'namespace')
 
         self.assertEqual(descriptor._name, 'name')
         self.assertEqual(descriptor._namespace, 'namespace')
         self.assertEqual(descriptor._qname, '{namespace}name')
 
     def testIndexIncrement(self):
-        '''Static index should increase accordingly'''
+        """Static index should increase accordingly"""
         index = XMLDescriptor._index
 
-        class MockClass():
-            # Create three descriptors..
-            first = XMLDescriptor('first')
-            second = XMLDescriptor('second')
-            third = XMLDescriptor('third')
+        # Create three descriptors..
+        first = MockXMLDescriptor('first')
+        second = MockXMLDescriptor('second')
+        third = MockXMLDescriptor('third')
 
-        # Make sure the index has incremented accordingly.
+        self.assertEqual(first._index, index)
+        self.assertEqual(second._index, index + 1)
+        self.assertEqual(third._index, index + 2)
         self.assertEqual(XMLDescriptor._index, index + 3)
 
 
 class TestListingMeta(unittest.TestCase):
     def setUp(self):
-        super(TestListingMeta, self).setUp()
+        super().setUp()
 
         # Create a dummy class.
         class MockClass(metaclass=ListingMeta):
-            first = XMLDescriptor('first')
-            second = XMLDescriptor('second')
-            third = XMLDescriptor('third')
+            first = MockXMLDescriptor('first')
+            second = MockXMLDescriptor('second')
+            third = MockXMLDescriptor('third')
 
         self._dummy = MockClass
 
@@ -76,37 +88,15 @@ class TestListingMeta(unittest.TestCase):
         self.assertEqual(listing[1][0], 'second')
         self.assertEqual(listing[2][0], 'third')
 
-        self.assertEqual(listing[0][1], dummy.first)
-        self.assertEqual(listing[1][1], dummy.second)
-        self.assertEqual(listing[2][1], dummy.third)
+        self.assertEqual(listing[0][1], dummy.__dict__[listing[0][0]])
+        self.assertEqual(listing[1][1], dummy.__dict__[listing[1][0]])
+        self.assertEqual(listing[2][1], dummy.__dict__[listing[2][0]])
 
     def tearDown(self):
-        super(TestListingMeta, self).tearDown()
+        super().tearDown()
 
         self._dummy = None
 
 
-class TestXMLNode(unittest.TestCase):
-    def setUp(self):
-        super(TestXMLNode, self).setUp()
-
-        self.element = ElementTree.Element('root')
-        self.node = XMLNode(self.element)
-
-    def testValidConstructorArgument(self):
-        '''Test should not fail with valid constructor argument'''
-        self.assertIsInstance(self.node, XMLNode)
-        self.assertEqual(self.node._bindings, {})
-        self.assertIs(self.node._element, self.element)
-
-    def testInvalidConstructorArgument(self):
-        '''Test should fail with invalid constructor argument'''
-        self.assertRaises(TypeError, XMLNode, 'string')
-
-    def testInvalidConstructorElement(self):
-        '''Test should fail with empty node'''
-        self.assertRaises(NotImplementedError, XMLNode, None)
-
-    def testCreate(self):
-        '''Test should fail on abstract method'''
-        self.assertRaises(NotImplementedError, self.node.create)
+if __name__ == '__main__':
+    unittest.main()
