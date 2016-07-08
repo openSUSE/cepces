@@ -23,3 +23,6 @@ var/
 
 # Local files
 local/
+
+# Vagrant
+.vagrant/

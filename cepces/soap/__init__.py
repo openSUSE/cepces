@@ -18,8 +18,6 @@
 # This module contains SOAP related classes, implementing a loose subset of the
 # specification, just enough to be able to communicate a service.
 #
-import logging
-import requests
 from cepces.binding import NS_XSI
 from cepces.binding import XMLElement
 from cepces.binding import XMLNode
@@ -29,6 +27,10 @@ from requests_kerberos import HTTPKerberosAuth
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import QName
+import logging
+import requests
+
+logger = logging.getLogger(__name__)
 
 NS_SOAP = 'http://www.w3.org/2003/05/soap-envelope'
 NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
@@ -36,12 +38,31 @@ NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
 
 class Service(object):
     def __init__(self, endpoint, auth=None, capath=True):
-        logging.debug("Initializing service (endpoint: %s, auth: %s", endpoint,
-                      auth)
+        logger.debug("Initializing service (endpoint: %s, auth: %s", endpoint,
+                     auth)
         self._endpoint = endpoint
 
         if auth == 'kerberos':
-            auth = HTTPKerberosAuth()
+            # This step has been extended to work around issue #942 in the
+            # kerberos library where the default principal cannot be
+            # derived without raising an error. An explicit principal has
+            # to be provided.
+            #
+            # This is ignored if PyKerberos is used.
+            from urllib.parse import urlparse
+
+            if 'authGSSClientInquireCred' in dir(kerberos):
+                import kerberos
+
+                parse = urlparse(endpoint)
+                kerb_spn = "{0}@{1}".format("HTTP", parse.netloc)
+                _, krb_context = kerberos.authGSSClientInit(kerb_spn)
+                kerberos.authGSSClientInquireCred(krb_context)
+                principal = kerberos.authGSSClientUserName(krb_context)
+                # kerberos.authGSSClientClean(krb_context)
+                auth = HTTPKerberosAuth(principal=principal)
+            else:
+                auth = HTTPKerberosAuth()
 
         self._auth = auth
         self._capath = capath
@@ -49,7 +70,12 @@ class Service(object):
     def send(self, message):
         headers = {'Content-Type': 'application/soap+xml; charset=utf-8'}
         data = ElementTree.tostring(message._element)
-        logging.debug("Sending message: %s", data)
+        logger.debug("Sending message:")
+        logger.debug("  url: %s", self._endpoint)
+        logger.debug("  headers: %s", headers)
+        logger.debug("  verify: %s", self._capath)
+        logger.debug("  auth: %s", self._auth)
+        logger.debug("  data: %s", data)
 
         # Post the envelope and raise an error if necessary.
         r = requests.post(url=self._endpoint,
@@ -61,7 +87,7 @@ class Service(object):
 
         # Blindly convert the response.
         envelope = ElementTree.fromstring(r.text)
-        logging.debug("Received message: %s", envelope)
+        logger.debug("Received message: %s", envelope)
         return envelope
 
 
