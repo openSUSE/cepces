@@ -50,10 +50,9 @@ class Service(object):
             #
             # This is ignored if PyKerberos is used.
             from urllib.parse import urlparse
+            import kerberos
 
             if 'authGSSClientInquireCred' in dir(kerberos):
-                import kerberos
-
                 parse = urlparse(endpoint)
                 kerb_spn = "{0}@{1}".format("HTTP", parse.netloc)
                 _, krb_context = kerberos.authGSSClientInit(kerb_spn)
