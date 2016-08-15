@@ -47,8 +47,7 @@ setup(
         'Intended Audience :: System Administrators',
         'Topic :: System :: Systems Administration',
 
-        'License :: OSI Approved :: '
-        'GNU General Public License v3 or later (GPLv3+)',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
 
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
@@ -57,13 +56,22 @@ setup(
     keywords='certificate ca cep ces adcs',
 
     packages=[
-              'cepces',
-              'cepces.binding',
-              'cepces.cli',
-              'cepces.soap',
-              'cepces.wstep',
-              'cepces.xcep',
-              'cepces.xml',
+        'cepces',
+        'cepces.binding',
+        'cepces.cli',
+        'cepces.soap',
+        'cepces.wstep',
+        'cepces.xcep',
+        'cepces.xml',
+    ],
+
+    data_files=[
+        ('/usr/local/sbin',
+            ['bin/cepces', 'bin/cepces-submit']
+         ),
+        ('/usr/local/etc/cepces',
+            ['conf/cepces.conf.dist', 'conf/cepces-submit.conf.dist']
+         ),
     ],
 
     install_requires=[],
