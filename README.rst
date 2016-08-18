@@ -44,6 +44,16 @@ extracted directory:
     # pip3 install -r requirements.txt
     # python3 setup.py install
 
+certmonger Configuration
+------------------------
+
+In order for cepces to be known to certmonger, the cepces helper
+(``cepces-submit``) has to be registered. To do so, issue the following command:
+
+.. code-block:: bash
+
+    # getcert add-ca -c cepces -e /usr/local/sbin/cepces-submit
+
 Configuration
 =============
 
