@@ -20,6 +20,7 @@
 from abc import ABCMeta, abstractmethod
 from cepces.core import Base
 from cepces.certmonger.core import MissingEnvironmentVariable
+from cepces.certmonger.core import Result as CertmongerResult
 import os
 
 
@@ -89,3 +90,71 @@ class Operation(Base, metaclass=ABCMeta):
             raise RuntimeError('No result has been set')
         else:
             return self._result
+
+
+class Submit(Operation):
+    """Attempt to enroll a new certificate."""
+    _name_ = 'SUBMIT'
+
+    def __call__(self):
+        raise NotImplementedError()
+
+
+class Poll(Operation):
+    """Poll the status for a previous deferred request."""
+    _name_ = 'POLL'
+
+    def __call__(self):
+        raise NotImplementedError()
+
+
+class Identify(Operation):
+    """Outputs version information for this helper."""
+    _name_ = 'IDENTIFY'
+
+    def __call__(self):
+        raise NotImplementedError()
+
+
+class GetNewRequestRequirements(Operation):
+    """Outputs a list of required environment variables for submission."""
+    _name_ = 'GET-NEW-REQUEST-REQUIREMENTS'
+
+    def __call__(self):
+        raise NotImplementedError()
+
+
+class GetRenewRequestRequirements(Operation):
+    """Outputs a list of required environment variables for renewal."""
+    _name_ = 'GET-RENEW-REQUEST-REQUIREMENTS'
+
+    def __call__(self):
+        raise NotImplementedError()
+
+
+class GetSupportedTemplates(Operation):
+    """Outputs a list of supported templates."""
+    _name_ = 'GET-SUPPORTED-TEMPLATES'
+
+    def __call__(self):
+        raise NotImplementedError()
+
+
+class GetDefaultTemplate(Operation):
+    """Outputs the default template (which is nothing).
+
+    MS-XCEP doesn't specify a default template/policy, so this operation always
+    results in an empty list.
+    """
+    _name_ = 'GET-DEFAULT-TEMPLATE'
+
+    def __call__(self):
+        self._result = CertmongerResult.DEFAULT
+
+
+class FetchRoots(Operation):
+    """Outputs suggested nick-names and certificates for all CAs."""
+    _name_ = 'FETCH-ROOTS'
+
+    def __call__(self):
+        raise NotImplementedError()
