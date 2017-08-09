@@ -23,13 +23,14 @@ from enum import IntEnum
 
 class Result(IntEnum):
     """This enumeration contains the result codes expected by certmonger."""
-    EISSUED = 0
-    EWAIT = 1
-    EREJECTED = 2
-    ECONNECTERROR = 3
-    EUNDERCONFIGURED = 4
-    EWAITMORE = 5
-    EUNSUPPORTED = 6
+    DEFAULT = 0
+    ISSUED = 0
+    WAIT = 1
+    REJECTED = 2
+    CONNECTERROR = 3
+    UNDERCONFIGURED = 4
+    WAITMORE = 5
+    UNSUPPORTED = 6
 
 
 class MissingEnvironmentVariable(RuntimeError):
