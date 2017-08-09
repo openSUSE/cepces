@@ -22,6 +22,7 @@ from cepces.core import Base
 from cepces.certmonger.core import MissingEnvironmentVariable
 from cepces.certmonger.core import Result as CertmongerResult
 import os
+import sys
 
 
 class Operation(Base, metaclass=ABCMeta):
@@ -42,14 +43,17 @@ class Operation(Base, metaclass=ABCMeta):
     _optional_ = []
     _name_ = None
 
-    def __init__(self):
+    def __init__(self, out=sys.stdout):
         """Initializes an Operation.
 
         All required and optional environment variables are verified, read and
         stored in the instance as a dictionary.
+
+        :param out: default output stream (default: sys.stdout)
         """
         super().__init__()
 
+        self._out = out
         self._vars = {}
 
         # Verify that all required environment variables are present.
@@ -144,7 +148,7 @@ class GetDefaultTemplate(Operation):
     """Outputs the default template (which is nothing).
 
     MS-XCEP doesn't specify a default template/policy, so this operation always
-    results in an empty list.
+    results in no output.
     """
     _name_ = 'GET-DEFAULT-TEMPLATE'
 
