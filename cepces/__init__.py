@@ -17,3 +17,31 @@
 #
 
 """Main application package."""
+
+import logging
+
+
+class Base(object):
+    """Base for most classes.
+
+    This class contains common behaviour for all classes used within the
+    project.
+    """
+    def __init__(self, logger=None):
+        """Initialize the instance.
+
+        The class uses either a supplied logger, or retrieves the default
+        logger for the instance.
+
+        :param logger: Optional logger.
+        """
+        self._logger = logger or logging.getLogger(repr(self))
+        self._logger.debug('Initializing {0:s}.'
+                           .format(self.__class__.__name__))
+
+    def __str__(self):
+        """Returns a string representation of this instance.
+
+        :return: A string representation of this instance.
+        """
+        return '{0}<{1}>'.format(self.__class__.__name__, hex(id(self)))

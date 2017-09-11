@@ -18,30 +18,60 @@
 
 """Module containing common classes and functionality."""
 
-import logging
+from cepces import Base
+from cepces.cli import Command
+import argparse
 
 
-class Base(object):
-    """Base for most classes.
+class ApplicationError(RuntimeError):
+    def __init__(self, message, code):
+        super().__init__(message)
+        self.code = code
 
-    This class contains common behaviour for all classes used within the
-    project.
-    """
-    def __init__(self, logger=None):
-        """Initialize the instance.
 
-        The class uses either a supplied logger, or retrieves the default
-        logger for the instance.
+class Application(Base):
+    APP_NAME = 'cepces'
 
-        :param logger: Optional logger.
-        """
-        self._logger = logger or logging.getLogger(repr(self))
-        self._logger.debug('Initializing {0:s}.'
-                           .format(self.__class__.__name__))
+    def __init__(self, args=None):
+        super().__init__()
 
-    def __str__(self):
-        """Returns a string representation of this instance.
+        self._args = args
+        self._exit_code = 0
 
-        :return: A string representation of this instance.
-        """
-        return '{0}<{1}>'.format(self.__class__.__name__, hex(id(self)))
+        self._init_parser()
+
+    def _init_parser(self):
+        self._parser = argparse.ArgumentParser(Application.APP_NAME)
+
+        # Find all sub command classes, instantiate them, and allow them to
+        # self-register.
+        subparsers = self._parser.add_subparsers(help='sub-command help')
+
+        for subclass in Command.__subclasses__():
+            instance = subclass()
+            instance.register(subparsers)
+
+        args = self._parser.parse_args(args=self._args)
+
+        if hasattr(args, 'func') and hasattr(args.func, '__call__'):
+            args.func()
+        else:
+            self._parser.print_help()
+            raise ApplicationError('No command specified', 1)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+    def run(self):
+        pass
+
+    @property
+    def exit_code(self):
+        return self._exit_code
+
+    @exit_code.setter
+    def exit_code(self, value):
+        self._exit_code = value
