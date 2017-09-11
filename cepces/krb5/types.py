@@ -104,17 +104,20 @@ class c_char_p_n(ctypes.c_char_p):
 class _krb5_context(ctypes.Structure):
     pass
 
+
 krb5_context = ctypes.POINTER(_krb5_context)
 
 
 class _krb5_kt(ctypes.Structure):
     pass
 
+
 krb5_keytab = ctypes.POINTER(_krb5_kt)
 
 
 class krb5_principal_data(ctypes.Structure):
     pass
+
 
 krb5_principal = ctypes.POINTER(krb5_principal_data)
 krb5_const_principal = ctypes.POINTER(krb5_principal_data)
@@ -135,6 +138,7 @@ class _krb5_get_init_creds_opt(ctypes.Structure):
         ('salt', ctypes.c_void_p),
     ]
 
+
 krb5_get_init_creds_opt = _krb5_get_init_creds_opt
 krb5_get_init_creds_opt_p = ctypes.POINTER(krb5_get_init_creds_opt)
 
@@ -150,10 +154,12 @@ class _krb5_creds(ctypes.Structure):
         ('data', ctypes.c_byte * 256),
     ]
 
+
 krb5_creds = _krb5_creds
 
 
 class _krb5_ccache(ctypes.Structure):
     pass
+
 
 krb5_ccache = ctypes.POINTER(_krb5_ccache)
