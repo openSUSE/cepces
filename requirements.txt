@@ -1,0 +1,3 @@
+pyopenssl
+requests
+requests_kerberos >= 0.9
