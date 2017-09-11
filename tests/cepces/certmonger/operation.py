@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+from cepces import __title__, __version__
 import unittest
 import cepces.certmonger.operation as CertmongerOperations
 import io
@@ -29,3 +30,17 @@ class TestGetDefaultTemplate(unittest.TestCase):
         operation()
 
         self.assertEqual(out.getvalue(), '')
+
+
+class TestIdentify(unittest.TestCase):
+    """Tests the Identity operation"""
+
+    def testCall(self):
+        out = io.StringIO()
+        operation = CertmongerOperations.Identify(out=out)
+        operation()
+
+        self.assertEqual(
+            out.getvalue(),
+            '{} {}\n'.format(__title__, __version__),
+        )

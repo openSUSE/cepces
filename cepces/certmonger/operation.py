@@ -18,6 +18,7 @@
 """This module contains all the supported certmonger operations."""
 
 from abc import ABCMeta, abstractmethod
+from cepces import __title__, __version__
 from cepces.core import Base
 from cepces.certmonger.core import MissingEnvironmentVariable
 from cepces.certmonger.core import Result as CertmongerResult
@@ -117,7 +118,9 @@ class Identify(Operation):
     _name_ = 'IDENTIFY'
 
     def __call__(self):
-        raise NotImplementedError()
+        print('{} {}'.format(__title__, __version__), file=self._out)
+
+        self._result = CertmongerResult.DEFAULT
 
 
 class GetNewRequestRequirements(Operation):
