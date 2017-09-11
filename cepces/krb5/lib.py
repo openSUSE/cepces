@@ -22,6 +22,7 @@ import ctypes
 _shlib = None
 _libs = [
     'libgssapi_krb5.so',
+    'libgssapi_krb5.so.2',
     'libgssapi_krb5.dylib',
 ]
 
