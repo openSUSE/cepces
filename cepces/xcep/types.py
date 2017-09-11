@@ -23,10 +23,9 @@ from cepces.xml.binding import XMLValue, XMLValueList
 from cepces.xml.converter import DateTimeConverter, IntegerConverter
 from cepces.xml.converter import SignedIntegerConverter, StringConverter
 from cepces.xml.converter import UnsignedIntegerConverter
+from cepces.xcep import NS_CEP
 from cepces.xcep.converter import ClientAuthenticationConverter
 from xml.etree.ElementTree import Element, QName
-
-NS_CEP = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy'
 
 
 class Client(XMLNode):

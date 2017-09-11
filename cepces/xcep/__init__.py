@@ -15,3 +15,5 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+NS_CEP = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy'
