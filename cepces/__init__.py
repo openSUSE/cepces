@@ -20,6 +20,15 @@
 
 import logging
 
+__title__ = 'cepces'
+__description__ = 'CEP/CES library.'
+__url__ = 'https://github.com/ufven/cepces/'
+__version__ = '0.2.1'
+__author__ = 'Daniel Uvehag'
+__author_email__ = 'daniel.uvehag@gmail.com'
+__license__ = 'GPLv3'
+__copyright__ = 'Copyright 2017 Daniel Uvehag'
+
 
 class Base(object):
     """Base for most classes.
