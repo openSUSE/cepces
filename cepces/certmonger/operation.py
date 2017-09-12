@@ -19,7 +19,7 @@
 
 from abc import ABCMeta, abstractmethod
 from cepces import __title__, __version__
-from cepces.core import Base
+from cepces import Base
 from cepces.certmonger.core import MissingEnvironmentVariable
 from cepces.certmonger.core import Result as CertmongerResult
 import os
@@ -44,7 +44,7 @@ class Operation(Base, metaclass=ABCMeta):
     _optional_ = []
     _name_ = None
 
-    def __init__(self, out=sys.stdout):
+    def __init__(self, application, out=sys.stdout):
         """Initializes an Operation.
 
         All required and optional environment variables are verified, read and
@@ -54,6 +54,7 @@ class Operation(Base, metaclass=ABCMeta):
         """
         super().__init__()
 
+        self._application = application
         self._out = out
         self._vars = {}
 
@@ -75,16 +76,6 @@ class Operation(Base, metaclass=ABCMeta):
     def __call__(self):
         """Calls the operation to let it performs its logic."""
         pass
-
-    @property
-    def name(self):
-        """Returns the operation's name as designated by certmonger.
-
-        :return: The certmonger operation's name.
-        """
-        if not self.__class__._name_:
-            raise RuntimeError('No name has been set for {}'
-                               .format(self.__class__))
 
     @property
     def result(self):
@@ -128,7 +119,10 @@ class GetNewRequestRequirements(Operation):
     _name_ = 'GET-NEW-REQUEST-REQUIREMENTS'
 
     def __call__(self):
-        raise NotImplementedError()
+        # Output a list of required environment variables.
+        print('CERTMONGER_CA_PROFILE')
+
+        self._result = CertmongerResult.DEFAULT
 
 
 class GetRenewRequestRequirements(Operation):
@@ -136,7 +130,10 @@ class GetRenewRequestRequirements(Operation):
     _name_ = 'GET-RENEW-REQUEST-REQUIREMENTS'
 
     def __call__(self):
-        raise NotImplementedError()
+        # Output a list of required environment variables.
+        print('CERTMONGER_CA_PROFILE')
+
+        self._result = CertmongerResult.DEFAULT
 
 
 class GetSupportedTemplates(Operation):

@@ -19,7 +19,7 @@
 # specification, just enough to be able to communicate a service.
 #
 from abc import ABCMeta, abstractmethod, abstractproperty
-from cepces.core import Base
+from cepces import Base
 from cepces.krb5 import Context, Keytab, Principal
 from cepces.krb5 import CredentialOptions, Credentials, CredentialCache
 from cepces.krb5 import types as ktypes

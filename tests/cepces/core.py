@@ -17,7 +17,7 @@
 #
 import unittest
 import logging
-from cepces.core import Base
+from cepces import Base
 
 
 class TestBase(unittest.TestCase):
