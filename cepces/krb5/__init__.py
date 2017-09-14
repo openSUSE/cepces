@@ -296,6 +296,9 @@ class CredentialOptions(Base):
 
     @encryption_types.setter
     def encryption_types(self, types):
+        if not types:
+            return
+
         etypes = (ktypes.krb5_enctype * len(types))(*types)
 
         kfuncs.get_init_creds_opt_set_etype_list(
