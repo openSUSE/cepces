@@ -62,13 +62,19 @@ class AnonymousAuthentication(Authentication):
 
 class TransportKerberosAuthentication(Authentication):
     """Kerberos authentication on the transport level."""
-    def __init__(self, config):
+    def __init__(self, principal_name=None, init_ccache=True, keytab=None,
+                 enctypes=None):
         super().__init__()
-        self._config = config
+
+        self._config = {}
+        self._config['name'] = principal_name
+        self._config['init_ccache'] = init_ccache
+        self._config['keytab'] = keytab
+        self._config['enctypes'] = enctypes
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
-        if self._config['init_cache']:
+        if self._config['init_ccache']:
             self._init_ccache()
 
         self._init_transport()
@@ -102,7 +108,7 @@ class TransportKerberosAuthentication(Authentication):
             credential_options,
         )
 
-        ccache_name = "MEMORY:cepces_submit"
+        ccache_name = "MEMORY:cepces"
         self._ccache = CredentialCache(
             context,
             ccache_name,
