@@ -49,6 +49,38 @@ class TestStringConverter(TestCase):
         self.assertEqual(str(input), result)
 
 
+class TestBooleanConverter(TestCase):
+    def testFromNone(self):
+        """None as input should return None"""
+        input = None
+        result = converter.BooleanConverter.from_string(input)
+
+        self.assertIsNone(result)
+
+    def testFromString(self):
+        """Boolean strings as input should return a boolean"""
+        c = converter.BooleanConverter
+
+        self.assertEqual(True, c.from_string('true'))
+        self.assertEqual(True, c.from_string('1'))
+        self.assertEqual(False, c.from_string('false'))
+        self.assertEqual(False, c.from_string('0'))
+
+    def testToNone(self):
+        """None as input should return None"""
+        input = None
+        result = converter.BooleanConverter.to_string(input)
+
+        self.assertIsNone(result)
+
+    def testToString(self):
+        """A boolean as input should return an equal boolean (lower) string"""
+        c = converter.BooleanConverter
+
+        self.assertEqual('true', c.to_string(True))
+        self.assertEqual('false', c.to_string(False))
+
+
 class TestIntegerConverter(TestCase):
     def testFromNone(self):
         """None as input should return None"""

@@ -19,6 +19,7 @@
 
 from datetime import datetime, timedelta, tzinfo
 import re
+import textwrap
 
 
 class Converter(object):
@@ -74,6 +75,48 @@ class Converter(object):
 # Make StringConverter as an alias to Converter, as it defaults to the string
 # type.
 StringConverter = Converter
+
+
+class BooleanConverter(object):
+    MAP = {
+        'true': True,
+        'false': False,
+        '1': True,
+        '0': False,
+    }
+
+    """Converts to and from booleans."""
+    @staticmethod
+    def from_string(value):
+        """Converts the input value to a boolean
+
+        :param value: the value to convert, or None
+        :raise TypeError: if the input is not a boolean
+        :raise ValueError: if the input cannot be parsed as a boolean
+        :return: the input as a boolean, or None if value is None
+        """
+        result = Converter.from_string(value)
+
+        if not result:
+            return result
+        elif result not in BooleanConverter.MAP:
+            raise ValueError('Unsupported value: "{}"'.format(result))
+        else:
+            return BooleanConverter.MAP[result]
+
+    @staticmethod
+    def to_string(value):
+        """Converts a boolean to a string
+
+        :param value: the boolean to convert, or None
+        :raise TypeError: if the input is not a boolean
+        :raise ValueError: if the input cannot be parsed as a boolean
+        :return: the input as a string, or None if value is None
+        """
+        if value is not None:
+            return Converter.to_string(value, bool).lower()
+        else:
+            return None
 
 
 class IntegerConverter(object):
@@ -341,3 +384,37 @@ class DateTimeConverter(Converter):
                     value.second,
                     tz,
                 )
+
+
+class CertificateConverter(object):
+    """Converts to and from PEM certificates."""
+    @staticmethod
+    def from_string(value):
+        """Converts the input value to a proper PEM certificate
+
+        :param value: the value to convert, or None
+        :return: the input as a string, or None if value is None
+        """
+        template = '{}\n{}\n{}'
+
+        return template.format(
+            '-----BEGIN CERTIFICATE-----',
+            textwrap.fill(Converter.from_string(value), 64),
+            '-----END CERTIFICATE-----',
+        )
+
+    @staticmethod
+    def to_string(value):
+        """Converts the certificate to a plain string
+
+        :param value: the certificate to convert, or None
+        :return: the input as a string, or None if value is None
+        """
+        match = re.search(
+            '-----BEGIN CERTIFICATE-----'
+            '((?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?)'
+            '-----END CERTIFICATE-----',
+            ''.join(value.splitlines()),
+        )
+
+        return Converter.to_string(match.group(1), str)
