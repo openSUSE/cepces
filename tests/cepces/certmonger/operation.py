@@ -26,7 +26,7 @@ class TestGetDefaultTemplate(unittest.TestCase):
 
     def testCall(self):
         out = io.StringIO()
-        operation = CertmongerOperations.GetDefaultTemplate(out=out)
+        operation = CertmongerOperations.GetDefaultTemplate(None, out=out)
         operation()
 
         self.assertEqual(out.getvalue(), '')
@@ -37,7 +37,7 @@ class TestIdentify(unittest.TestCase):
 
     def testCall(self):
         out = io.StringIO()
-        operation = CertmongerOperations.Identify(out=out)
+        operation = CertmongerOperations.Identify(None, out=out)
         operation()
 
         self.assertEqual(

@@ -20,8 +20,11 @@
 from abc import ABCMeta, abstractmethod
 from cepces import __title__, __version__
 from cepces import Base
+from cepces.core import PartialChainError
 from cepces.certmonger.core import MissingEnvironmentVariable
 from cepces.certmonger.core import Result as CertmongerResult
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 import os
 import sys
 
@@ -141,7 +144,8 @@ class GetSupportedTemplates(Operation):
     _name_ = 'GET-SUPPORTED-TEMPLATES'
 
     def __call__(self):
-        raise NotImplementedError()
+        for template in self._application.service.templates:
+            print(template)
 
 
 class GetDefaultTemplate(Operation):
@@ -161,4 +165,29 @@ class FetchRoots(Operation):
     _name_ = 'FETCH-ROOTS'
 
     def __call__(self):
-        raise NotImplementedError()
+        oid_cn = x509.oid.NameOID.COMMON_NAME
+
+        # Retrieve the certificate chain as far as possible.
+        try:
+            certs = list(self._application.service.certificate_chain)
+        except PartialChainError as e:
+            certs = e.result
+
+        output = []
+
+        for cert in certs:
+            names = cert.subject.get_attributes_for_oid(oid_cn)
+            pem = cert.public_bytes(serialization.Encoding.PEM)
+
+            output.append(
+                '{}\n{}'.format(
+                    names[0].value,
+                    pem.decode().strip(),
+                ),
+            )
+
+        print('\n\n'.join(output))
+
+
+            #print(cert.public_bytes(serialization.Encoding.PEM).decode().strip())
+            #print(cert.issuer)

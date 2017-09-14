@@ -20,6 +20,11 @@
 
 import logging
 
+
+from pathlib import Path
+import logging.config
+
+
 __title__ = 'cepces'
 __description__ = 'CEP/CES library.'
 __url__ = 'https://github.com/ufven/cepces/'
@@ -28,6 +33,29 @@ __author__ = 'Daniel Uvehag'
 __author_email__ = 'daniel.uvehag@gmail.com'
 __license__ = 'GPLv3'
 __copyright__ = 'Copyright 2017 Daniel Uvehag'
+
+DEFAULT_CONFIG_FILES = [
+    '/etc/cepces/cepces.conf',
+    '/usr/local/etc/cepces/cepces.conf',
+    'conf/cepces.conf',
+    'cepces.conf',
+]
+DEFAULT_CONFIG_DIRS = [
+    '/etc/cepces/conf.d',
+    '/usr/local/etc/cepces/conf.d'
+    'conf/conf.d',
+]
+
+# Load logging configuration settings properly.
+LOGGING_CONFIG_FILES = [
+    'conf/logging.conf',
+    '/etc/cepces/logging.conf',
+    '/usr/local/etc/cepces/logging.conf',
+]
+
+for path in [Path(x) for x in LOGGING_CONFIG_FILES]:
+    if path.is_file():
+        logging.config.fileConfig(path.__str__())
 
 
 class Base(object):
@@ -44,9 +72,14 @@ class Base(object):
 
         :param logger: Optional logger.
         """
-        self._logger = logger or logging.getLogger(repr(self))
+        name = '{}.{}<0x{:02x}>'.format(
+            self.__module__,
+            self.__class__.__name__,
+            id(self),
+        )
+        self._logger = logger or logging.getLogger(name)
         self._logger.debug('Initializing {0:s}.'
-                           .format(self.__class__.__name__))
+                           .format(name))
 
     def __str__(self):
         """Returns a string representation of this instance.
