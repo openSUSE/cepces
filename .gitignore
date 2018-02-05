@@ -8,3 +8,6 @@ __pycache__/
 
 # Local files
 local/
+
+# Configuration files
+*.conf

@@ -21,10 +21,10 @@ from cepces.xml.converter import IntegerConverter
 class ClientAuthenticationConverter(IntegerConverter):
     """Converts to and from allowed authentication methods (int <-> str)."""
     MAP = [
-        (1, 'anonymous'),
-        (2, 'kerberos'),
-        (4, 'userpass'),
-        (8, 'certificate')
+        (1, 'Anonymous'),
+        (2, 'Kerberos'),
+        (4, 'UsernamePassword'),
+        (8, 'Certificate')
     ]
 
     @staticmethod

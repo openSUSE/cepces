@@ -18,7 +18,7 @@
 # This module contains SOAP related classes, implementing a loose subset of the
 # specification, just enough to be able to communicate a service.
 #
-from cepces.core import Base
+from cepces import Base
 from cepces.soap import ACTION_FAULT
 from cepces.soap.types import Envelope, Fault
 from xml.etree import ElementTree

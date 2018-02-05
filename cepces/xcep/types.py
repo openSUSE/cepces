@@ -20,6 +20,7 @@ from cepces.xml.binding import ATTR_NIL
 from cepces.xml.binding import XMLElement, XMLElementList
 from cepces.xml.binding import XMLNode
 from cepces.xml.binding import XMLValue, XMLValueList
+from cepces.xml.converter import BooleanConverter, CertificateConverter
 from cepces.xml.converter import DateTimeConverter, IntegerConverter
 from cepces.xml.converter import SignedIntegerConverter, StringConverter
 from cepces.xml.converter import UnsignedIntegerConverter
@@ -153,6 +154,16 @@ class CertificateAuthorityURI(XMLNode):
                         namespace=NS_CEP,
                         nillable=True)
 
+    # The <renewalOnly> element is an xs:boolean value that identifies whether
+    # the corresponding CAURI object can accept all types of requests, or only
+    # renewal requests. If the value is true, the server that is addressed by
+    # the CAURI object only accepts renewal requests. If the value is false,
+    # other request types are supported.
+    renewal_only = XMLValue('renewalOnly',
+                            converter=BooleanConverter,
+                            namespace=NS_CEP,
+                            nillable=True)
+
 
 class CertificateAuthority(XMLNode):
     # An instance of a CAURICollection object as defined in section
@@ -167,6 +178,25 @@ class CertificateAuthority(XMLNode):
                           binder=CertificateAuthorityURI,
                           namespace=NS_CEP,
                           child_namespace=NS_CEP)
+
+    # The <certificate> element contains the xs:base64Binary representation of
+    # the Abstract Syntax Notation One (ASN.1) encoded certificate authority
+    # signing certificate. The value for the <certificate> element MUST never
+    # be an empty string.
+    certificate = XMLValue('certificate',
+                           converter=CertificateConverter,
+                           namespace=NS_CEP)
+
+    # The <enrollPermission> element contains an xs:boolean value that
+    # indicates whether or not the requestor has permission to submit
+    # enrollment requests to the server represented by the corresponding CA
+    # object. It MUST be true or false. If the <enrollPermission> element is
+    # true, the requestor has enroll permissions and can submit requests. If
+    # the <enrollPermission> element is false, the requestor does not have
+    # permission.
+    enroll_permission = XMLValue('enrollPermission',
+                                 converter=BooleanConverter,
+                                 namespace=NS_CEP)
 
     # Each instance of a CA object in a GetPoliciesResponse message MUST have a
     # unique <cAReferenceID>. The <cAReferenceID> is an unsigned integer value

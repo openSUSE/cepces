@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from cepces.core import Base as CoreBase
+from cepces import Base as CoreBase
 from cepces.krb5 import types as ktypes
 from cepces.krb5 import functions as kfuncs
 import ctypes
@@ -296,6 +296,9 @@ class CredentialOptions(Base):
 
     @encryption_types.setter
     def encryption_types(self, types):
+        if not types:
+            return
+
         etypes = (ktypes.krb5_enctype * len(types))(*types)
 
         kfuncs.get_init_creds_opt_set_etype_list(
