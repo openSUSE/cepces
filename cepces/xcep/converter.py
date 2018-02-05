@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module containing XCEP related type converters."""
 from cepces.xml.converter import IntegerConverter
 
 

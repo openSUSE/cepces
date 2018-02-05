@@ -18,20 +18,18 @@
 # This module contains SOAP related classes, implementing a loose subset of the
 # specification, just enough to be able to communicate a service.
 #
+"""This module contains SOAP related authentication."""
 from abc import ABCMeta, abstractmethod, abstractproperty
-from cepces import Base
-from cepces.krb5 import Context, Keytab, Principal
-from cepces.krb5 import CredentialOptions, Credentials, CredentialCache
-from cepces.krb5 import types as ktypes
-from requests_kerberos import HTTPKerberosAuth
 import os
+from cepces import Base
+from cepces.krb5 import types as ktypes
+from cepces.krb5.core import Context, Keytab, Principal
+from cepces.krb5.core import CredentialOptions, Credentials, CredentialCache
+from requests_kerberos import HTTPKerberosAuth
 
 
 class Authentication(Base, metaclass=ABCMeta):
     """Base class for handling authentication of SOAP endpoints."""
-    def __init__(self):
-        super().__init__()
-
     @abstractproperty
     def transport(self):
         """Property containing authentication mechanism for the transport layer
@@ -46,9 +44,6 @@ class Authentication(Base, metaclass=ABCMeta):
 
 class AnonymousAuthentication(Authentication):
     """A simple pass-through authentication method."""
-    def __init__(self):
-        super().__init__()
-
     @property
     def transport(self):
         """Property containing authentication mechanism for the transport layer
@@ -139,10 +134,9 @@ class MessageUsernamePasswordAuthentication(Authentication):
 
     @property
     def transport(self):
-        raise NotImplementedError()
+        return None
 
     def post_process(self, envelope):
-        # TODO: Add SOAP header.
         raise NotImplementedError()
 
 

@@ -15,13 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from cepces.krb5 import types as ktypes
-from cepces.krb5.lib import _shlib
+# pylint: disable=invalid-name
+"""This module contains all the Kerberos functions."""
 import ctypes
 import functools
+from cepces.krb5 import types as ktypes
+from cepces.krb5.lib import _shlib
 
 
 class Error(RuntimeError):
+    """Generic error class, representing a runtime error from Kerberos."""
     def __init__(self, context, code):
         message_p = get_error_message(context, code)
 
@@ -33,19 +36,23 @@ class Error(RuntimeError):
 
     @property
     def code(self):
+        """Get the error code."""
         return self._code
 
     def __str__(self):
         return self._message
 
 
-def error_decorator(f):
-    if f.restype is not ktypes.krb5_error_code:
-        return f
+def error_decorator(func):
+    """Decorator for wrapping a function that raises errors on failed
+    Kerberos calls."""
+    if func.restype is not ktypes.krb5_error_code:
+        return func
 
-    @functools.wraps(f)
+    @functools.wraps(func)
     def wrapper(context, *args):
-        result = f(context, *args)
+        """Wrapper function."""
+        result = func(context, *args)
 
         # If the function call failed, raise an error.
         if result:

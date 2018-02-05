@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from enum import IntEnum
+# pylint: disable=invalid-name,too-few-public-methods
+"""This module contains all Kerberos specific types and structures."""
 import ctypes
+from enum import IntEnum
 
 LINE_MAX = 2048
 
@@ -30,6 +32,7 @@ krb5_error_code = krb5_int32
 
 
 class PrincipalType(IntEnum):
+    """Enumeration for all possible principal types."""
     # Name type not known
     KRB5_NT_UNKNOWN = 0
     # Just the name of the principal as in DCE, or for users
@@ -67,6 +70,7 @@ class PrincipalType(IntEnum):
 
 
 class EncryptionType(IntEnum):
+    """Enumeration for all possible encryption types."""
     KRB5_ENCTYPE_NULL = 0
     KRB5_ENCTYPE_DES_CBC_CRC = 1
     KRB5_ENCTYPE_DES_CBC_MD4 = 2
@@ -98,10 +102,12 @@ class EncryptionType(IntEnum):
 # ctypes converts c_char_p and then throws away the pointer. This child class
 # prevents that behaviour.
 class c_char_p_n(ctypes.c_char_p):
+    """Opaque class for a character pointer."""
     pass
 
 
 class _krb5_context(ctypes.Structure):
+    """Opaque structure for a Kerberos context."""
     pass
 
 
@@ -109,6 +115,7 @@ krb5_context = ctypes.POINTER(_krb5_context)
 
 
 class _krb5_kt(ctypes.Structure):
+    """Opaque structure for a Kerberos keytab."""
     pass
 
 
@@ -116,6 +123,7 @@ krb5_keytab = ctypes.POINTER(_krb5_kt)
 
 
 class krb5_principal_data(ctypes.Structure):
+    """Opaque structure for a Kerberos principal data."""
     pass
 
 
@@ -124,6 +132,7 @@ krb5_const_principal = ctypes.POINTER(krb5_principal_data)
 
 
 class _krb5_get_init_creds_opt(ctypes.Structure):
+    """Structure for Kerberos credential options."""
     _fields_ = [
         ('flags', krb5_int32),
         ('tkt_life', krb5_deltat),
@@ -159,6 +168,7 @@ krb5_creds = _krb5_creds
 
 
 class _krb5_ccache(ctypes.Structure):
+    """Opaque structure for a Kerberos credential cache."""
     pass
 
 

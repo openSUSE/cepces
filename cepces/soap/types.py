@@ -18,14 +18,17 @@
 # This module contains SOAP related classes, implementing a loose subset of the
 # specification, just enough to be able to communicate a service.
 #
+# pylint: disable=invalid-name
+"""This module contains common SOAP types."""
+from xml.etree.ElementTree import Element, QName
 from cepces.soap import NS_ADDRESSING, NS_SOAP
 from cepces.xml import NS_XSI
 from cepces.xml.binding import XMLElement, XMLNode, XMLValue
 from cepces.xml.converter import StringConverter
-from xml.etree.ElementTree import Element, QName
 
 
 class FaultSubcode(XMLNode):
+    """SOAP Fault Subcode."""
     value = XMLValue('Value',
                      converter=StringConverter,
                      namespace=NS_SOAP)
@@ -41,6 +44,7 @@ class FaultSubcode(XMLNode):
 
 
 class FaultCode(XMLNode):
+    """SOAP Fault Code."""
     value = XMLValue('Value',
                      converter=StringConverter,
                      namespace=NS_SOAP)
@@ -62,6 +66,7 @@ class FaultCode(XMLNode):
 
 
 class FaultReason(XMLNode):
+    """SOAP Fault Reason."""
     text = XMLValue('Text',
                     converter=StringConverter,
                     namespace=NS_SOAP)
@@ -77,6 +82,7 @@ class FaultReason(XMLNode):
 
 
 class Fault(XMLNode):
+    """SOAP Fault."""
     code = XMLElement('Code',
                       binder=FaultCode,
                       namespace=NS_SOAP)
@@ -95,6 +101,7 @@ class Fault(XMLNode):
 
 
 class Header(XMLNode):
+    """SOAP Header."""
     action = XMLValue('Action',
                       converter=StringConverter,
                       namespace=NS_ADDRESSING,
@@ -137,6 +144,7 @@ class Header(XMLNode):
 
 
 class Body(XMLNode):
+    """SOAP Body."""
     payload = XMLElement('*',
                          binder=None,
                          required=False)
@@ -149,6 +157,7 @@ class Body(XMLNode):
 
 
 class Envelope(XMLNode):
+    """SOAP Envelope."""
     header = XMLElement('Header',
                         binder=Header,
                         namespace=NS_SOAP)

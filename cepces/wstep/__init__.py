@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""This package contains WSTEP related logic."""
 
 NS_WST = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
 NS_WST_SECEXT = 'http://docs.oasis-open.org/wss/2004/01/' \
@@ -23,7 +24,9 @@ NS_ENROLLMENT = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollment'
 
 TOKEN_TYPE = 'http://docs.oasis-open.org/wss/2004/01/' \
              'oasis-200401-wss-x509-token-profile-1.0#X509v3'
-REQUEST_TYPE = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue'
+ISSUE_REQUEST_TYPE = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue'
+QUERY_REQUEST_TYPE = 'http://schemas.microsoft.com/windows/pki/2009/01/' \
+                     'enrollment/QueryTokenStatus'
 VALUE_TYPE = 'http://schemas.microsoft.com/windows/pki/2009/01/' \
              'enrollment#PKCS10'
 ENCODING_TYPE = 'http://docs.oasis-open.org/wss/2004/01/' \

@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module containing authentication type handlers."""
 from abc import ABCMeta, abstractmethod
 from cepces import Base
 from cepces.krb5.functions import Error as KerberosError
@@ -23,20 +24,25 @@ from cepces.soap import auth as SOAPAuth
 
 
 class AuthenticationHandler(Base, metaclass=ABCMeta):
+    """Base class for any authentication handled."""
     def __init__(self, parser):
+        super().__init__()
         self._parser = parser
 
     @abstractmethod
     def handle(self):
+        """Constructs and returns a SOAPAuth authentication handler."""
         pass
 
 
 class AnonymousAuthenticationHandler(AuthenticationHandler):
+    """Constructs an anonymous authentication handler."""
     def handle(self):
         return SOAPAuth.AnonymousAuthentication()
 
 
 class KerberosAuthenticationHandler(AuthenticationHandler):
+    """Kerberos Authentication Handler"""
     def handle(self):
         parser = self._parser
 
@@ -78,7 +84,7 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
                     init_ccache=ccache,
                     keytab=keytab,
                 )
-            except KerberosError as e:
+            except KerberosError:
                 # Ignore
                 pass
 
@@ -89,8 +95,29 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
 
 
 class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
-    pass
+    """Handler for Username and Password based authentication."""
+    def handle(self):
+        parser = self._parser
+
+        # Ensure there's a usernamepassword section present.
+        if 'usernamepassword' not in parser:
+            raise RuntimeError(
+                'Missing "usernamepassword" section in configuration.',
+            )
+
+        section = parser['usernamepassword']
+
+        username = section.get('username', None)
+        password = section.get('password', None)
+
+        return SOAPAuth.MessageUsernamePasswordAuthentication(
+            username,
+            password,
+        )
 
 
 class CertificateAuthenticationHandler(AuthenticationHandler):
-    pass
+    """Handler for Certificate based authentication."""
+    def handle(self):
+        """Constructs and returns a SOAPAuth authentication handler."""
+        raise NotImplementedError()

@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=invalid-name
+"""This module tries to load the shared library for Kerberos."""
 import ctypes
 
 # Try to load the Kerberos5 library dynamically. Naïvely try to load everything
@@ -32,7 +34,7 @@ for lib in _libs:
     else:
         try:
             _shlib = ctypes.CDLL(lib)
-        except:
+        except OSError:
             pass
 
 # If no library was found, fail.

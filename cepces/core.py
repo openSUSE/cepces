@@ -15,120 +15,60 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+# pylint: disable=invalid-name,no-self-use
 """Module containing core classes and functionality."""
 
 
 from cepces import Base
-from cepces import auth
+from cepces.config import Configuration
 from cepces.xcep.service import Service as XCEPService
 from cepces.wstep.service import Service as WSTEPService
-from cepces.soap import auth as SOAPAuth
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 import requests
 
 
-class Configuration(Base):
-    AUTH_HANDLER_MAP = {
-        'Anonymous': auth.AnonymousAuthenticationHandler,
-        'Kerberos': auth.KerberosAuthenticationHandler,
-        'UsernamePassword': auth.UsernamePasswordAuthenticationHandler,
-        'Certificate': auth.CertificateAuthenticationHandler,
-    }
-
-    AUTH_MAP = {
-        'Anonymous': SOAPAuth.AnonymousAuthentication,
-        'Kerberos': SOAPAuth.TransportKerberosAuthentication,
-        'UsernamePassword': SOAPAuth.MessageUsernamePasswordAuthentication,
-        'Certificate': SOAPAuth.MessageCertificateAuthentication,
-    }
-
-    def __init__(self, endpoint, cas, auth):
-        self._endpoint = endpoint
-        self._cas = cas
-        self._auth = auth
-
-    @property
-    def endpoint(self):
-        return self._endpoint
-
-    @property
-    def cas(self):
-        return self._cas
-
-    @property
-    def auth(self):
-        return self._auth
-
-    @classmethod
-    def from_parser(cls, parser):
-        # Ensure there's a global section present.
-        if 'global' not in parser:
-            raise RuntimeError('Missing "global" section in configuration.')
-
-        section = parser['global']
-
-        # Ensure certain required variables are present.
-        for var in ['endpoint', 'auth']:
-            if var not in section:
-                raise RuntimeError(
-                    'Missing "{}/{}" variable in configuration.'.format(
-                        'global',
-                        var,
-                    ),
-                )
-
-        # Verify that the chosen authentication method is valid.
-        if section['auth'] not in Configuration.AUTH_HANDLER_MAP.keys():
-            raise RuntimeError(
-                'No such authentication method: {}'.format(
-                    section['auth'],
-                ),
-            )
-
-        # Store the global configuration options.
-        endpoint = section.get('endpoint')
-        auth = Configuration.AUTH_HANDLER_MAP[section['auth']](parser).handle()
-        cas = section.get('cas', True)
-
-        if cas == '':
-            cas = False
-
-        return Configuration(endpoint, cas, auth)
-
-
 class PartialChainError(RuntimeError):
+    """Error raised when a complete certificate chain cannot be retreived."""
     def __init__(self, msg, result):
         super().__init__(msg)
         self._result = result
 
     @property
     def result(self):
+        """Return the result so far."""
         return self._result
 
 
 class Service(Base):
+    """Main service."""
     class Endpoint(Base):
+        """Internal class representing potential endpoints."""
         def __init__(self, url, priority, renewal_only):
+            super().__init__()
+
             self._url = url
             self._priority = priority
             self._renewal_only = renewal_only
 
         @property
         def url(self):
+            """Get the URL."""
             return self._url
 
         @property
         def priority(self):
+            """Get the priority."""
             return self._priority
 
         @property
         def renewal_only(self):
+            """Can this endpoint be used only for renewals?"""
             return self._renewal_only
 
         def __str__(self):
@@ -193,6 +133,70 @@ class Service(Base):
         data = self._policies.cas[index].certificate
 
         return reversed(self._resolve_chain(data))
+
+    def request(self, csr, renew=False):
+        """Request a certificate with a CSR."""
+        endpoint = None
+
+        for candidate in self.endpoints:
+            # If not renewing and the endpoint only supports renewal, ignore
+            # it.
+            if renew and candidate.renewal_only or not renew:
+                endpoint = candidate
+
+                break
+
+        # No endpoint found.
+        if not endpoint:
+            return None
+
+        ces = WSTEPService(
+            endpoint=str(endpoint),
+            auth=self._config.auth,
+            capath=self._config.cas,
+        )
+
+        csr_bytes = csr.public_bytes(serialization.Encoding.PEM)
+        csr_raw = csr_bytes.decode('utf-8').strip()
+        response = ces.request(csr_raw)
+
+        # There should only be one response, as we only send one request.
+        if response:
+            # Convert to proper certificate, if possible.
+            r = response[0]
+
+            if r.token:
+                pem = r.token.encode()
+                cert = x509.load_pem_x509_certificate(pem, default_backend())
+                r.token = cert
+
+            return r
+        else:
+            return None
+
+    def poll(self, request_id, uri):
+        """Poll the status of a previous request."""
+        ces = WSTEPService(
+            endpoint=uri,
+            auth=self._config.auth,
+            capath=self._config.cas,
+        )
+
+        response = ces.poll(request_id)
+
+        # There should only be one response, as we only send one request.
+        if response:
+            # Convert to proper certificate, if possible.
+            r = response[0]
+
+            if r.token:
+                pem = r.token.encode()
+                cert = x509.load_pem_x509_certificate(pem, default_backend())
+                r.token = cert
+
+            return r
+        else:
+            return None
 
     def _verify_certificate_signature(self, cert, issuer):
         """Verify that the certificate is signed.

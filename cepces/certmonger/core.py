@@ -48,10 +48,10 @@ class MissingEnvironmentVariable(RuntimeError):
             'cannot proceed.'.format(variable)
         )
 
-        @property
-        def variable(self):
-            """Returns the name of the missing environment variable.
+    @property
+    def variable(self):
+        """Returns the name of the missing environment variable.
 
-            :return: the name of the missing environment variable.
-            """
-            return self._variable
+        :return: the name of the missing environment variable.
+        """
+        return self._variable
