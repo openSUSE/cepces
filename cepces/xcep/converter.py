@@ -15,19 +15,28 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from cepces.binding.converter import Converter
+"""Module containing XCEP related type converters."""
+from cepces.xml.converter import IntegerConverter
 
 
-class ClientAuthenticationConverter(Converter):
+class ClientAuthenticationConverter(IntegerConverter):
+    """Converts to and from allowed authentication methods (int <-> str)."""
     MAP = [
-        (1, 'anonymous'),
-        (2, 'kerberos'),
-        (4, 'userpass'),
-        (8, 'certificate')
+        (1, 'Anonymous'),
+        (2, 'Kerberos'),
+        (4, 'UsernamePassword'),
+        (8, 'Certificate')
     ]
 
     @staticmethod
     def from_string(value):
+        """Converts the stringified integer key to its string value
+
+        :param value: the stringified integer to convert, or None
+        :raise TypeError: if the input is not a string
+        :raise ValueError: if the input cannot be resolved
+        :return: the input as a string value, or None if value is None
+        """
         values = [v[0] for v in ClientAuthenticationConverter.MAP]
 
         if value is None:
@@ -38,10 +47,18 @@ class ClientAuthenticationConverter(Converter):
             raise ValueError('Unsupported value.')
         else:
             index = values.index(int(value))
+
             return ClientAuthenticationConverter.MAP[index][1]
 
     @staticmethod
     def to_string(value):
+        """Converts the string value its stringified integer
+
+        :param value: the string to convert, or None
+        :raise TypeError: if the input is not a string
+        :raise ValueError: if the input cannot be resolved
+        :return: the input as a string value, or None if value is None
+        """
         values = [v[1] for v in ClientAuthenticationConverter.MAP]
 
         if value is None:
@@ -52,4 +69,5 @@ class ClientAuthenticationConverter(Converter):
             raise ValueError('Unsupported value.')
         else:
             index = values.index(value)
+
             return str(ClientAuthenticationConverter.MAP[index][0])

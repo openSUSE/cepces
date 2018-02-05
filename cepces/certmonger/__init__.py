@@ -15,11 +15,5 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""Package for very rudimentary SOAP  handling."""
-from xml.etree.ElementTree import QName
 
-NS_SOAP = 'http://www.w3.org/2003/05/soap-envelope'
-NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
-
-# ACTION_FAULT = 'http://www.w3.org/2005/08/addressing/fault'
-QNAME_FAULT = QName('http://www.w3.org/2003/05/soap-envelope', 'Fault')
+"""Package containing all certmonger integration components."""

@@ -1,18 +1,77 @@
 [global]
-# URI of the service.
-endpoint=https://ca/ADPolicyProvider_CEP_Kerberos/service.svc/CEP
-
-# Specify the authentication type to use. This should be one of:
+# Hostname of the issuing certification authority. This is an optional setting
+# and is only used to construct the URL to the Policy Provider endpoint.
 #
-#  * anonymous (not implemented): no authentication
-#  * kerberos: Transport level kerberos authentication. Also known as "Windows
-#              integrated authentication".
-#  * basic (not implemented): Username and password authentication
-#  * x509 (not implemented): X.509 client certificate authentication
-authentication=kerberos
+# Default: ca
+server=ca
 
-# Path to a CA bundle or directory containing certificates. Specifying False
-# disabled SSL verification.
+# This is the authentication mechanism used for connecting to the service
+# endpoint. The following options are available:
 #
-# Note: Directories are supported starting with python-requests 2.9 and later.
-cas=/etc/pki/tls/certs/ca-bundle.crt
+# * Anonymous
+#             Anonymous authentication (i.e. no authentication at all.) This
+#             is discouraged and untested. It is only included for completness
+#             as defined in the MS-XCEP specification.
+# * Kerberos
+#             Transport level authentication. This is the default where the
+#             authentication is performed in the HTTP(s) layer.
+# * UsernamePassword
+#             Message level authentication. The credentials are used in the
+#             message header for authentication.
+# * Certificate
+#             Message level authentication. A client certificate is used to
+#             sign the message. This is not yet implemented.
+#
+# Default: Kerberos
+auth=Kerberos
+
+# This is the final URL of the Policy Provider endpoint.
+#
+# Default: https://${server}/ADPolicyProvider_CEP_${auth}/service.svc/CEP
+endpoint=https://${server}/ADPolicyProvider_CEP_${auth}/service.svc/CEP
+
+# Path to a CA bundle or directory containing certificates. If not specified,
+# the system default is used. If set to an empty value, verification is
+# bypassed. This is strongly discouraged.
+#
+# Please note that directories are supported starting with python-requests 2.9.
+#
+# Default: <not defined>
+#cas=
+
+[kerberos]
+# Use the specified keytab. If unspecified, the system default is used.
+#
+# Default: <not defined>
+#keytab=
+
+# An optional explicit realm to use. If unspecified, the default system realm
+# is used.
+#
+# Default: <not defined>
+#realm=
+
+# Initialize a credential cache. If this is disabled, a valid credential cache
+# is required prior launching the application. If enabled, a temporary
+# in-memory cache is created, and released when the application ends.
+#
+# Default: True
+ccache=True
+
+# A list of principals to try when requesting a ticket.
+#
+# Default: <empty list>
+principals=
+  ${SHORTNAME}$$
+  host/${SHORTNAME}
+  host/${fqdn}
+
+# A list of encryption types to use.
+#
+# Default: <not defined>
+enctypes=
+  des-cbc-crc
+  des-cbc-md5
+  arcfour-hmac
+  aes128-cts-hmac-sha1-96
+  aes256-cts-hmac-sha1-96

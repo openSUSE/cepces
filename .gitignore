@@ -3,26 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
+# Distribution
 *.egg-info/
-.installed.cfg
-*.egg
+dist/
 
 # Local files
 local/
 
-# Vagrant
-.vagrant/
+# Configuration files
+*.conf
+
+.vscode/

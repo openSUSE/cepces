@@ -16,10 +16,8 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 import unittest
-from cepces.binding import ListingMeta
-from cepces.binding import XMLDescriptor
-from cepces.binding import XMLNode
-from xml.etree import ElementTree
+from cepces.xml.binding import ListingMeta
+from cepces.xml.binding import XMLDescriptor
 
 
 class MockXMLDescriptor(XMLDescriptor):
@@ -96,7 +94,3 @@ class TestListingMeta(unittest.TestCase):
         super().tearDown()
 
         self._dummy = None
-
-
-if __name__ == '__main__':
-    unittest.main()

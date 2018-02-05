@@ -15,11 +15,28 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""Package for very rudimentary SOAP  handling."""
-from xml.etree.ElementTree import QName
+# pylint: disable=invalid-name
+"""This module tries to load the shared library for Kerberos."""
+import ctypes
 
-NS_SOAP = 'http://www.w3.org/2003/05/soap-envelope'
-NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
+# Try to load the Kerberos5 library dynamically. Naïvely try to load everything
+# in the list until successful.
+_shlib = None
+_libs = [
+    'libgssapi_krb5.so',
+    'libgssapi_krb5.so.2',
+    'libgssapi_krb5.dylib',
+]
 
-# ACTION_FAULT = 'http://www.w3.org/2005/08/addressing/fault'
-QNAME_FAULT = QName('http://www.w3.org/2003/05/soap-envelope', 'Fault')
+for lib in _libs:
+    if _shlib is not None:
+        break
+    else:
+        try:
+            _shlib = ctypes.CDLL(lib)
+        except OSError:
+            pass
+
+# If no library was found, fail.
+if _shlib is None:
+    raise RuntimeError("Could not load any Kerberos library.")

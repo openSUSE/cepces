@@ -15,11 +15,24 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""Package for very rudimentary SOAP  handling."""
-from xml.etree.ElementTree import QName
+import unittest
+import logging
+from cepces import Base
 
-NS_SOAP = 'http://www.w3.org/2003/05/soap-envelope'
-NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
 
-# ACTION_FAULT = 'http://www.w3.org/2005/08/addressing/fault'
-QNAME_FAULT = QName('http://www.w3.org/2003/05/soap-envelope', 'Fault')
+class TestBase(unittest.TestCase):
+    """Tests the Base class"""
+
+    def testDefaultLogger(self):
+        """Test with default logger"""
+        base = Base()
+
+        self.assertIsNotNone(base._logger)
+
+    def testSuppliedLogger(self):
+        """Test with supplied logger"""
+        logger = logging.getLogger('Test')
+        base = Base(logger=logger)
+
+        self.assertIsNotNone(base._logger)
+        self.assertIs(base._logger, logger)

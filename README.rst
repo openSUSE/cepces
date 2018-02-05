@@ -47,34 +47,25 @@ extracted directory:
 Configuration
 =============
 
-Once installed, there are two configuration files that need to be modified in
+Once installed, there is a configuration file that needs to be modified in
 order for the certificate enrollment to function properly, possibly along with
 some external modifications of system configuration files.
 
-Both configuration files should be available in the `/etc/cepces` directory,
+The configuration file should be available in the `/etc/cepces` directory,
 possibly with a ".dist" extension. If that is the case drop the ".dist"
-extension by either copying (or renaming) those files (i.e. ``cepces.conf.dist``
-should be named ``cepces.conf`` and ``cepces-submit.conf.dist`` should be named
-``cepces-submit.conf``).
+extension by either copying (or renaming) the file (i.e. ``cepces.conf.dist``
+should be named ``cepces.conf``).
 
 cepces.conf
 -----------
 
 This is the main configuration file. It is fairly small and only requires two
-settings to be changed (`endpoint` and `cas`).
+settings to be changed (`server` or `endpoint`, and `cas`).
 
 `endpoint` should be set to the CEP endpoint, whereas `cas` should point to a
 directory containing all CA certificates in your chain (if the version of the
 `python-requests` package is recent enough), or preferably a bundle file
 containing all CA certificates in the chain.
-
-cepces-submit.conf
-------------------
-
-This configuration file is used by the certmonger helper. The defaults should
-be sane enough, with the exception of `KINIT_REALM`. If no default realm is set
-in `/etc/krb5.conf`, this value has to be set in `cepces-submit.conf` or the
-application may fail when obtaining a ticket-granting ticket (TGT).
 
 Usage
 =====
@@ -89,7 +80,7 @@ installed:
     CA 'cepces':
        is-default: no
        ca-type: EXTERNAL
-       helper-location: /usr/sbin/cepces-submit
+       helper-location: /usr/libexec/certmonger/cepces-submit
 
 Use this CA configuration as with any other. Please consult the official
 `certmonger`_ documentation for instructions.

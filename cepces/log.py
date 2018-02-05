@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # This file is part of cepces.
@@ -16,11 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from cepces.cli import Application
-import sys
+"""This module contains logging configuration."""
+from pathlib import Path
+import logging.config
+from cepces import __title__
 
-with Application() as app:
-    app.run()
+# Load logging configuration settings properly.
+LOGGING_CONFIG_FILES = [
+    '{}/logging.conf'.format(__title__),
+    '/etc/{}/logging.conf'.format(__title__),
+    '/usr/local/etc/{}/logging.conf'.format(__title__),
+]
 
-# Manually terminate with the correct exit code.
-sys.exit(app.exit_code)
+
+def init_logging():
+    """Initialize logging by reading all (possible) configuration files."""
+    for path in [Path(x) for x in LOGGING_CONFIG_FILES]:
+        if path.is_file():
+            logging.config.fileConfig(path.__str__())

@@ -21,13 +21,13 @@ import unittest
 
 class TestToClarkNotation(unittest.TestCase):
     def testName(self):
-        '''Name should not be changed when namespace is None'''
+        """Name should not be changed when namespace is None"""
         name = 'TestName'
 
         self.assertEqual(util.to_clark(name), name)
 
     def testNameAndNamespace(self):
-        '''Result should follow Clarks's notation'''
+        """Result should follow Clarks's notation"""
         name = 'TestName'
         namespace = 'TestNameSpace'
 
@@ -37,7 +37,7 @@ class TestToClarkNotation(unittest.TestCase):
         )
 
     def testNamespace(self):
-        '''Only specifying the namespace should fail'''
+        """Only specifying the namespace should fail"""
         namespace = 'TestNameSpace'
 
         with self.assertRaises(TypeError):
@@ -46,7 +46,7 @@ class TestToClarkNotation(unittest.TestCase):
 
 class TestFromClarkNotation(unittest.TestCase):
     def testOnlyName(self):
-        '''Input should be returned unaltered'''
+        """Input should be returned unaltered"""
         name = 'TestName'
         rname, rnamespace = util.from_clark(name)
 
@@ -54,7 +54,7 @@ class TestFromClarkNotation(unittest.TestCase):
         self.assertEqual(rnamespace, None)
 
     def testNameAndNamespace(self):
-        '''(name, namsepace) tuple should be returned'''
+        """(name, namsepace) tuple should be returned"""
         name = 'TestName'
         namespace = 'TestNamespace'
 
@@ -65,7 +65,7 @@ class TestFromClarkNotation(unittest.TestCase):
         self.assertEqual(namespace, rnamespace)
 
     def testOnlyNamespace(self):
-        '''Having only a namespace should fail'''
+        """Having only a namespace should fail"""
         string = '{TestNamespace}'
 
         with self.assertRaises(ValueError):

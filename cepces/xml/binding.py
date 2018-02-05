@@ -15,16 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from abc import ABCMeta
-from abc import abstractmethod
-from cepces.binding.converter import StringConverter
-from cepces.xml import util
+# pylint: disable=protected-access,too-few-public-methods,too-many-arguments
+# pylint: disable=too-many-ancestors
+"""Module containing XML bindings."""
 from collections import MutableSequence
 from xml.etree import ElementTree
 import inspect
-
-NS_XSI = 'http://www.w3.org/2001/XMLSchema-instance'
-ATTR_NIL = util.to_clark('nil', NS_XSI)
+from abc import ABCMeta, abstractmethod
+from cepces.xml import ATTR_NIL, NS_XSI, util
+from cepces.xml.converter import StringConverter
 
 
 class XMLDescriptor(metaclass=ABCMeta):
@@ -37,14 +36,12 @@ class XMLDescriptor(metaclass=ABCMeta):
 
     def __init__(self, name, namespace=None):
         """Initializes a new `XMLDescriptor`.
-
         When initializing a new XMLDescriptor object, the name (and possibly
         namespace) is used to construct an internal Qualified Name using
         Clark's notation.
 
-        Args:
-            name (str): The name of the element to bind with.
-            namespace (str): An optional namespace.
+        :param name: The name of the element to bind with.
+        :param namespace: An optional namespace.
         """
         # Assign and increase the descriptor index.
         self._index = XMLDescriptor._index
@@ -72,9 +69,36 @@ class XMLDescriptor(metaclass=ABCMeta):
         pass
 
 
+class ListingMeta(type):
+    """A meta class for ordered XML Descriptor attributes.
+    This meta class adds an extra property, `__listing__`, which includes all
+    `XMLDescriptor` properties in their declared order.
+    """
+
+    def __new__(mcs, name, bases, class_dict):
+        def is_member(member):
+            """Checks if a member is an XMLDescriptor."""
+            # Only return members that are instances of XMLDescriptor.
+            result = isinstance(member, XMLDescriptor)
+            return result
+
+        # Create a new class.
+        klass = type.__new__(mcs, name, bases, class_dict)
+        members = inspect.getmembers(klass, is_member)
+        klass.__listing__ = sorted(members, key=lambda i: i[1]._index)
+
+        return klass
+
+
 class XMLAttribute(XMLDescriptor):
     """This class binds to an attribute of an element."""
     def __init__(self, name, namespace=None, converter=None):
+        """Initializes a new `XMLAttribute`.
+
+        :param name: The name of the element to bind with.
+        :param namespace: An optional namespace.
+        :param converter: An optional data type converter.
+        """
         super().__init__(name, namespace)
 
         # Use a StringConverter if None is given.
@@ -95,39 +119,15 @@ class XMLAttribute(XMLDescriptor):
         del instance._element.attrib[self._qname]
 
 
-class ListingMeta(type):
-    """A meta class for ordered XML Descriptor attributes.
-
-    This meta class adds an extra property, `__listing__`, which includes all
-    `XMLDescriptor` properties in their declared order.
-    """
-
-    def __new__(cls, name, bases, class_dict):
-        def is_member(member):
-            # Only return members that are instances of XMLDescriptor.
-            result = isinstance(member, XMLDescriptor)
-            return result
-
-        # Create a new class.
-        klass = type.__new__(cls, name, bases, class_dict)
-        members = inspect.getmembers(klass, is_member)
-        klass.__listing__ = sorted(members, key=lambda i: i[1]._index)
-
-        return klass
-
-
 class XMLNode(metaclass=ListingMeta):
     """Base class for all binding nodes."""
 
     def __init__(self, element=None):
         """Initializes a new `XMLNode`.
-
         If no base element is provided, the instance is instructed to create a
         new element (and possibly child elements).
-
         Args:
             element (Element): The root Element on which to bind.
-
         Raises:
             TypeError: If `element` is of the wrong type.
         """
@@ -141,9 +141,15 @@ class XMLNode(metaclass=ListingMeta):
         self._element = element
         self._bindings = {}
 
+    @property
+    def element(self):
+        """Get the backing XML element."""
+        return self._element
+
     @staticmethod
     @abstractmethod
     def create():
+        """Create a new XML element for the node."""
         raise NotImplementedError()
 
 
@@ -154,8 +160,11 @@ class XMLElement(XMLDescriptor):
         super().__init__(name, namespace)
 
         if binder is None:
-            def binder(x):
-                return x
+            def func(value):
+                """Simple pass-through function."""
+                return value
+
+            binder = func
 
         self._binder = binder
         self._required = required
@@ -189,20 +198,20 @@ class XMLElement(XMLDescriptor):
         # Get any previous binder.
         if hash(self) in instance._bindings:
             return instance._bindings[hash(self)]
-        else:
-            # No previous binder found. Get the element, if it exists, and
-            # instantiate a new one.
-            element = instance._element.find(self._qname)
 
-            if element is None:
-                # No element exists. It must have been removed.
-                return None
-            else:
-                # Create a new binder for the existing element.
-                binder = self._binder(element)
-                instance._bindings[hash(self)] = binder
+        # No previous binder found. Get the element, if it exists, and
+        # instantiate a new one.
+        element = instance._element.find(self._qname)
 
-                return binder
+        if element is None:
+            # No element exists. It must have been removed.
+            return None
+
+        # Create a new binder for the existing element.
+        binder = self._binder(element)
+        instance._bindings[hash(self)] = binder
+
+        return binder
 
     def __set__(self, instance, value):
         # If there is a previous value assigned, (try to) delete it first.
@@ -236,7 +245,9 @@ class XMLElement(XMLDescriptor):
 
 
 class XMLElementList(XMLElement):
+    """XML Element List"""
     class List(MutableSequence):
+        """Internal list."""
         def __init__(self, parent, element, binder, qname):
             super().__init__()
 
@@ -287,6 +298,7 @@ class XMLElementList(XMLElement):
             self._element.insert(key, value._element)
             self._list[key] = value
 
+        # pylint: disable=arguments-differ
         def insert(self, key, value):
             self._element.insert(key, value._element)
             self._list.insert(key, value)
@@ -334,6 +346,7 @@ class XMLElementList(XMLElement):
 
 
 class XMLValue(XMLElement):
+    """XML Value"""
     def __init__(self, name, converter, namespace=None,
                  required=True, nillable=False):
         super().__init__(name,
@@ -361,8 +374,8 @@ class XMLValue(XMLElement):
 
         if hasattr(element, 'text'):
             return self._converter.from_string(element.text)
-        else:
-            return self._converter.from_string('')
+
+        return self._converter.from_string('')
 
     def __set__(self, instance, value):
         element = super().__get__(instance, None)
@@ -384,13 +397,11 @@ class XMLValue(XMLElement):
 
         element.text = self._converter.to_string(value)
 
-    def __delete__(self, instance):
-        '''Deletes an element.'''
-        super().__delete__(instance)
-
 
 class XMLValueList(XMLElement):
+    """XML Value List"""
     class List(MutableSequence):
+        """Internal list"""
         def __init__(self, parent, element, converter, qname):
             super().__init__()
 
@@ -424,6 +435,7 @@ class XMLValueList(XMLElement):
         def __setitem__(self, key, value):
             self._list[key].text = self._converter.to_string(value)
 
+        # pylint: disable=arguments-differ
         def insert(self, key, value):
             element = ElementTree.Element(self._qname)
             element.text = self._converter.to_string(value)
@@ -470,4 +482,4 @@ class XMLValueList(XMLElement):
 
             instance._bindings[hash(self)] = binder
 
-        return binder
+            return binder

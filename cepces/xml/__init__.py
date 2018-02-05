@@ -15,3 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Package containing XML utilities."""
+from cepces.xml import util
+
+
+NS_XSI = 'http://www.w3.org/2001/XMLSchema-instance'
+ATTR_NIL = util.to_clark('nil', NS_XSI)

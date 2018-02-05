@@ -15,61 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from cepces.soap import Service as SOAPService
-from cepces.soap import Envelope
-from cepces.soap import Body
-from cepces.wstep.types import SecurityTokenRequest
-from cepces.wstep.types import SecurityTokenResponseCollection
-from xml.etree import ElementTree
-import logging
-import uuid
-import re
+"""This package contains WSTEP related logic."""
 
-logger = logging.getLogger(__name__)
+NS_WST = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
+NS_WST_SECEXT = 'http://docs.oasis-open.org/wss/2004/01/' \
+                'oasis-200401-wss-wssecurity-secext-1.0.xsd'
+NS_ENROLLMENT = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollment'
 
-ACTION = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollment/' \
-         'RST/wstep'
-
-
-class Service(SOAPService):
-    def get_envelope(self, payload):
-        envelope = Envelope()
-        envelope.header.action = ACTION
-        envelope.header.message_id = "urn:uuid:{0:s}".format(str(uuid.uuid4()))
-        envelope.header.to = self._endpoint
-        envelope.body.payload = payload._element
-
-        logger.debug('Preparing message %s to %s with payload: %s',
-                     envelope.header.message_id,
-                     envelope.header.to,
-                     ElementTree.tostring(payload._element))
-
-        return envelope
-
-    def request(self, csr):
-        m = re.search('^\-{5}BEGIN NEW CERTIFICATE REQUEST\-{5}\n'
-                      '(.*)\n'
-                      '\-{5}END NEW CERTIFICATE REQUEST\-{5}\s*$',
-                      csr,
-                      flags=re.DOTALL)
-
-        if not m:
-            raise LookupError('Invalid CSR.')
-
-        token = SecurityTokenRequest()
-        token.token = m.group(1)
-
-        envelope = self.get_envelope(token)
-        result = self.send(envelope)
-
-        # if result is None:
-        #     raise LookupError('No responses.')
-        soap_response = Envelope(result)
-        response = SecurityTokenResponseCollection(soap_response.body.payload)
-
-        # All responses has to be processed before hand, since they need to be
-        # curated of any (possible) extra Microsoft-added line endings.
-        for r in response.responses:
-            r.token.text = r.token.text.replace('&#xD;', '')
-
-        return response.responses
+TOKEN_TYPE = 'http://docs.oasis-open.org/wss/2004/01/' \
+             'oasis-200401-wss-x509-token-profile-1.0#X509v3'
+ISSUE_REQUEST_TYPE = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue'
+QUERY_REQUEST_TYPE = 'http://schemas.microsoft.com/windows/pki/2009/01/' \
+                     'enrollment/QueryTokenStatus'
+VALUE_TYPE = 'http://schemas.microsoft.com/windows/pki/2009/01/' \
+             'enrollment#PKCS10'
+ENCODING_TYPE = 'http://docs.oasis-open.org/wss/2004/01/' \
+                'oasis-200401-wss-wssecurity-secext-1.0.xsd#base64binary'

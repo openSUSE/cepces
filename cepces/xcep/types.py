@@ -15,31 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from cepces.binding import ATTR_NIL
-from cepces.binding import XMLElement
-from cepces.binding import XMLElementList
-from cepces.binding import XMLNode
-from cepces.binding import XMLValue
-from cepces.binding import XMLValueList
-from cepces.binding.converter import DateTimeConverter
-from cepces.binding.converter import UnsignedIntegerConverter
-from cepces.binding.converter import IntegerConverter
-from cepces.binding.converter import SignedIntegerConverter
-from cepces.binding.converter import StringConverter
+# pylint: disable=invalid-name
+"""XCEP Types."""
+from xml.etree.ElementTree import Element, QName
+from cepces.xml.binding import ATTR_NIL
+from cepces.xml.binding import XMLElement, XMLElementList
+from cepces.xml.binding import XMLNode
+from cepces.xml.binding import XMLValue, XMLValueList
+from cepces.xml.converter import BooleanConverter, CertificateConverter
+from cepces.xml.converter import DateTimeConverter, IntegerConverter
+from cepces.xml.converter import SignedIntegerConverter, StringConverter
+from cepces.xml.converter import UnsignedIntegerConverter
+from cepces.xcep import NS_CEP
 from cepces.xcep.converter import ClientAuthenticationConverter
-from xml.etree.ElementTree import Element
-from xml.etree.ElementTree import QName
-
-NS_CEP = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy'
 
 
 class Client(XMLNode):
-    ''' The `Client` node contains information about the client's current state
-     and preferences.'''
+    """The `Client` node contains information about the client's current state
+     and preferences."""
     last_update = XMLValue('lastUpdate',
                            converter=DateTimeConverter,
                            namespace=NS_CEP,
                            nillable=True)
+
+    # This should probably use a LanguageConverter for proper validation.
     preferred_language = XMLValue('preferredLanguage',
                                   converter=StringConverter,
                                   namespace=NS_CEP,
@@ -61,9 +60,9 @@ class Client(XMLNode):
 
 
 class RequestFilter(XMLNode):
-    '''The `RequestFilter` node is provided in a request and used by the
+    """The `RequestFilter` node is provided in a request and used by the
     server to filter the `GetPoliciesResponse` to contain only
-    `CertificateEnrollmentPolicy` objects that satisfy the filter.'''
+    `CertificateEnrollmentPolicy` objects that satisfy the filter."""
     policy_oids = XMLValueList('policyOIDs',
                                child_name='oid',
                                converter=StringConverter,
@@ -99,7 +98,7 @@ class RequestFilter(XMLNode):
 
 
 class GetPolicies(XMLNode):
-    '''The `GetPolicies` node contains the client request.'''
+    """The `GetPolicies` node contains the client request."""
     client = XMLElement('client',
                         binder=Client,
                         namespace=NS_CEP)
@@ -118,6 +117,7 @@ class GetPolicies(XMLNode):
 
 
 class CertificateAuthorityURI(XMLNode):
+    """Certificate Authority URI"""
     # The <clientAuthentication> element is used to define the supported
     # authentication type for the <uri> element of this CAURI object. The
     # <clientAuthentication> element is an unsigned integer that MUST have one
@@ -156,8 +156,23 @@ class CertificateAuthorityURI(XMLNode):
                         namespace=NS_CEP,
                         nillable=True)
 
+    # The <renewalOnly> element is an xs:boolean value that identifies whether
+    # the corresponding CAURI object can accept all types of requests, or only
+    # renewal requests. If the value is true, the server that is addressed by
+    # the CAURI object only accepts renewal requests. If the value is false,
+    # other request types are supported.
+    renewal_only = XMLValue('renewalOnly',
+                            converter=BooleanConverter,
+                            namespace=NS_CEP,
+                            nillable=True)
+
+    @staticmethod
+    def create():
+        return None
+
 
 class CertificateAuthority(XMLNode):
+    """Certificate Authority"""
     # An instance of a CAURICollection object as defined in section
     # 3.1.4.1.3.6, which contains the list of URI values for a certificate
     # authority.
@@ -171,6 +186,25 @@ class CertificateAuthority(XMLNode):
                           namespace=NS_CEP,
                           child_namespace=NS_CEP)
 
+    # The <certificate> element contains the xs:base64Binary representation of
+    # the Abstract Syntax Notation One (ASN.1) encoded certificate authority
+    # signing certificate. The value for the <certificate> element MUST never
+    # be an empty string.
+    certificate = XMLValue('certificate',
+                           converter=CertificateConverter,
+                           namespace=NS_CEP)
+
+    # The <enrollPermission> element contains an xs:boolean value that
+    # indicates whether or not the requestor has permission to submit
+    # enrollment requests to the server represented by the corresponding CA
+    # object. It MUST be true or false. If the <enrollPermission> element is
+    # true, the requestor has enroll permissions and can submit requests. If
+    # the <enrollPermission> element is false, the requestor does not have
+    # permission.
+    enroll_permission = XMLValue('enrollPermission',
+                                 converter=BooleanConverter,
+                                 namespace=NS_CEP)
+
     # Each instance of a CA object in a GetPoliciesResponse message MUST have a
     # unique <cAReferenceID>. The <cAReferenceID> is an unsigned integer value
     # used as an index for referencing the corresponding CA object within the
@@ -181,8 +215,13 @@ class CertificateAuthority(XMLNode):
                   converter=SignedIntegerConverter,
                   namespace=NS_CEP)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class Attributes(XMLNode):
+    """Attributes"""
     # A string value of the common name (CN) of a CertificateEnrollmentPolicy
     # object. The <xcep:commonName> element MUST be unique in the scope of a
     # GetPoliciesResponse (section 3.1.4.1.1.2) message.
@@ -193,8 +232,13 @@ class Attributes(XMLNode):
                            converter=StringConverter,
                            namespace=NS_CEP)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class CertificateEnrollmentPolicy(XMLNode):
+    """Certificate Enrollment Policy"""
     # A <cAs> element is used to represent an instance of a
     # CAReferenceCollection object as defined in section 3.1.4.1.3.4, which is
     # used to reference the issuers for this CertificateEnrollmentPolicy
@@ -218,8 +262,13 @@ class CertificateEnrollmentPolicy(XMLNode):
                             namespace=NS_CEP,
                             nillable=True)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class Response(XMLNode):
+    """Response"""
     # A unique identifier for the certificate enrollment policy. Two or more
     # servers can respond with the same <policyID> element in a
     # GetPoliciesResponse message if, and only if, they are configured to
@@ -279,8 +328,13 @@ class Response(XMLNode):
                               child_namespace=NS_CEP,
                               nillable=True)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class GetPoliciesResponse(XMLNode):
+    """Get Policies Response"""
     # The <xcep:response:> element is an instance of the Response object as
     # defined in section 3.1.4.1.3.23 that contains the certificate enrollment
     # policies.
@@ -304,3 +358,7 @@ class GetPoliciesResponse(XMLNode):
                          namespace=NS_CEP,
                          child_namespace=NS_CEP,
                          nillable=True)
+
+    @staticmethod
+    def create():
+        return None

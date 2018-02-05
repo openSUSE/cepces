@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 #
 # This file is part of cepces.
 #
@@ -15,78 +16,59 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-# This script is not supposed to be executed directly. It should only be called
-# by certmonger.
+# pylint: disable=broad-except,invalid-name
+"""This is a submission helper for certmonger."""
 
-# Lets be strict about things.
-set -u
+import logging
+import os
+import traceback
+from cepces.certmonger.core import Result
+from cepces.certmonger.operation import Operation
+from cepces.config import Configuration
+from cepces.core import Service
+from cepces.log import init_logging
 
-# Source the configuration file.
-. /etc/cepces/cepces-submit.conf
 
-# Set some default values
-INIT=false
-[ "${KINIT_REALM-}" = "" ] && REALM="" || REALM="@${KINIT_REALM-}"
-[ "${DEBUG-}" = "true" ] && DEBUG_ARGS="--debug"
- 
-# Check if a TGT is required.
-if [ "${KINIT}" = "true" ]
-then
-	# Check if we have a TGT, or are forced to initialize a new one.
-	if ! klist -s || [ "${KINIT_FORCE-false}" = "true" ]
-	then
-		# No TGT or forced.
-		KEYTAB="${KINIT_KEYTAB-/etc/krb5.keytab}"
+def main():
+    """Main function."""
+    # Initialize logging.
+    init_logging()
+    logger = logging.getLogger(__name__)
 
-		# If no keytab exists, exit with EUNDERCONFIGURED.
-		[ -f "${KEYTAB}" ] || (echo "No keytab found" ; exit 4)
-		
-		# Check if we have a principal to work with.
-		if ! [ "${KINIT_PRINCIPAL-}" = "" ]
-		then
-			# Try to initialize a TGT.
-			if kinit -k -t "${KEYTAB}" "${KINIT_PRINCIPAL}${REALM}"
-			then
-				INIT=true
-			else
-				echo "Failed to obtain TGT for ${KINIT_PRINCIPAL}."
-				exit 4
-			fi
-		else
-			# Guess.
-			for UPN in \
-				"$(hostname -s | tr '[:lower:]' '[:upper:]')\$" \
-				"HOST/$(hostname -s | tr '[:lower:]' '[:upper:]')" \
-				"HOST/$(hostname -f)"
-			do
-				# Proceed until we find a match, if any.
-				if ! [ "${INIT}" = "true" ]
-				then
-					if kinit -k -t "${KEYTAB}" "${UPN}${REALM}" >/dev/null 2>&1
-					then
-						INIT=true
-						break
-					fi
-				fi
-			done
-			
-			# Last check.
-			if ! [ "${INIT}" = "true" ]
-			then
-				echo "Failed to obtain TGT." 1>&2
-				exit 4
-			fi
-		fi 
-	fi
-fi
+    # A dictionary of all supported operations.
+    operations = {}
 
-cepces submit ${DEBUG_ARGS-} 2> >(logger -t $(basename $0))
-RETVAL=${PIPESTATUS[0]}
+    # Ensure there's any operation to call.
+    if 'CERTMONGER_OPERATION' not in os.environ:
+        logger.error('Missing environment variable: CERTMONGER_OPERATION')
 
-# Check if we initialized a TGT and should clean up.
-if [ "${INIT}" = "true" ] && [ "${KINIT_CLEANUP-false}" = "true" ]
-then
-	kdestroy
-fi
+        exit(Result.UNDERCONFIGURED)
 
-exit ${RETVAL}
+    # Find all supported certmonger operations.
+    for subclass in Operation.__subclasses__():
+        operations[subclass.name] = subclass
+
+    # Retrieve the operation name from the environment.
+    operation = os.environ['CERTMONGER_OPERATION']
+    result = Result.UNDERCONFIGURED
+
+    # If the operation is available, call it. Otherwise, return an error code.
+    if operation not in operations.keys():
+        result = Result.UNSUPPORTED
+    else:
+        try:
+            # Load the configuration and instantiate a service.
+            config = Configuration.load()
+            service = Service(config)
+
+            # Call the operation.
+            operation = operations[operation](service)
+            result = operation()
+        except Exception:
+            logger.error(traceback.format_exc())
+
+    exit(result)
+
+
+if __name__ == '__main__':
+    main()

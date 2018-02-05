@@ -15,29 +15,36 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module containing XML utilities."""
 import re
 
 
 def to_clark(name, namespace=None):
-    """Returns an element name in Clark's Notation."""
+    """Returns an element name in Clark's Notation.
+
+    :param name: the element name
+    :param namespace: an optional namespace
+    :return: the name in Clark's notation
+    """
     if namespace:
         return '{{{1:s}}}{0:s}'.format(name, namespace)
-    else:
-        return str(name)
+
+    return str(name)
 
 
 def from_clark(string):
     """Returns a (name, namespace) tuple from an element name following Clark's
     notation.
-
     Note that the URI is not checked whether it is well-formed or not.
-
     Raises ValueError on malformed input.
+
+    :param string: the string to match against
+    :return: a (name, namespace) tuple
     """
-    match = re.search('^(?:{(?P<namespace>.+)})?(?P<name>[^{}]+)$', string)
+    match = re.search(r'^(?:{(?P<namespace>.+)})?(?P<name>[^{}]+)$', string)
 
     if not match:
-        raise ValueError("Invalid input, expected Clark's notation")
+        raise ValueError('Invalid input, expected Clark\'s notation')
 
     name, namespace = match.group('name', 'namespace')
 
