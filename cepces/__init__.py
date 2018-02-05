@@ -15,47 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+# pylint: disable=too-few-public-methods
 """Main application package."""
 
 import logging
 
-
-from pathlib import Path
-import logging.config
-
-
 __title__ = 'cepces'
 __description__ = 'CEP/CES library.'
 __url__ = 'https://github.com/ufven/cepces/'
-__version__ = '0.2.1'
+__version__ = '0.3.0'
 __author__ = 'Daniel Uvehag'
 __author_email__ = 'daniel.uvehag@gmail.com'
 __license__ = 'GPLv3'
 __copyright__ = 'Copyright 2017 Daniel Uvehag'
-
-DEFAULT_CONFIG_FILES = [
-    '/etc/cepces/cepces.conf',
-    '/usr/local/etc/cepces/cepces.conf',
-    'conf/cepces.conf',
-    'cepces.conf',
-]
-DEFAULT_CONFIG_DIRS = [
-    '/etc/cepces/conf.d',
-    '/usr/local/etc/cepces/conf.d'
-    'conf/conf.d',
-]
-
-# Load logging configuration settings properly.
-LOGGING_CONFIG_FILES = [
-    'conf/logging.conf',
-    '/etc/cepces/logging.conf',
-    '/usr/local/etc/cepces/logging.conf',
-]
-
-for path in [Path(x) for x in LOGGING_CONFIG_FILES]:
-    if path.is_file():
-        logging.config.fileConfig(path.__str__())
 
 
 class Base(object):

@@ -18,18 +18,24 @@
 # This module contains SOAP related classes, implementing a loose subset of the
 # specification, just enough to be able to communicate a service.
 #
-from cepces import Base
-from cepces.soap import ACTION_FAULT
-from cepces.soap.types import Envelope, Fault
+"""This module contains SOAP service related logic."""
 from xml.etree import ElementTree
 import requests
+from cepces import Base
+from cepces.soap import QNAME_FAULT
+from cepces.soap.types import Envelope, Fault
 
 
 class SOAPFault(Exception):
+    """Runtime error representing a SOAP fault."""
     def __init__(self, fault):
         self._code = fault.code.value
-        self._subcode = fault.code.subcode.value
         self._reason = fault.reason.text
+
+        if fault.code.subcode:
+            self._subcode = fault.code.subcode.value
+        else:
+            self._subcode = None
 
         msg = "{} (Code: {}; Subcode: {})".format(
             self._reason,
@@ -41,20 +47,23 @@ class SOAPFault(Exception):
 
 
 class Service(Base):
+    """Base class for a SOAP service endpoint."""
     def __init__(self, endpoint, auth=None, capath=True):
         super().__init__()
 
         self._logger.debug(
-            "Initializing service (endpoint: {}, auth: {}".format(
-                endpoint, auth)
+            "Initializing service (endpoint: %s, auth: %s)",
+            endpoint,
+            auth,
         )
         self._endpoint = endpoint
         self._auth = auth
         self._capath = capath
 
     def send(self, message):
+        """Send a message to the remote SOAP service."""
         headers = {'Content-Type': 'application/soap+xml; charset=utf-8'}
-        data = ElementTree.tostring(message._element)
+        data = ElementTree.tostring(message.element)
 
         self._logger.debug("Sending message:")
         self._logger.debug(" -endpoint: %s", self._endpoint)
@@ -68,30 +77,35 @@ class Service(Base):
             message = self._auth.post_process(message)
 
         # Post the envelope and raise an error if necessary.
-        r = requests.post(url=self._endpoint,
-                          data=data,
-                          headers=headers,
-                          verify=self._capath,
-                          auth=self._auth.transport)
+        req = requests.post(url=self._endpoint,
+                            data=data,
+                            headers=headers,
+                            verify=self._capath,
+                            auth=self._auth.transport)
 
         # If we get an internal server error (code 500), there's a chance that
         # we get a SOAP Envelope back containing a SOAP Fault.
-        if not r.status_code == requests.codes.internal_server_error:
-            r.raise_for_status()
+        # if not r.status_code == requests.codes.internal_server_error:
+        if not req.status_code == 500:
+            req.raise_for_status()
 
         # Convert the response.
-        element = ElementTree.fromstring(r.text)
+        element = ElementTree.fromstring(req.text)
         envelope = Envelope(element)
-        self._logger.debug("Received message: %s", envelope._element)
+        self._logger.debug(
+            "Received message: %s",
+            ElementTree.tostring(envelope.element),
+        )
 
         # Throw a SOAP fault if one was received. Otherwise, raise a generic
         # exception from requests.
-        if r.status_code == requests.codes.internal_server_error and \
-           envelope.header.action == ACTION_FAULT:
+        # if r.status_code == requests.codes.internal_server_error and \
+        #     envelope.body.payload.tag == QNAME_FAULT:
+        if req.status_code == 500 and envelope.body.payload.tag == QNAME_FAULT:
             fault = Fault(envelope.body.payload)
 
             raise SOAPFault(fault)
         else:
-            r.raise_for_status()
+            req.raise_for_status()
 
         return envelope

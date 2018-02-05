@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=arguments-differ
 """This module contains converters for common XML data types."""
-
 from datetime import datetime, timedelta, tzinfo
 import re
 import textwrap
@@ -29,43 +29,43 @@ class Converter(object):
     for use within an XML document.
     """
     @staticmethod
-    def from_string(value, t=str):
+    def from_string(value, value_type=str):
         """Parse a string and convert it to a suitable type or format.
 
         :param value: the string to parse, or None
-        :param t: the desired type
+        :param value_type: the desired type
         :raise TypeError: if the input is of an invalid type
         :return: the input as a suitable type or format, or None if value is
                  None
         """
         if value is None:
             return None
-        elif not isinstance(value, t):
+        elif not isinstance(value, value_type):
             raise TypeError(
                 "Unsupported type (got '{}', expected '{}')".format(
                     type(value),
-                    t,
+                    value_type,
                 )
             )
         else:
             return value
 
     @staticmethod
-    def to_string(value, t=str):
+    def to_string(value, value_type=str):
         """Convert a value to an explicit string.
 
         :param value: the value to convert, or None
-        :param t: the desired type
+        :param value_type: the desired type
         :raise TypeError: if the input is of an invalid type
         :return: the input as a string, or None if value is None
         """
         if value is None:
             return None
-        elif not isinstance(value, t):
+        elif not isinstance(value, value_type):
             raise TypeError(
                 "Unsupported type (got '{}', expected '{}')".format(
                     type(value),
-                    t,
+                    value_type,
                 )
             )
         else:
@@ -78,6 +78,7 @@ StringConverter = Converter
 
 
 class BooleanConverter(object):
+    """Boolean Converter"""
     MAP = {
         'true': True,
         'false': False,
@@ -115,8 +116,8 @@ class BooleanConverter(object):
         """
         if value is not None:
             return Converter.to_string(value, bool).lower()
-        else:
-            return None
+
+        return None
 
 
 class IntegerConverter(object):
@@ -134,8 +135,8 @@ class IntegerConverter(object):
 
         if not result:
             return result
-        else:
-            return int(result)
+
+        return int(result)
 
     @staticmethod
     def to_string(value):
@@ -310,31 +311,31 @@ class DateTimeConverter(Converter):
     @staticmethod
     def from_string(value):
         match = re.search(
-            '^'
-            '(?P<year>\d{4})-'
-            '(?P<month>\d{2})-'
-            '(?P<day>\d{2})'
-            'T'
-            '(?P<hour>\d{2}):'
-            '(?P<minute>\d{2}):'
-            '(?P<second>\d{2})'
-            '(?P<tz>Z|'
-            '(?P<tz_sign>[+-])'
-            '(?P<tz_hour>\d{2}):'
-            '(?P<tz_minute>\d{2}))'
-            '$',
+            r'^'
+            r'(?P<year>\d{4})-'
+            r'(?P<month>\d{2})-'
+            r'(?P<day>\d{2})'
+            r'T'
+            r'(?P<hour>\d{2}):'
+            r'(?P<minute>\d{2}):'
+            r'(?P<second>\d{2})'
+            r'(?P<tz>Z|'
+            r'(?P<tz_sign>[+-])'
+            r'(?P<tz_hour>\d{2}):'
+            r'(?P<tz_minute>\d{2}))'
+            r'$',
             value,
         )
 
-        if match.group('tz') is 'Z':
-            tz = DateTimeConverter.FixedOffset(0, 'UTC')
+        if match.group('tz') == 'Z':
+            timezone = DateTimeConverter.FixedOffset(0, 'UTC')
         else:
             tz_hour = int(match.group('tz_hour'))
             tz_minute = int(match.group('tz_minute'))
             tz_sign = match.group('tz_sign')
             offset = 60 * tz_hour + tz_minute
 
-            tz = DateTimeConverter.FixedOffset(
+            timezone = DateTimeConverter.FixedOffset(
                 int(
                     '{0:s}{1:d}'.format(
                         tz_sign,
@@ -351,7 +352,7 @@ class DateTimeConverter(Converter):
             hour=int(match.group('hour')),
             minute=int(match.group('minute')),
             second=int(match.group('second')),
-            tzinfo=tz,
+            tzinfo=timezone,
         )
 
     @staticmethod
@@ -361,29 +362,35 @@ class DateTimeConverter(Converter):
             return value
 
         # Check the value type.
-        if type(value) is not datetime:
-            raise TypeError('{0:s} expected, got {1:s}'.format(
-                            datetime.__class__,
-                            type(value).__class__))
+        if not isinstance(value, datetime):
+            raise TypeError(
+                '{0:s} expected, got {1:s}'.format(
+                    datetime.__class__,
+                    type(value).__class__,
+                ),
+            )
 
         # If no timezone is set, default to 'Z'.
         if value.tzinfo is None:
-            tz = 'Z'
+            timezone = 'Z'
         else:
             offset = int(value.utcoffset().total_seconds() / 60)
-            tz = '{0:0=+3d}:{1:0=2d}'.format(offset / 60,
-                                             abs(offset % 60))
+            timezone = '{0:0=+3d}:{1:0=2d}'.format(
+                offset / 60,
+                abs(offset % 60),
+            )
 
-        return '{0:0=2d}-{1:0=2d}-{2:0=2d}' \
-               'T{3:0=2d}:{4:0=2d}:{5:0=2d}{6:s}'.format(
-                    value.year,
-                    value.month,
-                    value.day,
-                    value.hour,
-                    value.minute,
-                    value.second,
-                    tz,
-                )
+        result = '{0:0=2d}-{1:0=2d}-{2:0=2d}T{3:0=2d}:{4:0=2d}:{5:0=2d}{6:s}'
+
+        return result.format(
+            value.year,
+            value.month,
+            value.day,
+            value.hour,
+            value.minute,
+            value.second,
+            timezone,
+        )
 
 
 class CertificateConverter(object):

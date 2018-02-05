@@ -1,0 +1,9 @@
+[MESSAGES CONTROL]
+# no-name-in-module (E0611) seems broken.
+disable=no-name-in-module
+
+[FORMAT]
+max-line-length=80
+
+[DESIGN]
+min-public-methods=1

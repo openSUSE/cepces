@@ -1,0 +1,8 @@
+# Include all tests
+recursive-include tests *.py
+include selinux/Makefile
+include selinux/cepces.fc
+include selinux/cepces.te
+include selinux/cepces.if
+include LICENSE
+include *.rst

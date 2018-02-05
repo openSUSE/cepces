@@ -15,18 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=protected-access
+"""Module for XCEP SOAP service logic."""
+from xml.etree import ElementTree
+import uuid
 from cepces.soap.service import Service as SOAPService
 from cepces.soap.types import Envelope
 from cepces.xcep.types import GetPolicies as GetPoliciesMessage
 from cepces.xcep.types import GetPoliciesResponse as GetPoliciesResponseMessage
-from xml.etree import ElementTree
-import uuid
 
 ACTION = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy/' \
          'IPolicy/GetPolicies'
 
 
 class Service(SOAPService):
+    """XCEP Service proxy."""
     def _get_envelope(self, payload):
         envelope = Envelope()
         envelope.header.action = ACTION
@@ -35,23 +38,22 @@ class Service(SOAPService):
         envelope.body.payload = payload._element
 
         self._logger.debug(
-            "Preparing message {} to {} with payload: {}".format(
-                envelope.header.message_id,
-                envelope.header.to,
-                ElementTree.tostring(payload._element),
-            )
+            "Preparing message %s to %s with payload: %s",
+            envelope.header.message_id,
+            envelope.header.to,
+            ElementTree.tostring(payload._element),
         )
 
         return envelope
 
     def get_policies(self):
+        """Get a list of available policies."""
         envelope = self._get_envelope(GetPoliciesMessage())
         response = self.send(envelope)
 
         self._logger.debug(
-            "Received message: {}".format(
-                ElementTree.tostring(response.body.payload),
-            )
+            "Received message: %s",
+            ElementTree.tostring(response.body.payload),
         )
 
         return GetPoliciesResponseMessage(response.body.payload)

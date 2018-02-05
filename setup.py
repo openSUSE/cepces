@@ -16,31 +16,32 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from setuptools import setup
-from codecs import open
+from codecs import open as copen
 from os import path
+from setuptools import setup
+import cepces
 
-here = path.abspath(path.dirname(__file__))
+HERE = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+with copen(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
 
 setup(
-    name='cepces',
-    version='0.0.1',
+    name=cepces.__title__,
+    version=cepces.__version__,
 
-    description='Certificate Enrollment through CEP/CES',
-    long_description=long_description,
-    url='https://github.com/ufven/cepces',
+    description=cepces.__description__,
+    long_description=LONG_DESCRIPTION,
+    url=cepces.__url__,
 
-    author='Daniel Uvehag',
-    author_email='daniel.uvehag@gmail.com',
+    author=cepces.__author__,
+    author_email=cepces.__author_email__,
 
-    license='GPLv3+',
+    license=cepces.__license__,
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         'Environment :: Console',
 
@@ -54,16 +55,30 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
 
-    keywords='certificate ca cep ces adcs',
+    keywords='certificate ca cep ces adcs wstep xcep',
 
     packages=[
         'cepces',
+        'cepces.certmonger',
+        'cepces.krb5',
+        'cepces.soap',
+        'cepces.wstep',
+        'cepces.xcep',
+        'cepces.xml',
     ],
 
     data_files=[
+        ('/usr/local/libexec/certmonger', ['bin/cepces-submit']),
+        (
+            '/usr/local/etc/cepces',
+            [
+                'conf/cepces.conf.dist',
+                'conf/logging.conf.dist',
+            ]
+        ),
     ],
 
     install_requires=[],
 
-    test_suite='tests'
+    test_suite='tests',
 )

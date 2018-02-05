@@ -5,9 +5,12 @@ __pycache__/
 
 # Distribution
 *.egg-info/
+dist/
 
 # Local files
 local/
 
 # Configuration files
 *.conf
+
+.vscode/

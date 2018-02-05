@@ -15,7 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+# pylint: disable=invalid-name
+"""XCEP Types."""
+from xml.etree.ElementTree import Element, QName
 from cepces.xml.binding import ATTR_NIL
 from cepces.xml.binding import XMLElement, XMLElementList
 from cepces.xml.binding import XMLNode
@@ -26,7 +28,6 @@ from cepces.xml.converter import SignedIntegerConverter, StringConverter
 from cepces.xml.converter import UnsignedIntegerConverter
 from cepces.xcep import NS_CEP
 from cepces.xcep.converter import ClientAuthenticationConverter
-from xml.etree.ElementTree import Element, QName
 
 
 class Client(XMLNode):
@@ -116,6 +117,7 @@ class GetPolicies(XMLNode):
 
 
 class CertificateAuthorityURI(XMLNode):
+    """Certificate Authority URI"""
     # The <clientAuthentication> element is used to define the supported
     # authentication type for the <uri> element of this CAURI object. The
     # <clientAuthentication> element is an unsigned integer that MUST have one
@@ -164,8 +166,13 @@ class CertificateAuthorityURI(XMLNode):
                             namespace=NS_CEP,
                             nillable=True)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class CertificateAuthority(XMLNode):
+    """Certificate Authority"""
     # An instance of a CAURICollection object as defined in section
     # 3.1.4.1.3.6, which contains the list of URI values for a certificate
     # authority.
@@ -208,8 +215,13 @@ class CertificateAuthority(XMLNode):
                   converter=SignedIntegerConverter,
                   namespace=NS_CEP)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class Attributes(XMLNode):
+    """Attributes"""
     # A string value of the common name (CN) of a CertificateEnrollmentPolicy
     # object. The <xcep:commonName> element MUST be unique in the scope of a
     # GetPoliciesResponse (section 3.1.4.1.1.2) message.
@@ -220,8 +232,13 @@ class Attributes(XMLNode):
                            converter=StringConverter,
                            namespace=NS_CEP)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class CertificateEnrollmentPolicy(XMLNode):
+    """Certificate Enrollment Policy"""
     # A <cAs> element is used to represent an instance of a
     # CAReferenceCollection object as defined in section 3.1.4.1.3.4, which is
     # used to reference the issuers for this CertificateEnrollmentPolicy
@@ -245,8 +262,13 @@ class CertificateEnrollmentPolicy(XMLNode):
                             namespace=NS_CEP,
                             nillable=True)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class Response(XMLNode):
+    """Response"""
     # A unique identifier for the certificate enrollment policy. Two or more
     # servers can respond with the same <policyID> element in a
     # GetPoliciesResponse message if, and only if, they are configured to
@@ -306,8 +328,13 @@ class Response(XMLNode):
                               child_namespace=NS_CEP,
                               nillable=True)
 
+    @staticmethod
+    def create():
+        return None
+
 
 class GetPoliciesResponse(XMLNode):
+    """Get Policies Response"""
     # The <xcep:response:> element is an instance of the Response object as
     # defined in section 3.1.4.1.3.23 that contains the certificate enrollment
     # policies.
@@ -331,3 +358,7 @@ class GetPoliciesResponse(XMLNode):
                          namespace=NS_CEP,
                          child_namespace=NS_CEP,
                          nillable=True)
+
+    @staticmethod
+    def create():
+        return None
