@@ -141,7 +141,7 @@ class Service(Base):
         for candidate in self.endpoints:
             # If not renewing and the endpoint only supports renewal, ignore
             # it.
-            if renew and candidate.renewal_only or not renew:
+            if renew and candidate.renewal_only or not candidate.renewal_only:
                 endpoint = candidate
 
                 break
