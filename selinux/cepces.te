@@ -1,1 +1,7 @@
-policy_module(cepces, 0.3.0)
+policy_module(cepces, 0.3.1)
+
+type cepces_log_t;
+logging_log_file(cepces_log_t)
+
+allow certmonger_t cepces_log_t:dir { add_name search write };
+allow certmonger_t cepces_log_t:file { create open };

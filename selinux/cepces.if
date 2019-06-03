@@ -1,0 +1,59 @@
+## <summary>policy for cepces</summary>########################################
+## <summary>
+##	Read cepces's log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`cepces_read_log',`
+	gen_require(`
+		type cepces_log_t;
+	')
+
+	logging_search_logs($1)
+	read_files_pattern($1, cepces_log_t, cepces_log_t)
+')
+
+########################################
+## <summary>
+##	Append to cepces log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`cepces_append_log',`
+	gen_require(`
+		type cepces_log_t;
+	')
+
+	logging_search_logs($1)
+	append_files_pattern($1, cepces_log_t, cepces_log_t)
+')
+
+########################################
+## <summary>
+##	Manage cepces log files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`cepces_manage_log',`
+	gen_require(`
+		type cepces_log_t;
+	')
+
+	logging_search_logs($1)
+	manage_dirs_pattern($1, cepces_log_t, cepces_log_t)
+	manage_files_pattern($1, cepces_log_t, cepces_log_t)
+	manage_lnk_files_pattern($1, cepces_log_t, cepces_log_t)
+')

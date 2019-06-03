@@ -104,13 +104,15 @@ class Service(SOAPService):
         for response in result.responses:
             self._logger.debug('Got response: %s', str(response))
 
-            if response.token.text:
-                response.token.text = response.token.text.replace('&#xD;', '')
+            token = response.requested_token
+
+            if token.text:
+                token.text = token.text.replace('&#xD;', '')
 
                 results.append(
                     Service.Response(
                         request_id=response.request_id,
-                        token=response.token.text,
+                        token=token.text,
                     ),
                 )
             else:
@@ -150,13 +152,15 @@ class Service(SOAPService):
         for response in result.responses:
             self._logger.debug('Got response: %s', response)
 
-            if response.token.text:
-                response.token.text = response.token.text.replace('&#xD;', '')
+            token = response.requested_token
+
+            if token.text:
+                token.text = token.text.replace('&#xD;', '')
 
                 results.append(
                     Service.Response(
                         request_id=response.request_id,
-                        token=response.token.text,
+                        token=token.text,
                     ),
                 )
             else:
