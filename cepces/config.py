@@ -55,10 +55,11 @@ class Configuration(Base):
         'Certificate': SOAPAuth.MessageCertificateAuthentication,
     }
 
-    def __init__(self, endpoint, cas, auth):
+    def __init__(self, endpoint, endpoint_type, cas, auth):
         super().__init__()
 
         self._endpoint = endpoint
+        self._endpoint_type = endpoint_type
         self._cas = cas
         self._auth = auth
 
@@ -66,6 +67,11 @@ class Configuration(Base):
     def endpoint(self):
         """Return the endpoint."""
         return self._endpoint
+
+    @property
+    def endpoint_type(self):
+        """Return the endpoint."""
+        return self._endpoint_type
 
     @property
     def cas(self):
@@ -134,7 +140,7 @@ class Configuration(Base):
         section = parser['global']
 
         # Ensure certain required variables are present.
-        for var in ['endpoint', 'auth']:
+        for var in ['endpoint', 'auth', 'type']:
             if var not in section:
                 raise RuntimeError(
                     'Missing "{}/{}" variable in configuration.'.format(
@@ -153,10 +159,11 @@ class Configuration(Base):
 
         # Store the global configuration options.
         endpoint = section.get('endpoint')
+        endpoint_type = section.get('type')
         authn = Configuration.AUTH_HANDLER_MAP[section['auth']](parser)
         cas = section.get('cas', True)
 
         if cas == '':
             cas = False
 
-        return Configuration(endpoint, cas, authn.handle())
+        return Configuration(endpoint, endpoint_type, cas, authn.handle())
