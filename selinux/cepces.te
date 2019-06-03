@@ -1,5 +1,9 @@
 policy_module(cepces, 0.3.1)
 
+require {
+    type certmonger_t;
+}
+
 type cepces_log_t;
 logging_log_file(cepces_log_t)
 
