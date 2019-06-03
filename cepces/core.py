@@ -19,10 +19,6 @@
 """Module containing core classes and functionality."""
 
 
-from cepces import Base
-from cepces.config import Configuration
-from cepces.xcep.service import Service as XCEPService
-from cepces.wstep.service import Service as WSTEPService
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
@@ -31,6 +27,10 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 import requests
+from cepces import Base
+from cepces.config import Configuration
+from cepces.xcep.service import Service as XCEPService
+from cepces.wstep.service import Service as WSTEPService
 
 
 class PartialChainError(RuntimeError):
@@ -78,18 +78,33 @@ class Service(Base):
         super().__init__()
 
         self._config = config
-        self._xcep = XCEPService(
-            config.endpoint,
-            config.auth,
-            config.cas,
-        )
 
-        # Eagerly load the policy response.
-        self._policies = self._xcep.get_policies()
+        if config.endpoint_type == 'Policy':
+            self._xcep = XCEPService(
+                endpoint=config.endpoint,
+                auth=config.auth,
+                capath=config.cas,
+            )
+
+            # Eagerly load the policy response.
+            self._policies = self._xcep.get_policies()
+        elif config.endpoint_type == 'Enrollment':
+            self._xcep = None
+            self._ces = WSTEPService(
+                endpoint=config.endpoint,
+                auth=config.auth,
+                capath=config.cas,
+            )
 
     @property
     def templates(self):
-        """Retrieve a list of available templates."""
+        """Retrieve a list of available templates.
+
+        Returns None if no policy endpoint is used.
+        """
+        if self._xcep is None:
+            return None
+
         templates = []
 
         for policy in self._policies.response.policies:
@@ -99,7 +114,13 @@ class Service(Base):
 
     @property
     def endpoints(self):
-        """Retrieves a list of WSTEP suitable endpoints."""
+        """Retrieves a list of WSTEP suitable endpoints.
+
+        Returns None if no policy endpoint is used.
+        """
+        if self._xcep is None:
+            return None
+
         config = self._config
         endpoints = []
 
@@ -123,10 +144,15 @@ class Service(Base):
         This retreives the certificate from the issuing endpoint service, and
         then uses the AIA information to retreive the rest of the chain.
 
+        This is only implemented for Policy endpoints. Returns None otherwise.
+
         :raise PartialChainError: if no AIA is found, or the complete chain
                                   cannot be retreived. The exception contains
                                   the partial result.
         """
+        if self._xcep is None:
+            return None
+
         # Get the first certificate. Since is (or at least always should) be
         # securely retreived over a secure channel, only verify subsequent
         # certificates.
@@ -134,31 +160,11 @@ class Service(Base):
 
         return reversed(self._resolve_chain(data))
 
-    def request(self, csr, renew=False):
-        """Request a certificate with a CSR."""
-        endpoint = None
-
-        for candidate in self.endpoints:
-            # If not renewing and the endpoint only supports renewal, ignore
-            # it.
-            if renew and candidate.renewal_only or not candidate.renewal_only:
-                endpoint = candidate
-
-                break
-
-        # No endpoint found.
-        if not endpoint:
-            return None
-
-        ces = WSTEPService(
-            endpoint=str(endpoint),
-            auth=self._config.auth,
-            capath=self._config.cas,
-        )
-
+    def _request_ces(self, csr):
+        """Request a certificate with a CSR from a CES endpoint."""
         csr_bytes = csr.public_bytes(serialization.Encoding.PEM)
         csr_raw = csr_bytes.decode('utf-8').strip()
-        response = ces.request(csr_raw)
+        response = self._ces.request(csr_raw)
 
         # There should only be one response, as we only send one request.
         if response:
@@ -173,6 +179,37 @@ class Service(Base):
             return r
         else:
             return None
+
+    def _request_cep(self, csr, renew=False):
+        """Request a certificate with a CSR through a CEP endpoint."""
+        endpoint = None
+
+        for candidate in self.endpoints:
+            # If not renewing and the endpoint only supports renewal, ignore
+            # it.
+            if renew and candidate.renewal_only or not candidate.renewal_only:
+                endpoint = candidate
+
+                break
+
+        # No endpoint found.
+        if not endpoint:
+            return None
+
+        self._ces = WSTEPService(
+            endpoint=str(endpoint),
+            auth=self._config.auth,
+            capath=self._config.cas,
+        )
+
+        return self._request_ces(csr)
+
+    def request(self, csr, renew=False):
+        """Request a certificate with a CSR."""
+        if self._xcep:
+            return self._request_cep(csr, renew)
+        else:
+            return self._request_ces(csr)
 
     def poll(self, request_id, uri):
         """Poll the status of a previous request."""

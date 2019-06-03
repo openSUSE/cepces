@@ -90,7 +90,6 @@ class Operation(Base, metaclass=ABCMeta):
 
         :return: the certmonger result code.
         """
-        pass
 
 
 class Submit(Operation):
@@ -220,8 +219,11 @@ class GetSupportedTemplates(Operation):
     name = 'GET-SUPPORTED-TEMPLATES'
 
     def __call__(self):
-        for template in self._service.templates:
-            print(template, file=self._out)
+        templates = self._service.templates
+
+        if templates:
+            for template in templates:
+                print(template, file=self._out)
 
         return CertmongerResult.DEFAULT
 
@@ -247,7 +249,7 @@ class FetchRoots(Operation):
 
         # Retrieve the certificate chain as far as possible.
         try:
-            certs = list(self._service.certificate_chain)
+            certs = list(self._service.certificate_chain or [])
         except PartialChainError as error:
             certs = error.result
 

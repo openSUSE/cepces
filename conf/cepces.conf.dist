@@ -5,6 +5,12 @@
 # Default: ca
 server=ca
 
+# This is the endpoint type. It can be either "Policy" where the server
+# endpoint specified later will be used to look up enrollment endpoints, or it
+# can be "Enrollment" to specify a direct endpoint (bypassing XCEP
+# altogether.)
+type=Policy
+
 # This is the authentication mechanism used for connecting to the service
 # endpoint. The following options are available:
 #
