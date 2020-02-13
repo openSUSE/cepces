@@ -68,6 +68,7 @@ ccache=True
 #
 # Default: <empty list>
 principals=
+  ${shortname}$$
   ${SHORTNAME}$$
   host/${SHORTNAME}
   host/${fqdn}
