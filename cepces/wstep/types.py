@@ -24,7 +24,7 @@ from cepces.wstep import ISSUE_REQUEST_TYPE
 from cepces.xml.binding import XMLAttribute
 from cepces.xml.binding import XMLElement, XMLElementList
 from cepces.xml.binding import XMLNode, XMLValue
-from cepces.xml.converter import CertificateConverter, PKCS7Converter
+from cepces.xml.converter import CertificateConverter
 from cepces.xml.converter import StringConverter, UnsignedIntegerConverter
 
 
@@ -120,7 +120,7 @@ class SecurityTokenResponse(XMLNode):
                                    namespace=NS_ENROLLMENT)
 
     token = XMLValue('BinarySecurityToken',
-                     converter=PKCS7Converter,
+                     converter=StringConverter,
                      namespace=NS_WST_SECEXT)
 
     requested_token = XMLElement('RequestedSecurityToken',
