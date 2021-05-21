@@ -114,7 +114,7 @@ class TransportKerberosAuthentication(Authentication):
         os.environ["KRB5CCNAME"] = ccache_name
 
     def _init_transport(self):
-        self._transport = HTTPKerberosAuth(principal=self._config['name'])
+        self._transport = HTTPKerberosAuth(principal=self._config['name'], delegate=True)
 
     @property
     def transport(self):
