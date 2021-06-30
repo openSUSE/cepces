@@ -27,9 +27,10 @@ from cepces.certmonger.operation import Operation
 from cepces.config import Configuration
 from cepces.core import Service
 from cepces.log import init_logging
+import argparse
 
 
-def main():
+def main(global_overrides):
     """Main function."""
     # Initialize logging.
     init_logging()
@@ -58,7 +59,7 @@ def main():
     else:
         try:
             # Load the configuration and instantiate a service.
-            config = Configuration.load()
+            config = Configuration.load(global_overrides=global_overrides)
             service = Service(config)
 
             # Call the operation.
@@ -71,4 +72,17 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='cepces submission helper for certmonger')
+    parser.add_argument('--server', help='Hostname of the issuing certification authority')
+    parser.add_argument('--auth', help='Authentication mechanism used for connecting to the service',
+                        choices=['Anonymous', 'Kerberos', 'UsernamePassword', 'Certificate'],
+                        default='Kerberos')
+    args = parser.parse_args()
+    if args.server is not None:
+        global_overrides = { 'server': args.server, 'auth': args.auth }
+        endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % (args.server, args.auth)
+        global_overrides['endpoint'] = endpoint
+    else:
+        global_overrides = {}
+
+    main(global_overrides)

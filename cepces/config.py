@@ -84,7 +84,7 @@ class Configuration(Base):
         return self._auth
 
     @classmethod
-    def load(cls, files=None, dirs=None):
+    def load(cls, files=None, dirs=None, global_overrides={}):
         """Load configuration files and directories and instantiate a new
         Configuration."""
         name = '{}.{}'.format(
@@ -127,6 +127,10 @@ class Configuration(Base):
                 for path in sorted([x for x in cdir.iterdir() if x.is_file()]):
                     logger.debug('Reading: {0:s}'.format(path.__str__()))
                     config.read(path)
+
+        # Override globals set from the command line
+        for key, val in global_overrides.items():
+            config['global'][key] = val
 
         return Configuration.from_parser(config)
 
