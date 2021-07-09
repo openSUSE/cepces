@@ -84,7 +84,7 @@ class Configuration(Base):
         return self._auth
 
     @classmethod
-    def load(cls, files=None, dirs=None, global_overrides={}):
+    def load(cls, files=None, dirs=None, global_overrides={}, krb5_overrides={}):
         """Load configuration files and directories and instantiate a new
         Configuration."""
         name = '{}.{}'.format(
@@ -131,6 +131,8 @@ class Configuration(Base):
         # Override globals set from the command line
         for key, val in global_overrides.items():
             config['global'][key] = val
+        for key, val in krb5_overrides.items():
+            config['kerberos'][key] = val
 
         return Configuration.from_parser(config)
 

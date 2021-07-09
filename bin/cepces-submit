@@ -30,7 +30,7 @@ from cepces.log import init_logging
 import argparse
 
 
-def main(global_overrides):
+def main(global_overrides, krb5_overrides):
     """Main function."""
     # Initialize logging.
     init_logging()
@@ -59,7 +59,8 @@ def main(global_overrides):
     else:
         try:
             # Load the configuration and instantiate a service.
-            config = Configuration.load(global_overrides=global_overrides)
+            config = Configuration.load(global_overrides=global_overrides,
+                                        krb5_overrides=krb5_overrides)
             service = Service(config)
 
             # Call the operation.
@@ -77,6 +78,8 @@ if __name__ == '__main__':
     parser.add_argument('--auth', help='Authentication mechanism used for connecting to the service',
                         choices=['Anonymous', 'Kerberos', 'UsernamePassword', 'Certificate'],
                         default='Kerberos')
+    parser.add_argument('--keytab', help='Use the specified keytab')
+    parser.add_argument('--principals', help='A list of principals to try when requesting a ticket')
     args = parser.parse_args()
     if args.server is not None:
         global_overrides = { 'server': args.server, 'auth': args.auth }
@@ -84,5 +87,10 @@ if __name__ == '__main__':
         global_overrides['endpoint'] = endpoint
     else:
         global_overrides = {}
+    krb5_overrides = {}
+    if args.keytab is not None:
+        krb5_overrides['keytab'] = args.keytab
+    if args.principals is not None:
+        krb5_overrides['principals'] = args.principals
 
-    main(global_overrides)
+    main(global_overrides, krb5_overrides)
