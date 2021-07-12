@@ -3,11 +3,10 @@ CEP/CES Certificate Enrollment
 ==============================
 
 ``cepces`` is an application for enrolling certificates through CEP and CES. It
-currently requires `certmonger`_ to operate, but may eventually be extended to
-a standalone application
+requires `certmonger`_ to operate.
 
 Only simple deployments using Microsoft Active Directory Certificate Services
-has been tested.
+have been tested.
 
 For more up-to-date information and further documentation, please visit the
 project's home page at: https://github.com/openSUSE/cepces
