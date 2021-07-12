@@ -55,6 +55,13 @@ possibly with a ".dist" extension. If that is the case drop the ".dist"
 extension by either copying (or renaming) the file (i.e. ``cepces.conf.dist``
 should be named ``cepces.conf``).
 
+Alternatively, some configuration options can be specified from the command
+line when adding a CA to `certmonger`_. For example:
+
+.. code-block:: bash
+
+    getcert add-ca -c CA-name -e '/usr/libexec/certmonger/cepces-submit --server=ca-dns-name.suse.de --keytab=/etc/krb5.keytab --principals=MY-HOST$@SUSE.DE'
+
 cepces.conf
 -----------
 
