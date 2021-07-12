@@ -10,7 +10,7 @@ Only simple deployments using Microsoft Active Directory Certificate Services
 has been tested.
 
 For more up-to-date information and further documentation, please visit the
-project's home page at: https://github.com/ufven/cepces
+project's home page at: https://github.com/openSUSE/cepces
 
 Requirements
 ============
