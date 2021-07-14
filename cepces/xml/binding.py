@@ -75,7 +75,7 @@ class ListingMeta(type):
     `XMLDescriptor` properties in their declared order.
     """
 
-    def __new__(mcs, name, bases, class_dict):
+    def __new__(cls, name, bases, class_dict):
         def is_member(member):
             """Checks if a member is an XMLDescriptor."""
             # Only return members that are instances of XMLDescriptor.
@@ -83,7 +83,7 @@ class ListingMeta(type):
             return result
 
         # Create a new class.
-        klass = type.__new__(mcs, name, bases, class_dict)
+        klass = type.__new__(cls, name, bases, class_dict)
         members = inspect.getmembers(klass, is_member)
         klass.__listing__ = sorted(members, key=lambda i: i[1]._index)
 
@@ -483,3 +483,4 @@ class XMLValueList(XMLElement):
             instance._bindings[hash(self)] = binder
 
             return binder
+        return None

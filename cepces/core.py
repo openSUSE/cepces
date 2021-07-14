@@ -135,7 +135,7 @@ class Service(Base):
                         ),
                     )
 
-        return [x for x in sorted(endpoints, key=lambda x: x.priority)]
+        return sorted(endpoints, key=lambda x: x.priority)
 
     @property
     def certificate_chain(self, index=0):
@@ -177,8 +177,7 @@ class Service(Base):
                 r.token = cert
 
             return r
-        else:
-            return None
+        return None
 
     def _request_cep(self, csr, renew=False):
         """Request a certificate with a CSR through a CEP endpoint."""
@@ -232,8 +231,7 @@ class Service(Base):
                 r.token = cert
 
             return r
-        else:
-            return None
+        return None
 
     def _verify_certificate_signature(self, cert, issuer):
         """Verify that the certificate is signed.
@@ -328,11 +326,11 @@ class Service(Base):
 
                     if parent:
                         result.extend(parent)
-        except x509.ExtensionNotFound:
-            raise PartialChainError('Missing AIA', result)
+        except x509.ExtensionNotFound as e:
+            raise PartialChainError('Missing AIA', result) from e
         except requests.exceptions.RequestException as e:
-            raise PartialChainError(e, result)
+            raise PartialChainError(e, result) from e
         except InvalidSignature as e:
-            raise PartialChainError(e, result)
+            raise PartialChainError(e, result) from e
 
         return result

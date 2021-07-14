@@ -21,11 +21,11 @@
 """This module contains SOAP related authentication."""
 from abc import ABCMeta, abstractmethod, abstractproperty
 import os
+from requests_kerberos import HTTPKerberosAuth
 from cepces import Base
 from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Keytab, Principal
 from cepces.krb5.core import CredentialOptions, Credentials, CredentialCache
-from requests_kerberos import HTTPKerberosAuth
 
 
 class Authentication(Base, metaclass=ABCMeta):
@@ -34,12 +34,10 @@ class Authentication(Base, metaclass=ABCMeta):
     def transport(self):
         """Property containing authentication mechanism for the transport layer
         (i.e. requests)."""
-        pass
 
     @abstractmethod
     def post_process(self, envelope):
         """Method for securing (post processing) a SOAP envelope."""
-        pass
 
 
 class AnonymousAuthentication(Authentication):
@@ -114,7 +112,8 @@ class TransportKerberosAuthentication(Authentication):
         os.environ["KRB5CCNAME"] = ccache_name
 
     def _init_transport(self):
-        self._transport = HTTPKerberosAuth(principal=self._config['name'], delegate=True)
+        self._transport = HTTPKerberosAuth(principal=self._config['name'],
+                                           delegate=True)
 
     @property
     def transport(self):

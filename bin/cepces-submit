@@ -21,13 +21,14 @@
 
 import logging
 import os
+import sys
 import traceback
+import argparse
 from cepces.certmonger.core import Result
 from cepces.certmonger.operation import Operation
 from cepces.config import Configuration
 from cepces.core import Service
 from cepces.log import init_logging
-import argparse
 
 
 def main(global_overrides, krb5_overrides):
@@ -43,7 +44,7 @@ def main(global_overrides, krb5_overrides):
     if 'CERTMONGER_OPERATION' not in os.environ:
         logger.error('Missing environment variable: CERTMONGER_OPERATION')
 
-        exit(Result.UNDERCONFIGURED)
+        sys.exit(Result.UNDERCONFIGURED)
 
     # Find all supported certmonger operations.
     for subclass in Operation.__subclasses__():
@@ -59,8 +60,8 @@ def main(global_overrides, krb5_overrides):
     else:
         try:
             # Load the configuration and instantiate a service.
-            config = Configuration.load(global_overrides=global_overrides,
-                                        krb5_overrides=krb5_overrides)
+            config = Configuration.load(global_overrides,
+                                        krb5_overrides)
             service = Service(config)
 
             # Call the operation.
@@ -69,28 +70,34 @@ def main(global_overrides, krb5_overrides):
         except Exception:
             logger.error(traceback.format_exc())
 
-    exit(result)
+    sys.exit(result)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='cepces submission helper for certmonger')
-    parser.add_argument('--server', help='Hostname of the issuing certification authority')
-    parser.add_argument('--auth', help='Authentication mechanism used for connecting to the service',
-                        choices=['Anonymous', 'Kerberos', 'UsernamePassword', 'Certificate'],
-                        default='Kerberos')
+    parser = argparse.ArgumentParser(
+        description='cepces submission helper for certmonger')
+    parser.add_argument('--server',
+        help='Hostname of the issuing certification authority')
+    parser.add_argument('--auth',
+        help='Authentication mechanism used for connecting to the service',
+        choices=['Anonymous', 'Kerberos',
+                 'UsernamePassword', 'Certificate'],
+        default='Kerberos')
     parser.add_argument('--keytab', help='Use the specified keytab')
-    parser.add_argument('--principals', help='A list of principals to try when requesting a ticket')
+    parser.add_argument('--principals',
+        help='A list of principals to try when requesting a ticket')
     args = parser.parse_args()
     if args.server is not None:
-        global_overrides = { 'server': args.server, 'auth': args.auth }
-        endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % (args.server, args.auth)
-        global_overrides['endpoint'] = endpoint
+        g_overrides = { 'server': args.server, 'auth': args.auth }
+        endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % \
+                        (args.server, args.auth)
+        g_overrides['endpoint'] = endpoint
     else:
-        global_overrides = {}
-    krb5_overrides = {}
+        g_overrides = {}
+    k_overrides = {}
     if args.keytab is not None:
-        krb5_overrides['keytab'] = args.keytab
+        k_overrides['keytab'] = args.keytab
     if args.principals is not None:
-        krb5_overrides['principals'] = args.principals
+        k_overrides['principals'] = args.principals
 
-    main(global_overrides, krb5_overrides)
+    main(g_overrides, k_overrides)

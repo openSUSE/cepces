@@ -103,12 +103,10 @@ class EncryptionType(IntEnum):
 # prevents that behaviour.
 class c_char_p_n(ctypes.c_char_p):
     """Opaque class for a character pointer."""
-    pass
 
 
 class _krb5_context(ctypes.Structure):
     """Opaque structure for a Kerberos context."""
-    pass
 
 
 krb5_context = ctypes.POINTER(_krb5_context)
@@ -116,7 +114,6 @@ krb5_context = ctypes.POINTER(_krb5_context)
 
 class _krb5_kt(ctypes.Structure):
     """Opaque structure for a Kerberos keytab."""
-    pass
 
 
 krb5_keytab = ctypes.POINTER(_krb5_kt)
@@ -124,7 +121,6 @@ krb5_keytab = ctypes.POINTER(_krb5_kt)
 
 class krb5_principal_data(ctypes.Structure):
     """Opaque structure for a Kerberos principal data."""
-    pass
 
 
 krb5_principal = ctypes.POINTER(krb5_principal_data)
@@ -169,7 +165,6 @@ krb5_creds = _krb5_creds
 
 class _krb5_ccache(ctypes.Structure):
     """Opaque structure for a Kerberos credential cache."""
-    pass
 
 
 krb5_ccache = ctypes.POINTER(_krb5_ccache)

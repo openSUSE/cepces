@@ -30,7 +30,7 @@ __license__ = 'GPLv3'
 __copyright__ = 'Copyright 2017 Daniel Uvehag'
 
 
-class Base(object):
+class Base():
     """Base for most classes.
 
     This class contains common behaviour for all classes used within the

@@ -22,7 +22,7 @@ import re
 import textwrap
 
 
-class Converter(object):
+class Converter():
     """A base class for any value converter.
 
     It is responsible for converting an arbitrary input to and from a string
@@ -77,7 +77,7 @@ class Converter(object):
 StringConverter = Converter
 
 
-class BooleanConverter(object):
+class BooleanConverter():
     """Boolean Converter"""
     MAP = {
         'true': True,
@@ -120,7 +120,7 @@ class BooleanConverter(object):
         return None
 
 
-class IntegerConverter(object):
+class IntegerConverter():
     """Converts to and from integers."""
     @staticmethod
     def from_string(value):
@@ -150,7 +150,7 @@ class IntegerConverter(object):
         return Converter.to_string(value, int)
 
 
-class RangedIntegerConverter(object):
+class RangedIntegerConverter():
     """Converts to and from integers with a range constraint."""
 
     @staticmethod
@@ -393,7 +393,7 @@ class DateTimeConverter(Converter):
         )
 
 
-class CertificateConverter(object):
+class CertificateConverter():
     """Converts to and from PEM certificates."""
     @staticmethod
     def from_string(value):

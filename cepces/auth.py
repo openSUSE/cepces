@@ -32,7 +32,6 @@ class AuthenticationHandler(Base, metaclass=ABCMeta):
     @abstractmethod
     def handle(self):
         """Constructs and returns a SOAPAuth authentication handler."""
-        pass
 
 
 class AnonymousAuthenticationHandler(AuthenticationHandler):
@@ -66,10 +65,10 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
 
             try:
                 etypes.append(KerberosEncryptionType[etype])
-            except KeyError:
+            except KeyError as e:
                 raise RuntimeError(
                     'Unknown encryption type: {}'.format(enctype),
-                )
+                ) from e
 
         # Figure out which principal to use.
         auth = None
