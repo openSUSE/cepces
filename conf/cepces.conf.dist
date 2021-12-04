@@ -45,6 +45,9 @@ endpoint=https://${server}/ADPolicyProvider_CEP_${auth}/service.svc/CEP
 # Default: <not defined>
 #cas=
 
+# Time in seconds before re-checking if the certificate has been issued
+poll_interval=3600
+
 [kerberos]
 # Use the specified keytab. If unspecified, the system default is used.
 #
