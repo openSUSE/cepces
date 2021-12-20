@@ -62,7 +62,7 @@ class AnonymousAuthentication(Authentication):
 class TransportKerberosAuthentication(Authentication):
     """Kerberos authentication on the transport level."""
     def __init__(self, principal_name=None, init_ccache=True, keytab=None,
-                 enctypes=None):
+                 enctypes=None, delegate=True):
         super().__init__()
 
         self._config = {}
@@ -70,6 +70,7 @@ class TransportKerberosAuthentication(Authentication):
         self._config['init_ccache'] = init_ccache
         self._config['keytab'] = keytab
         self._config['enctypes'] = enctypes
+        self._config['delegate'] = delegate
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
@@ -120,7 +121,7 @@ class TransportKerberosAuthentication(Authentication):
     def _init_transport(self):
         name = gssapi.Name(self._config['name'], gssapi.NameType.user)
         creds = gssapi.Credentials(name=name, usage="initiate")
-        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=True)
+        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=self._config['delegate'])
 
     @property
     def transport(self):

@@ -86,6 +86,13 @@ enctypes=
   aes128-cts-hmac-sha1-96
   aes256-cts-hmac-sha1-96
 
+# When the webenrollment services and the CA aren't installed on the same
+# machine you will get a access denied error if kerberos delegation is
+# disabled. This is enabled by default.
+#
+# Default: True
+delegate=True
+
 [certificate]
 # Use the following client certificate,
 # given as OpenSSL format certificate file.
