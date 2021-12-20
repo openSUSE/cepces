@@ -132,14 +132,15 @@ class Submit(Operation):
 
         # Output a "cookie" that can be used to later poll the status.
         print(
-            '{},{}'.format(
+            '{}\n{},{}'.format(
+                self._config.poll_interval,
                 result.request_id,
                 result.reference,
             ),
             file=self._out,
         )
 
-        return CertmongerResult.WAIT
+        return CertmongerResult.WAITMORE
 
 
 class Poll(Operation):
@@ -172,14 +173,15 @@ class Poll(Operation):
 
         # Output a "cookie" that can be used to later poll the status.
         print(
-            '{},{}'.format(
+            '{}\n{},{}'.format(
+                self._config.poll_interval,
                 result.request_id,
                 result.reference,
             ),
             file=self._out,
         )
 
-        return CertmongerResult.WAIT
+        return CertmongerResult.WAITMORE
 
 
 class Identify(Operation):

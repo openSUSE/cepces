@@ -55,13 +55,14 @@ class Configuration(Base):
         'Certificate': SOAPAuth.MessageCertificateAuthentication,
     }
 
-    def __init__(self, endpoint, endpoint_type, cas, auth):
+    def __init__(self, endpoint, endpoint_type, cas, auth, poll_interval):
         super().__init__()
 
         self._endpoint = endpoint
         self._endpoint_type = endpoint_type
         self._cas = cas
         self._auth = auth
+        self.pollInterval = poll_interval
 
     @property
     def endpoint(self):
@@ -82,6 +83,11 @@ class Configuration(Base):
     def auth(self):
         """Return the authentication method."""
         return self._auth
+
+    @property
+    def poll_interval(self):
+        """Return the poll interval."""
+        return self._poll_interval
 
     @classmethod
     def load(cls, files=None, dirs=None, global_overrides=None,
@@ -149,7 +155,7 @@ class Configuration(Base):
         section = parser['global']
 
         # Ensure certain required variables are present.
-        for var in ['endpoint', 'auth', 'type']:
+        for var in ['endpoint', 'auth', 'type', 'poll_interval']:
             if var not in section:
                 raise RuntimeError(
                     'Missing "{}/{}" variable in configuration.'.format(
@@ -171,8 +177,9 @@ class Configuration(Base):
         endpoint_type = section.get('type')
         authn = Configuration.AUTH_HANDLER_MAP[section['auth']](parser)
         cas = section.get('cas', True)
+        poll_interval = section.get('poll_interval')
 
         if cas == '':
             cas = False
 
-        return Configuration(endpoint, endpoint_type, cas, authn.handle())
+        return Configuration(endpoint, endpoint_type, cas, authn.handle(), poll_interval)
