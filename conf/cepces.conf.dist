@@ -101,7 +101,6 @@ enctypes=
 # Default: <not defined>
 #keyfile = /path/to/openssl-keyfile.pem
 
-
 [usernamepassword]
 # Use the following AD username in UPN notation.
 #
