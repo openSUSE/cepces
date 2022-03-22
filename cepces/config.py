@@ -52,7 +52,7 @@ class Configuration(Base):
         'Anonymous': SOAPAuth.AnonymousAuthentication,
         'Kerberos': SOAPAuth.TransportKerberosAuthentication,
         'UsernamePassword': SOAPAuth.MessageUsernamePasswordAuthentication,
-        'Certificate': SOAPAuth.MessageCertificateAuthentication,
+        'Certificate': SOAPAuth.TransportCertificateAuthentication,
     }
 
     def __init__(self, endpoint, endpoint_type, cas, auth, poll_interval):

@@ -25,8 +25,8 @@ type=Policy
 #             Message level authentication. The credentials are used in the
 #             message header for authentication.
 # * Certificate
-#             Message level authentication. A client certificate is used to
-#             sign the message. This is not yet implemented.
+#             Transport level authentication. A client certificate is used
+#             for TLS client authentication in the HTTPS layer.
 #
 # Default: Kerberos
 auth=Kerberos
@@ -85,3 +85,30 @@ enctypes=
   arcfour-hmac
   aes128-cts-hmac-sha1-96
   aes256-cts-hmac-sha1-96
+
+[certificate]
+# Use the following client certificate,
+# given as OpenSSL format certificate file.
+# The issuer CA certificate of this client certificate must be included
+# in the AD NTAuth container.
+#
+# Default: <not defined>
+#certfile = /path/to/openssl-certfile.pem
+
+# Use the following client certificate key,
+# given as OpenSSL format private key file without passphrase protection.
+#
+# Default: <not defined>
+#keyfile = /path/to/openssl-keyfile.pem
+
+
+[usernamepassword]
+# Use the following AD username in UPN notation.
+#
+# Default: <not defined>
+#username = user@your-ad.local
+ 
+# Use the following AD password.
+#
+# Default: <not defined>
+#password = ADpassword

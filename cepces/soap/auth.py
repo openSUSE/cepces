@@ -26,6 +26,7 @@ from cepces import Base
 from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Keytab, Principal
 from cepces.krb5.core import CredentialOptions, Credentials, CredentialCache
+from cepces.soap.types import Security as WSSecurity, UsernameToken
 
 
 class Authentication(Base, metaclass=ABCMeta):
@@ -33,6 +34,11 @@ class Authentication(Base, metaclass=ABCMeta):
     @abstractproperty
     def transport(self):
         """Property containing authentication mechanism for the transport layer
+        (i.e. requests)."""
+
+    @abstractproperty
+    def clientcertificate(self):
+        """Property containing TLS client certificate ínformation for the transport layer
         (i.e. requests)."""
 
     @abstractmethod
@@ -119,6 +125,10 @@ class TransportKerberosAuthentication(Authentication):
     def transport(self):
         return self._transport
 
+    @property
+    def clientcertificate(self):
+        return None
+
     def post_process(self, envelope):
         # Nothing to be done here.
         return envelope
@@ -135,15 +145,36 @@ class MessageUsernamePasswordAuthentication(Authentication):
     def transport(self):
         return None
 
+    @property
+    def clientcertificate(self):
+        return None
+
     def post_process(self, envelope):
-        raise NotImplementedError()
+        envelope.header.element.append(WSSecurity.create())
+
+        envelope.header.security.element.append(UsernameToken.create())
+        envelope.header.security.usernametoken.username = self._username
+        envelope.header.security.usernametoken.password = self._password
+
+        return envelope
 
 
-class MessageCertificateAuthentication(Authentication):
-    """Message authentication using a client certificate."""
+class TransportCertificateAuthentication(Authentication):
+    """Transport authentication using a client certificate."""
+    def __init__(self, certfile, keyfile):
+        super().__init__()
+        self._certfile = certfile
+        self._keyfile = keyfile
+        os.system('echo DEBUG Certificate file: ""%s"" Key file ""%s"" >> /var/log/cepces/cepces.log' % ( certfile, keyfile ))
+
     @property
     def transport(self):
-        raise NotImplementedError()
+        return None
+
+    @property
+    def clientcertificate(self):
+        return ( self._certfile, self._keyfile )
 
     def post_process(self, envelope):
-        raise NotImplementedError()
+        # Nothing to be done here.
+        return envelope

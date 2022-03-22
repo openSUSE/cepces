@@ -75,12 +75,17 @@ class Service(Base):
         # Post process the envelope.
         if self._auth:
             message = self._auth.post_process(message)
+            data = ElementTree.tostring(message.element)
+            self._logger.debug(" -data after post-processing: %s", data)
 
         # Post the envelope and raise an error if necessary.
         req = requests.post(url=self._endpoint,
                             data=data,
                             headers=headers,
                             verify=self._capath,
+                            #verify=False,
+                            #proxies={ "https" : "https://10.30.0.105:8080" },
+                            cert=self._auth.clientcertificate,
                             auth=self._auth.transport)
 
         # If we get an internal server error (code 500), there's a chance that
@@ -94,7 +99,8 @@ class Service(Base):
         envelope = Envelope(element)
         self._logger.debug(
             "Received message: %s",
-            ElementTree.tostring(envelope.element),
+            #ElementTree.tostring(envelope.element),
+            req.text
         )
 
         # Throw a SOAP fault if one was received. Otherwise, raise a generic

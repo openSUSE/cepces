@@ -118,5 +118,20 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 class CertificateAuthenticationHandler(AuthenticationHandler):
     """Handler for Certificate based authentication."""
     def handle(self):
-        """Constructs and returns a SOAPAuth authentication handler."""
-        raise NotImplementedError()
+        parser = self._parser
+
+        # Ensure there's a certificate section present.
+        if 'certificate' not in parser:
+            raise RuntimeError(
+                'Missing "certificate" section in configuration.',
+            )
+
+        section = parser['certificate']
+
+        certfile = section.get('certfile', None)
+        keyfile = section.get('keyfile', None)
+
+        return SOAPAuth.TransportCertificateAuthentication(
+            certfile,
+            keyfile,
+        )
