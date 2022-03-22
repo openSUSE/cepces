@@ -83,8 +83,6 @@ class Service(Base):
                             data=data,
                             headers=headers,
                             verify=self._capath,
-                            #verify=False,
-                            #proxies={ "https" : "https://10.30.0.105:8080" },
                             cert=self._auth.clientcertificate,
                             auth=self._auth.transport)
 
@@ -99,8 +97,7 @@ class Service(Base):
         envelope = Envelope(element)
         self._logger.debug(
             "Received message: %s",
-            #ElementTree.tostring(envelope.element),
-            req.text
+            ElementTree.tostring(envelope.element),
         )
 
         # Throw a SOAP fault if one was received. Otherwise, raise a generic
