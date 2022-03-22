@@ -35,6 +35,11 @@ class Authentication(Base, metaclass=ABCMeta):
         """Property containing authentication mechanism for the transport layer
         (i.e. requests)."""
 
+    @abstractproperty
+    def clientcertificate(self):
+        """Property containing TLS client certificate ínformation for the transport layer
+        (i.e. requests)."""
+
     @abstractmethod
     def post_process(self, envelope):
         """Method for securing (post processing) a SOAP envelope."""
@@ -119,6 +124,10 @@ class TransportKerberosAuthentication(Authentication):
     def transport(self):
         return self._transport
 
+    @property
+    def clientcertificate(self):
+        return None
+
     def post_process(self, envelope):
         # Nothing to be done here.
         return envelope
@@ -135,15 +144,29 @@ class MessageUsernamePasswordAuthentication(Authentication):
     def transport(self):
         return None
 
+    @property
+    def clientcertificate(self):
+        return None
+
     def post_process(self, envelope):
         raise NotImplementedError()
 
 
-class MessageCertificateAuthentication(Authentication):
-    """Message authentication using a client certificate."""
+class TransportCertificateAuthentication(Authentication):
+    """Transport authentication using a client certificate."""
+    def __init__(self, certfile, keyfile):
+        super().__init__()
+        self._certfile = certfile
+        self._keyfile = keyfile
+
     @property
     def transport(self):
-        raise NotImplementedError()
+        return None
+
+    @property
+    def clientcertificate(self):
+        return ( self._certfile, self._keyfile )
 
     def post_process(self, envelope):
-        raise NotImplementedError()
+        # Nothing to be done here.
+        return envelope
