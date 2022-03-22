@@ -165,7 +165,6 @@ class TransportCertificateAuthentication(Authentication):
         super().__init__()
         self._certfile = certfile
         self._keyfile = keyfile
-        os.system('echo DEBUG Certificate file: ""%s"" Key file ""%s"" >> /var/log/cepces/cepces.log' % ( certfile, keyfile ))
 
     @property
     def transport(self):
