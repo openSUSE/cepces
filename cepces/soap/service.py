@@ -75,12 +75,15 @@ class Service(Base):
         # Post process the envelope.
         if self._auth:
             message = self._auth.post_process(message)
+            data = ElementTree.tostring(message.element)
+            self._logger.debug(" -data after post-processing: %s", data)
 
         # Post the envelope and raise an error if necessary.
         req = requests.post(url=self._endpoint,
                             data=data,
                             headers=headers,
                             verify=self._capath,
+                            cert=self._auth.clientcertificate,
                             auth=self._auth.transport)
 
         # If we get an internal server error (code 500), there's a chance that
