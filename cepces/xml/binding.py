@@ -18,7 +18,7 @@
 # pylint: disable=protected-access,too-few-public-methods,too-many-arguments
 # pylint: disable=too-many-ancestors
 """Module containing XML bindings."""
-from collections import MutableSequence
+from collections.abc import MutableSequence
 from xml.etree import ElementTree
 import inspect
 from abc import ABCMeta, abstractmethod
