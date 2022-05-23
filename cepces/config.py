@@ -62,7 +62,7 @@ class Configuration(Base):
         self._endpoint_type = endpoint_type
         self._cas = cas
         self._auth = auth
-        self.pollInterval = poll_interval
+        self._poll_interval = poll_interval
 
     @property
     def endpoint(self):
