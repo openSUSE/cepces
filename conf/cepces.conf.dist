@@ -1,6 +1,6 @@
 [global]
-# Hostname of the issuing certification authority. This is an optional setting
-# and is only used to construct the URL to the Policy Provider endpoint.
+# Hostname of the Certificate Enrollment Policy (CEP) Server.
+# Used to construct the URL to the CEP endpoint.
 #
 # Default: ca
 server=ca
