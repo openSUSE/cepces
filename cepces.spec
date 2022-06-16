@@ -1,27 +1,36 @@
-%global app_name cepces
 %global selinux_variants targeted
-%global logdir %{_localstatedir}/log/%{app_name}
+%global logdir %{_localstatedir}/log/%{name}
 
-Name:           %{app_name}
-Version:        0.3.3
-Release:        2%{?dist}
+Name:           cepces
+Version:        0.3.5
+Release:        1%{?dist}
 Summary:        Certificate Enrollment through CEP/CES
 
 License:        GPLv3+
-URL:            https://github.com/ufven/%{app_name}
-Source0:        https://github.com/ufven/%{app_name}/archive/v%{version}/%{app_name}-%{version}.tar.gz
+URL:            https://github.com/openSUSE/%{name}
+Source0:        https://github.com/openSUSE/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
+
+# cepces.conf.dist: server should be pointed to actual CEP host
+# https://github.com/openSUSE/cepces/issues/15
+# Merged to master after ver 0.3.5
+Patch0:         https://patch-diff.githubusercontent.com/raw/openSUSE/%{name}/pull/16.patch
 BuildArch:      noarch
 
-Requires:       python%{python3_pkgversion}-%{app_name} == %{version}
-Requires:       %{app_name}-certmonger == %{version}
-Requires:       %{app_name}-selinux == %{version}
+Requires:       python%{python3_pkgversion}-%{name} == %{version}
+Requires:       %{name}-certmonger == %{version}
+Requires:       %{name}-selinux == %{version}
+
+Suggests:       logrotate
 
 %description
-%{app_name} is an application for enrolling certificates through CEP and CES.
-It currently only operates through certmonger.
+cepces is an application for enrolling certificates through CEP and CES.
+It requires certmonger to operate.
 
-%package -n python%{python3_pkgversion}-%{app_name}
-Summary:        Python part of %{app_name}
+Only simple deployments using Microsoft Active Directory Certificate Services
+have been tested.
+
+%package -n python%{python3_pkgversion}-%{name}
+Summary:        Python part of %{name}
 
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
@@ -33,21 +42,21 @@ Requires:       python%{python3_pkgversion}-cryptography >= 1.2
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-requests-kerberos >= 0.9
 
-%description -n python%{python3_pkgversion}-%{app_name}
-%{app_name} is an application for enrolling certificates through CEP and CES.
+%description -n python%{python3_pkgversion}-%{name}
+%{name} is an application for enrolling certificates through CEP and CES.
 This package provides the Python part for CEP and CES interaction.
 
 %package certmonger
-Summary:        certmonger integration for %{app_name}
+Summary:        certmonger integration for %{name}
 
 Requires:       certmonger
 
 %description certmonger
-%{app_name} is an application for enrolling certificates through CEP and CES.
-This package provides the certmonger integration.
+Installing %{name}-certmonger adds %{name} as a CA configuration.
+Uninstall revert the action.
 
 %package selinux
-Summary:        SELinux support for %{app_name}
+Summary:        SELinux support for %{name}
 
 BuildRequires:  selinux-policy-devel
 
@@ -55,10 +64,10 @@ Requires:       selinux-policy
 Requires(post): selinux-policy-targeted
 
 %description selinux
-SELinux support for %{app_name}
+SELinux support for %{name}
 
 %prep
-%setup -q -n %{app_name}-%{version}
+%autosetup -p1
 
 %build
 %py3_build
@@ -66,45 +75,57 @@ SELinux support for %{app_name}
 # Build the SELinux module(s).
 for SELINUXVARIANT in %{selinux_variants}; do
   make -C selinux clean all
-  mv -v selinux/%{app_name}.pp selinux/%{app_name}-${SELINUXVARIANT}.pp
+  mv -v selinux/%{name}.pp selinux/%{name}-${SELINUXVARIANT}.pp
 done
 
 %install
 %py3_install
 
-install -d -m 0700 %{buildroot}%{logdir}
+install -d  %{buildroot}%{logdir}
 
 # Install the SELinux module(s).
 rm -fv selinux-files.txt
 
 for SELINUXVARIANT in %{selinux_variants}; do
   install -d %{buildroot}%{_datadir}/selinux/${SELINUXVARIANT}
-  install -p -m 644 selinux/%{app_name}-${SELINUXVARIANT}.pp \
-    %{buildroot}%{_datadir}/selinux/${SELINUXVARIANT}/%{app_name}.pp
+  install -p -m 644 selinux/%{name}-${SELINUXVARIANT}.pp \
+    %{buildroot}%{_datadir}/selinux/${SELINUXVARIANT}/%{name}.pp
 
-  echo %{_datadir}/selinux/${SELINUXVARIANT}/%{app_name}.pp >> \
+  echo %{_datadir}/selinux/${SELINUXVARIANT}/%{name}.pp >> \
     selinux-files.txt
 done
 
 # Install configuration files.
-install -d %{buildroot}%{_sysconfdir}/%{app_name}
+install -d %{buildroot}%{_sysconfdir}/%{name}
 install -p -m 644 conf/cepces.conf.dist \
-  %{buildroot}%{_sysconfdir}/%{app_name}/cepces.conf
+  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
 install -p -m 644 conf/logging.conf.dist \
-  %{buildroot}%{_sysconfdir}/%{app_name}/logging.conf
+  %{buildroot}%{_sysconfdir}/%{name}/logging.conf
 
 install -d %{buildroot}%{_libexecdir}/certmonger
-install -p -m 755 bin/%{app_name}-submit \
-  %{buildroot}%{_libexecdir}/certmonger/%{app_name}-submit
+install -p -m 755 bin/%{name}-submit \
+  %{buildroot}%{_libexecdir}/certmonger/%{name}-submit
 
 # Remove unused executables and configuration files.
 %{__rm} -rfv %{buildroot}/usr/local/etc
 %{__rm} -rfv %{buildroot}/usr/local/libexec/certmonger
 
+
+# Copy default logrotate file
+mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
+cat <<EOF>%{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+/var/log/%{name}/*.log {
+    compress
+    delaycompress
+    missingok
+    rotate 4
+}
+EOF
+
 %post selinux
 for SELINUXVARIANT in %{selinux_variants}; do
   %{_sbindir}/semodule -n -s ${SELINUXVARIANT} \
-    -i %{_datadir}/selinux/${SELINUXVARIANT}/%{app_name}.pp
+    -i %{_datadir}/selinux/${SELINUXVARIANT}/%{name}.pp
 
   if %{_sbindir}/selinuxenabled; then
     %{_sbindir}/load_policy
@@ -115,7 +136,7 @@ done
 if [ $1 -eq 0 ]
 then
   for SELINUXVARIANT in %{selinux_variants}; do
-    %{_sbindir}/semodule -n -s ${SELINUXVARIANT} -r %{app_name} > /dev/null || :
+    %{_sbindir}/semodule -n -s ${SELINUXVARIANT} -r %{name} > /dev/null || :
 
     if %{_sbindir}/selinuxenabled; then
       %{_sbindir}/load_policy
@@ -126,38 +147,53 @@ fi
 %post certmonger
 # Install the CA into certmonger.
 if [[ "$1" == "1" ]]; then
-  getcert add-ca -c %{app_name} \
-    -e %{_libexecdir}/certmonger/%{app_name}-submit >/dev/null || :
+  getcert add-ca -c %{name} \
+    -e %{_libexecdir}/certmonger/%{name}-submit >/dev/null || :
 fi
 
 %preun certmonger
 # Remove the CA from certmonger, unless it's an upgrade.
 if [[ "$1" == "0" ]]; then
-  getcert remove-ca -c %{app_name} >/dev/null || :
+  getcert remove-ca -c %{name} >/dev/null || :
 fi
 
 %check
+# Create a symlink so test can locate cepces_test
+ln -s tests/cepces_test .
 %{__python3} setup.py test
 
 %files
-%doc LICENSE
+%license LICENSE
 %doc README.rst
-%dir %{_sysconfdir}/%{app_name}/
-%config(noreplace) %{_sysconfdir}/%{app_name}/%{app_name}.conf
-%config(noreplace) %{_sysconfdir}/%{app_name}/logging.conf
-%dir %{logdir}
+%dir %{_sysconfdir}/%{name}/
+%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %{_sysconfdir}/%{name}/logging.conf
+%attr(0700,-,-) %dir %{logdir}
+%dir %{_sysconfdir}/logrotate.d
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
-%files -n python%{python3_pkgversion}-%{app_name}
-%{python3_sitelib}/%{app_name}
-%{python3_sitelib}/%{app_name}-%{version}-py?.?.egg-info
+%files -n python%{python3_pkgversion}-%{name}
+%{python3_sitelib}/%{name}
+%{python3_sitelib}/%{name}-%{version}-py?.*.egg-info
 
 %files certmonger
-%{_libexecdir}/certmonger/%{app_name}-submit
+%{_libexecdir}/certmonger/%{name}-submit
 
 %files selinux -f selinux-files.txt
 %defattr(0644,root,root,0755)
 
 %changelog
+* Thu Jun 16 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-1
+- Initial import to Fedora
+- Add logrotate
+- Applied patch for https://github.com/openSUSE/cepces/issues/15
+
+* Fri Oct 01 2021 Daniel Uvehag <daniel.uvehag@gmail.com> - 0.3.4-1
+- Fix collections deprecation
+
+* Fri Oct 01 2021 Daniel Uvehag <daniel.uvehag@gmail.com> - 0.3.4-1
+- Fix collections deprecation
+
 * Mon Jul 29 2019 Daniel Uvehag <daniel.uvehag@gmail.com> - 0.3.3-2
 - Add missing log directory
 
