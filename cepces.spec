@@ -14,6 +14,9 @@ Source0:        https://github.com/openSUSE/%{name}/archive/v%{version}/%{name}-
 # https://github.com/openSUSE/cepces/issues/15
 # Merged to master after ver 0.3.5
 Patch0:         https://patch-diff.githubusercontent.com/raw/openSUSE/%{name}/pull/16.patch
+
+# Use /usr/libexec and /etc instead
+Patch1:         https://patch-diff.githubusercontent.com/raw/openSUSE/%{name}/pull/17.patch
 BuildArch:      noarch
 
 Requires:       python%{python3_pkgversion}-%{name} == %{version}
@@ -68,8 +71,6 @@ SELinux support for %{name}
 
 %prep
 %autosetup -p1
-sed -i.use-etc -e 's|/usr/local/etc|/etc|' setup.py
-sed -i.use-usr-libexec -e 's|/usr/local/libexec|/usr/libexec|' setup.py
 
 %build
 %py3_build
@@ -98,20 +99,11 @@ for SELINUXVARIANT in %{selinux_variants}; do
 done
 
 # Install configuration files.
-#install -d %{buildroot}%{_sysconfdir}/%{name}
-#install -p -m 644 conf/cepces.conf.dist \
-#  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
-#install -p -m 644 conf/logging.conf.dist \
-#  %{buildroot}%{_sysconfdir}/%{name}/logging.conf
-
-#install -d %{buildroot}%{_libexecdir}/certmonger
-#install -p -m 755 bin/%{name}-submit \
-#  %{buildroot}%{_libexecdir}/certmonger/%{name}-submit
-
-# Remove unused executables and configuration files.
-#%{__rm} -rfv %{buildroot}/usr/local/etc
-#%{__rm} -rfv %{buildroot}/usr/local/libexec/certmonger
-
+install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}
+install -p -m 644 conf/cepces.conf.dist \
+  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
+install -p -m 644 conf/logging.conf.dist \
+  %{buildroot}%{_sysconfdir}/%{name}/logging.conf
 
 # Copy default logrotate file
 install -d -m 0755 %{buildroot}%{_sysconfdir}/logrotate.d

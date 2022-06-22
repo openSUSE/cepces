@@ -72,8 +72,8 @@ setup(
         (
             '/etc/cepces',
             [
-                'conf/cepces.conf',
-                'conf/logging.conf',
+                'conf/cepces.conf.dist',
+                'conf/logging.conf.dist',
             ]
         ),
     ],
