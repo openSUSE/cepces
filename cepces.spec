@@ -3,7 +3,7 @@
 
 Name:           cepces
 Version:        0.3.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Certificate Enrollment through CEP/CES
 
 License:        GPLv3+
@@ -32,15 +32,15 @@ have been tested.
 %package -n python%{python3_pkgversion}-%{name}
 Summary:        Python part of %{name}
 
-BuildRequires:  python%{python3_pkgversion}-devel
-BuildRequires:  python%{python3_pkgversion}-setuptools
-BuildRequires:  python%{python3_pkgversion}-cryptography >= 1.2
-BuildRequires:  python%{python3_pkgversion}-requests
-BuildRequires:  python%{python3_pkgversion}-requests-kerberos >= 0.9
+BuildRequires:  python3dist(setuptools)
+BuildRequires:  python3dist(cryptography) >= 1.2
+BuildRequires:  python3dist(requests)
+BuildRequires:  python3dist(requests-kerberos) >= 0.9
+BuildRequires:  python3-devel
 
-Requires:       python%{python3_pkgversion}-cryptography >= 1.2
-Requires:       python%{python3_pkgversion}-requests
-Requires:       python%{python3_pkgversion}-requests-kerberos >= 0.9
+Requires:       python3dist(setuptools)
+Requires:       python3dist(cryptography) >= 1.2
+Requires:       python3dist(requests)
 
 %description -n python%{python3_pkgversion}-%{name}
 %{name} is an application for enrolling certificates through CEP and CES.
@@ -68,6 +68,8 @@ SELinux support for %{name}
 
 %prep
 %autosetup -p1
+sed -i.use-etc -e 's|/usr/local/etc|/etc|' setup.py
+sed -i.use-usr-libexec -e 's|/usr/local/libexec|/usr/libexec|' setup.py
 
 %build
 %py3_build
@@ -96,23 +98,23 @@ for SELINUXVARIANT in %{selinux_variants}; do
 done
 
 # Install configuration files.
-install -d %{buildroot}%{_sysconfdir}/%{name}
-install -p -m 644 conf/cepces.conf.dist \
-  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
-install -p -m 644 conf/logging.conf.dist \
-  %{buildroot}%{_sysconfdir}/%{name}/logging.conf
+#install -d %{buildroot}%{_sysconfdir}/%{name}
+#install -p -m 644 conf/cepces.conf.dist \
+#  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
+#install -p -m 644 conf/logging.conf.dist \
+#  %{buildroot}%{_sysconfdir}/%{name}/logging.conf
 
-install -d %{buildroot}%{_libexecdir}/certmonger
-install -p -m 755 bin/%{name}-submit \
-  %{buildroot}%{_libexecdir}/certmonger/%{name}-submit
+#install -d %{buildroot}%{_libexecdir}/certmonger
+#install -p -m 755 bin/%{name}-submit \
+#  %{buildroot}%{_libexecdir}/certmonger/%{name}-submit
 
 # Remove unused executables and configuration files.
-%{__rm} -rfv %{buildroot}/usr/local/etc
-%{__rm} -rfv %{buildroot}/usr/local/libexec/certmonger
+#%{__rm} -rfv %{buildroot}/usr/local/etc
+#%{__rm} -rfv %{buildroot}/usr/local/libexec/certmonger
 
 
 # Copy default logrotate file
-mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
+install -d -m 0755 %{buildroot}%{_sysconfdir}/logrotate.d
 cat <<EOF>%{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 /var/log/%{name}/*.log {
     compress
@@ -183,6 +185,9 @@ ln -s tests/cepces_test .
 %defattr(0644,root,root,0755)
 
 %changelog
+* Wed Jun 22 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-2
+- Review comment #1 addressed
+
 * Thu Jun 16 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-1
 - Initial import to Fedora
 - Add logrotate
