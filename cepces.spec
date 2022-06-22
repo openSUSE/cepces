@@ -98,12 +98,9 @@ for SELINUXVARIANT in %{selinux_variants}; do
     selinux-files.txt
 done
 
-# Install configuration files.
-install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}
-install -p -m 644 conf/cepces.conf.dist \
-  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
-install -p -m 644 conf/logging.conf.dist \
-  %{buildroot}%{_sysconfdir}/%{name}/logging.conf
+# Rename configuration files.
+mv %{buildroot}%{_sysconfdir}/%{name}/cepces.conf{.dist,}
+mv %{buildroot}%{_sysconfdir}/%{name}/logging.conf{.dist,}
 
 # Copy default logrotate file
 install -d -m 0755 %{buildroot}%{_sysconfdir}/logrotate.d
