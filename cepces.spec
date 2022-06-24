@@ -1,9 +1,11 @@
 %global selinux_variants targeted
 %global logdir %{_localstatedir}/log/%{name}
+%global modulename %{name}
+%global selinux_package_dir %{_datadir}/selinux/packages
 
 Name:           cepces
 Version:        0.3.5
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Certificate Enrollment through CEP/CES
 
 License:        GPLv3+
@@ -90,19 +92,21 @@ install -d  %{buildroot}%{logdir}
 rm -fv selinux-files.txt
 
 for SELINUXVARIANT in %{selinux_variants}; do
-  install -d %{buildroot}%{_datadir}/selinux/${SELINUXVARIANT}
-  install -p -m 644 selinux/%{name}-${SELINUXVARIANT}.pp \
-    %{buildroot}%{_datadir}/selinux/${SELINUXVARIANT}/%{name}.pp
+  install -d -m 755 %{buildroot}%{selinux_package_dir}/${SELINUXVARIANT}
+  bzip2 selinux/%{name}-${SELINUXVARIANT}.pp
+  MODULE_PATH=%{selinux_package_dir}/${SELINUXVARIANT}/%{modulename}.pp.bz2
+  install -p -m 644 selinux/%{name}-${SELINUXVARIANT}.pp.bz2 \
+    %{buildroot}$MODULE_PATH
 
-  echo %{_datadir}/selinux/${SELINUXVARIANT}/%{name}.pp >> \
-    selinux-files.txt
+  echo $MODULE_PATH >> selinux-files.txt
 done
 
-# Rename configuration files.
-mv %{buildroot}%{_sysconfdir}/%{name}/cepces.conf{.dist,}
-mv %{buildroot}%{_sysconfdir}/%{name}/logging.conf{.dist,}
+# Configuration files
+install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}/
+install -m 644  conf/cepces.conf.dist  %{buildroot}%{_sysconfdir}/%{name}/cepces.conf
+install -m 644  conf/logging.conf.dist %{buildroot}%{_sysconfdir}/%{name}/logging.conf
 
-# Copy default logrotate file
+# Default logrotate file
 install -d -m 0755 %{buildroot}%{_sysconfdir}/logrotate.d
 cat <<EOF>%{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 /var/log/%{name}/*.log {
@@ -113,27 +117,30 @@ cat <<EOF>%{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 }
 EOF
 
-%post selinux
+%pre selinux
 for SELINUXVARIANT in %{selinux_variants}; do
-  %{_sbindir}/semodule -n -s ${SELINUXVARIANT} \
-    -i %{_datadir}/selinux/${SELINUXVARIANT}/%{name}.pp
+  %selinux_relabel_pre -s %{SELINUXVARIANT}
+done
 
-  if %{_sbindir}/selinuxenabled; then
-    %{_sbindir}/load_policy
-  fi
+%post selinux
+semodule -d %{modulename} &> /dev/null || true;
+for SELINUXVARIANT in %{selinux_variants}; do
+  MODULE_PATH=%{selinux_package_dir}/${SELINUXVARIANT}/%{modulename}.pp.bz2
+  %selinux_modules_install -s %{SELINUXVARIANT} ${MODULE_PATH}
 done
 
 %postun selinux
-if [ $1 -eq 0 ]
-then
+if [ $1 -eq 0 ]; then
   for SELINUXVARIANT in %{selinux_variants}; do
-    %{_sbindir}/semodule -n -s ${SELINUXVARIANT} -r %{name} > /dev/null || :
-
-    if %{_sbindir}/selinuxenabled; then
-      %{_sbindir}/load_policy
-    fi
+    %selinux_modules_uninstall -s %{SELINUXVARIANT} %{modulename}
+    semodule -e %{modulename}  &> /dev/null || true;
   done
 fi
+
+%posttrans selinux
+for SELINUXVARIANT in %{selinux_variants}; do
+  %selinux_relabel_post -s %{SELINUXVARIANT}
+done
 
 %post certmonger
 # Install the CA into certmonger.
@@ -174,6 +181,9 @@ ln -s tests/cepces_test .
 %defattr(0644,root,root,0755)
 
 %changelog
+* Thu Jun 23 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-3
+- Review comment #4 addressed
+
 * Wed Jun 22 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-2
 - Review comment #1 addressed
 
