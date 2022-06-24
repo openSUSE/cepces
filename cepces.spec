@@ -181,8 +181,8 @@ ln -s tests/cepces_test .
 %defattr(0644,root,root,0755)
 
 %changelog
-* Thu Jun 23 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-3
-- Review comment #4 addressed
+* Fri Jun 24 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-3
+- Review comment #4, #7 addressed
 
 * Wed Jun 22 2022 Ding-Yi Chen <dchen@redhat.com> - 0.3.5-2
 - Review comment #1 addressed
