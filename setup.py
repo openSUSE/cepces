@@ -68,14 +68,7 @@ setup(
     ],
 
     data_files=[
-        ('/usr/local/libexec/certmonger', ['bin/cepces-submit']),
-        (
-            '/usr/local/etc/cepces',
-            [
-                'conf/cepces.conf.dist',
-                'conf/logging.conf.dist',
-            ]
-        ),
+        ('libexec/certmonger', ['bin/cepces-submit']),
     ],
 
     install_requires=[],
