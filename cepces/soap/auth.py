@@ -21,7 +21,8 @@
 """This module contains SOAP related authentication."""
 from abc import ABCMeta, abstractmethod, abstractproperty
 import os
-from requests_kerberos import HTTPKerberosAuth
+import gssapi
+from requests_gssapi import HTTPSPNEGOAuth
 from cepces import Base
 from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Keytab, Principal
@@ -117,8 +118,9 @@ class TransportKerberosAuthentication(Authentication):
         os.environ["KRB5CCNAME"] = ccache_name
 
     def _init_transport(self):
-        self._transport = HTTPKerberosAuth(principal=self._config['name'],
-                                           delegate=True)
+        name = gssapi.Name(self._config['name'], gssapi.NameType.user)
+        creds = gssapi.Credentials(name=name, usage="initiate")
+        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=True)
 
     @property
     def transport(self):
