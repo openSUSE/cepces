@@ -21,7 +21,7 @@
 # pylint: disable=invalid-name
 """This module contains common SOAP types."""
 from xml.etree.ElementTree import Element, QName
-from cepces.soap import NS_ADDRESSING, NS_SOAP
+from cepces.soap import NS_ADDRESSING, NS_SOAP, NS_WSSE
 from cepces.xml import NS_XSI
 from cepces.xml.binding import XMLElement, XMLNode, XMLValue
 from cepces.xml.converter import StringConverter
@@ -100,6 +100,43 @@ class Fault(XMLNode):
         return element
 
 
+class UsernameToken(XMLNode):
+    """WSSE UsernameToken."""
+    username = XMLValue('Username',
+                     converter=StringConverter,
+                     namespace=NS_WSSE)
+    password = XMLValue('Password',
+                     converter=StringConverter,
+                     namespace=NS_WSSE)
+
+    @staticmethod
+    def create():
+        usernametoken = Element(QName(NS_WSSE, 'UsernameToken'))
+ 
+        username = Element(QName(NS_WSSE, 'Username'))
+        usernametoken.append(username)
+
+        password = Element(QName(NS_WSSE, 'Password'))
+        password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText'
+        usernametoken.append(password)
+
+        return usernametoken
+
+
+class Security(XMLNode):
+    """WSSE Security."""
+    usernametoken = XMLElement('UsernameToken',
+                        binder=UsernameToken,
+                        namespace=NS_WSSE)
+
+    @staticmethod
+    def create():
+        security = Element(QName(NS_WSSE, 'Security'))
+        security.attrib[QName(NS_SOAP, 'mustUnderstand')] = '1'
+
+        return security
+
+
 class Header(XMLNode):
     """SOAP Header."""
     action = XMLValue('Action',
@@ -121,6 +158,10 @@ class Header(XMLNode):
                           converter=StringConverter,
                           namespace=NS_ADDRESSING,
                           nillable=True)
+
+    security =  XMLElement ('Security',
+                            binder=Security,
+                            namespace=NS_WSSE)
 
     @staticmethod
     def create():

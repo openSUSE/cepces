@@ -27,6 +27,7 @@ from cepces import Base
 from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Keytab, Principal
 from cepces.krb5.core import CredentialOptions, Credentials, CredentialCache
+from cepces.soap.types import Security as WSSecurity, UsernameToken
 
 
 class Authentication(Base, metaclass=ABCMeta):
@@ -152,7 +153,13 @@ class MessageUsernamePasswordAuthentication(Authentication):
         return None
 
     def post_process(self, envelope):
-        raise NotImplementedError()
+        envelope.header.element.append(WSSecurity.create())
+
+        envelope.header.security.element.append(UsernameToken.create())
+        envelope.header.security.usernametoken.username = self._username
+        envelope.header.security.usernametoken.password = self._password
+
+        return envelope
 
 
 class TransportCertificateAuthentication(Authentication):
