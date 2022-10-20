@@ -89,13 +89,15 @@ if __name__ == '__main__':
     parser.add_argument('--principals',
         help='A list of principals to try when requesting a ticket')
     args = parser.parse_args()
+    g_overrides = {}
     if args.server is not None:
-        g_overrides = { 'server': args.server, 'auth': args.auth, 'poll_interval': args.poll_interval }
+        g_overrides['server'] = args.server
+        g_overrides['auth'] = args.auth
         endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % \
                         (args.server, args.auth)
         g_overrides['endpoint'] = endpoint
-    else:
-        g_overrides = {}
+    if args.poll_interval is not None:
+        g_overrides['poll_interval'] = args.poll_interval
     k_overrides = {}
     if args.keytab is not None:
         k_overrides['keytab'] = args.keytab
