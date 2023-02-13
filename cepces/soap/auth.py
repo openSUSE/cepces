@@ -121,7 +121,7 @@ class TransportKerberosAuthentication(Authentication):
     def _init_transport(self):
         name = gssapi.Name(self._config['name'], gssapi.NameType.user)
         creds = gssapi.Credentials(name=name, usage="initiate")
-        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=self._config['delegate'])
+        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=self._config['delegate'], mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"))
 
     @property
     def transport(self):
