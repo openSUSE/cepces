@@ -282,10 +282,17 @@ class Service(Base):
         oid = x509.oid.AuthorityInformationAccessOID
 
         # Load the certificate.
-        cert = x509.load_pem_x509_certificate(
-            data.encode(),
-            default_backend(),
-        )
+        try:
+            cert = x509.load_pem_x509_certificate(
+                data.encode(),
+                default_backend(),
+            )
+        except ValueError:
+            # The cert may be DER encoded instead
+            cert = x509.load_der_x509_certificate(
+                data.encode(),
+                default_backend(),
+            )
 
         # If no child is present, this is the first cert and thus cannot be
         # verified yet.
