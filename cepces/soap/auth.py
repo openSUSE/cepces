@@ -21,7 +21,8 @@
 """This module contains SOAP related authentication."""
 from abc import ABCMeta, abstractmethod, abstractproperty
 import os
-from requests_kerberos import HTTPKerberosAuth
+import gssapi
+from requests_gssapi import HTTPSPNEGOAuth
 from cepces import Base
 from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Keytab, Principal
@@ -62,7 +63,7 @@ class AnonymousAuthentication(Authentication):
 class TransportKerberosAuthentication(Authentication):
     """Kerberos authentication on the transport level."""
     def __init__(self, principal_name=None, init_ccache=True, keytab=None,
-                 enctypes=None):
+                 enctypes=None, delegate=True):
         super().__init__()
 
         self._config = {}
@@ -70,6 +71,7 @@ class TransportKerberosAuthentication(Authentication):
         self._config['init_ccache'] = init_ccache
         self._config['keytab'] = keytab
         self._config['enctypes'] = enctypes
+        self._config['delegate'] = delegate
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
@@ -118,8 +120,9 @@ class TransportKerberosAuthentication(Authentication):
         os.environ["KRB5CCNAME"] = ccache_name
 
     def _init_transport(self):
-        self._transport = HTTPKerberosAuth(principal=self._config['name'],
-                                           delegate=True)
+        name = gssapi.Name(self._config['name'], gssapi.NameType.user)
+        creds = gssapi.Credentials(name=name, usage="initiate")
+        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=self._config['delegate'], mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"))
 
     @property
     def transport(self):

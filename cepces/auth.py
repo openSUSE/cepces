@@ -23,6 +23,11 @@ from cepces.krb5.types import EncryptionType as KerberosEncryptionType
 from cepces.soap import auth as SOAPAuth
 
 
+def strtobool(value):
+    if str(value).lower() in ('t', 'true', 'y', 'yes', '1'):
+        return True
+    return False
+
 class AuthenticationHandler(Base, metaclass=ABCMeta):
     """Base class for any authentication handled."""
     def __init__(self, parser):
@@ -56,6 +61,7 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
         ccache = section.get('ccache', True)
         principals = section.get('principals', '')
         enctypes = section.get('enctypes', '')
+        delegate = strtobool(section.get('delegate', True))
 
         # Decode all encryption types.
         etypes = []
@@ -82,6 +88,7 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
                     principal_name=principal,
                     init_ccache=ccache,
                     keytab=keytab,
+                    delegate=delegate,
                 )
             except KerberosError:
                 # Ignore

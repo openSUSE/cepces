@@ -24,6 +24,7 @@ import os
 import sys
 import traceback
 import argparse
+import requests
 from cepces.certmonger.core import Result
 from cepces.certmonger.operation import Operation
 from cepces.config import Configuration
@@ -62,6 +63,8 @@ def main(global_overrides, krb5_overrides):
             # Load the configuration and instantiate a service.
             config = Configuration.load(global_overrides=global_overrides,
                                         krb5_overrides=krb5_overrides)
+            if config.openssl_seclevel and config.openssl_seclevel.isnumeric():
+                requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=%s' % config.openssl_seclevel
             service = Service(config)
 
             # Call the operation.
@@ -88,14 +91,19 @@ if __name__ == '__main__':
     parser.add_argument('--keytab', help='Use the specified keytab')
     parser.add_argument('--principals',
         help='A list of principals to try when requesting a ticket')
+    parser.add_argument('--openssl-seclevel', help='The openssl security level')
     args = parser.parse_args()
+    g_overrides = {}
     if args.server is not None:
-        g_overrides = { 'server': args.server, 'auth': args.auth, 'poll_interval': args.poll_interval }
+        g_overrides['server'] = args.server
+        g_overrides['auth'] = args.auth
         endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % \
                         (args.server, args.auth)
         g_overrides['endpoint'] = endpoint
-    else:
-        g_overrides = {}
+    if args.poll_interval is not None:
+        g_overrides['poll_interval'] = args.poll_interval
+    if args.openssl_seclevel is not None:
+        g_overrides['openssl_seclevel'] = args.openssl_seclevel
     k_overrides = {}
     if args.keytab is not None:
         k_overrides['keytab'] = args.keytab

@@ -22,8 +22,8 @@ import logging
 
 __title__ = 'cepces'
 __description__ = 'CEP/CES library.'
-__url__ = 'https://github.com/ufven/cepces/'
-__version__ = '0.3.4'
+__url__ = 'https://github.com/openSUSE/cepces/'
+__version__ = '0.3.9'
 __author__ = 'Daniel Uvehag'
 __author_email__ = 'daniel.uvehag@gmail.com'
 __license__ = 'GPLv3'

@@ -41,7 +41,7 @@ setup(
     license=cepces.__license__,
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         'Environment :: Console',
 
@@ -50,9 +50,9 @@ setup(
 
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
 
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
 
     keywords='certificate ca cep ces adcs wstep xcep',
@@ -68,14 +68,7 @@ setup(
     ],
 
     data_files=[
-        ('/usr/local/libexec/certmonger', ['bin/cepces-submit']),
-        (
-            '/usr/local/etc/cepces',
-            [
-                'conf/cepces.conf.dist',
-                'conf/logging.conf.dist',
-            ]
-        ),
+        ('libexec/certmonger', ['bin/cepces-submit']),
     ],
 
     install_requires=[],

@@ -20,6 +20,8 @@
 NS_WST = 'http://docs.oasis-open.org/ws-sx/ws-trust/200512'
 NS_WST_SECEXT = 'http://docs.oasis-open.org/wss/2004/01/' \
                 'oasis-200401-wss-wssecurity-secext-1.0.xsd'
+NS_WST_UTILITY = 'http://docs.oasis-open.org/wss/2004/01/' \
+                'oasis-200401-wss-wssecurity-utility-1.0.xsd'
 NS_ENROLLMENT = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollment'
 
 TOKEN_TYPE = 'http://docs.oasis-open.org/wss/2004/01/' \
