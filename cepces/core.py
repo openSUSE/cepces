@@ -243,24 +243,22 @@ class Service(Base):
         """
         sig_hash_alg = cert.signature_hash_algorithm
         sig_bytes = cert.signature
+        sig_data = cert.tbs_certificate_bytes
         issuer_public_key = issuer.public_key()
 
         # Check the type of public key
         if isinstance(issuer_public_key, rsa.RSAPublicKey):
-            verifier = issuer_public_key.verifier(
-                sig_bytes, padding.PKCS1v15(), sig_hash_alg,
+            issuer_public_key.verify(
+                sig_bytes, sig_data, padding.PKCS1v15(), sig_hash_alg,
             )
         elif isinstance(issuer_public_key, ec.EllipticCurvePublicKey):
-            verifier = issuer_public_key.verifier(
-                sig_bytes, ec.ECDSA(sig_hash_alg),
+            issuer_public_key.verify(
+                sig_bytes, sig_data, ec.ECDSA(sig_hash_alg),
             )
         else:
-            verifier = issuer_public_key.verifier(
-                sig_bytes, sig_hash_alg,
+            issuer_public_key.verify(
+                sig_bytes, sig_data, sig_hash_alg,
             )
-
-        verifier.update(cert.tbs_certificate_bytes)
-        verifier.verify()
 
         return True
 
