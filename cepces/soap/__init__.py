@@ -20,6 +20,7 @@ from xml.etree.ElementTree import QName
 
 NS_SOAP = 'http://www.w3.org/2003/05/soap-envelope'
 NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
+NS_WSSE = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'
 
 # ACTION_FAULT = 'http://www.w3.org/2005/08/addressing/fault'
 QNAME_FAULT = QName('http://www.w3.org/2003/05/soap-envelope', 'Fault')
