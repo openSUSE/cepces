@@ -1,3 +1,4 @@
+---
 name: Run Python Tests
 on:
   push:
@@ -10,16 +11,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Python 3
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           sudo apt-get install libkrb5-dev
-          python3 -m pip install --upgrade pip
-          pip3 install -e .
-      - name: Run tests
-        run: pushd tests; python3 runner.py; popd
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      - name: Test with tox
+        run: tox
