@@ -49,6 +49,7 @@ class Operation(Base, metaclass=ABCMeta):
     An extra class variable, `name`, is used to distinguish the mapped
     certmonger operation.
     """
+
     name = None
     required = []
     optional = []
@@ -94,36 +95,37 @@ class Operation(Base, metaclass=ABCMeta):
 
 class Submit(Operation):
     """Attempt to enroll a new certificate."""
-    name = 'SUBMIT'
-    required = ['CERTMONGER_CSR']
+
+    name = "SUBMIT"
+    required = ["CERTMONGER_CSR"]
     optional = [
-        ('CERTMONGER_CERTIFICATE', None),
+        ("CERTMONGER_CERTIFICATE", None),
     ]
 
     def __call__(self):
         service = self._service
 
-        pem = self._vars['CERTMONGER_CSR'].strip()
+        pem = self._vars["CERTMONGER_CSR"].strip()
         csr = x509.load_pem_x509_csr(pem.encode(), default_backend())
 
-        self._logger.debug('Sending CSR: %s', pem)
+        self._logger.debug("Sending CSR: %s", pem)
 
         try:
             result = service.request(
                 csr,
-                renew=self._vars['CERTMONGER_CERTIFICATE'] is not None,
+                renew=self._vars["CERTMONGER_CERTIFICATE"] is not None,
             )
         except SOAPFault as error:
             print(error, file=self._out)
 
             return CertmongerResult.REJECTED
 
-        self._logger.debug('Result is: %s', result)
+        self._logger.debug("Result is: %s", result)
 
         # If we have a certificate, return it. Otherwise, ask certmonger to
         # wait a bit.
         if result.token:
-            self._logger.debug('Token is: %s', result.token)
+            self._logger.debug("Token is: %s", result.token)
             pem = result.token.public_bytes(serialization.Encoding.PEM)
 
             print(pem.decode().strip(), file=self._out)
@@ -132,7 +134,7 @@ class Submit(Operation):
 
         # Output a "cookie" that can be used to later poll the status.
         print(
-            '{}\n{},{}'.format(
+            "{}\n{},{}".format(
                 service._config.poll_interval,
                 result.request_id,
                 result.reference,
@@ -145,14 +147,15 @@ class Submit(Operation):
 
 class Poll(Operation):
     """Poll the status for a previous deferred request."""
-    name = 'POLL'
-    required = ['CERTMONGER_CA_COOKIE']
+
+    name = "POLL"
+    required = ["CERTMONGER_CA_COOKIE"]
 
     def __call__(self):
         service = self._service
 
-        cookie = self._vars['CERTMONGER_CA_COOKIE']
-        request_id, reference = cookie.split(',', maxsplit=1)
+        cookie = self._vars["CERTMONGER_CA_COOKIE"]
+        request_id, reference = cookie.split(",", maxsplit=1)
 
         try:
             result = service.poll(int(request_id), reference)
@@ -164,7 +167,7 @@ class Poll(Operation):
         # If we have a certificate, return it. Otherwise, ask certmonger to
         # wait a bit.
         if result.token:
-            self._logger.debug('Token is: %s', result.token)
+            self._logger.debug("Token is: %s", result.token)
             pem = result.token.public_bytes(serialization.Encoding.PEM)
 
             print(pem.decode().strip(), file=self._out)
@@ -173,7 +176,7 @@ class Poll(Operation):
 
         # Output a "cookie" that can be used to later poll the status.
         print(
-            '{}\n{},{}'.format(
+            "{}\n{},{}".format(
                 service._config.poll_interval,
                 result.request_id,
                 result.reference,
@@ -186,39 +189,43 @@ class Poll(Operation):
 
 class Identify(Operation):
     """Outputs version information for this helper."""
-    name = 'IDENTIFY'
+
+    name = "IDENTIFY"
 
     def __call__(self):
-        print('{} {}'.format(__title__, __version__), file=self._out)
+        print("{} {}".format(__title__, __version__), file=self._out)
 
         return CertmongerResult.DEFAULT
 
 
 class GetNewRequestRequirements(Operation):
     """Outputs a list of required environment variables for submission."""
-    name = 'GET-NEW-REQUEST-REQUIREMENTS'
+
+    name = "GET-NEW-REQUEST-REQUIREMENTS"
 
     def __call__(self):
         # Output a list of required environment variables.
-        print('CERTMONGER_CA_PROFILE', file=self._out)
+        print("CERTMONGER_CA_PROFILE", file=self._out)
 
         return CertmongerResult.DEFAULT
 
 
 class GetRenewRequestRequirements(Operation):
     """Outputs a list of required environment variables for renewal."""
-    name = 'GET-RENEW-REQUEST-REQUIREMENTS'
+
+    name = "GET-RENEW-REQUEST-REQUIREMENTS"
 
     def __call__(self):
         # Output a list of required environment variables.
-        print('CERTMONGER_CA_PROFILE', file=self._out)
+        print("CERTMONGER_CA_PROFILE", file=self._out)
 
         return CertmongerResult.DEFAULT
 
 
 class GetSupportedTemplates(Operation):
     """Outputs a list of supported templates."""
-    name = 'GET-SUPPORTED-TEMPLATES'
+
+    name = "GET-SUPPORTED-TEMPLATES"
 
     def __call__(self):
         templates = self._service.templates
@@ -236,7 +243,8 @@ class GetDefaultTemplate(Operation):
     MS-XCEP doesn't specify a default template/policy, so this operation always
     results in no output.
     """
-    name = 'GET-DEFAULT-TEMPLATE'
+
+    name = "GET-DEFAULT-TEMPLATE"
 
     def __call__(self):
         return CertmongerResult.DEFAULT
@@ -244,7 +252,8 @@ class GetDefaultTemplate(Operation):
 
 class FetchRoots(Operation):
     """Outputs suggested nick-names and certificates for all CAs."""
-    name = 'FETCH-ROOTS'
+
+    name = "FETCH-ROOTS"
 
     def __call__(self):
         oid_cn = x509.oid.NameOID.COMMON_NAME
@@ -262,12 +271,12 @@ class FetchRoots(Operation):
             pem = cert.public_bytes(serialization.Encoding.PEM)
 
             output.append(
-                '{}\n{}'.format(
+                "{}\n{}".format(
                     names[0].value,
                     pem.decode().strip(),
                 ),
             )
 
-        print('\n'.join(output), file=self._out)
+        print("\n".join(output), file=self._out)
 
         return CertmongerResult.DEFAULT

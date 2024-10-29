@@ -24,16 +24,19 @@ from cepces.soap.types import Envelope
 from cepces.xcep.types import GetPolicies as GetPoliciesMessage
 from cepces.xcep.types import GetPoliciesResponse as GetPoliciesResponseMessage
 
-ACTION = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy/' \
-         'IPolicy/GetPolicies'
+ACTION = (
+    "http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy/"
+    "IPolicy/GetPolicies"
+)
 
 
 class Service(SOAPService):
     """XCEP Service proxy."""
+
     def _get_envelope(self, payload):
         envelope = Envelope()
         envelope.header.action = ACTION
-        envelope.header.message_id = 'urn:uuid:{0:s}'.format(str(uuid.uuid4()))
+        envelope.header.message_id = "urn:uuid:{0:s}".format(str(uuid.uuid4()))
         envelope.header.to = self._endpoint
         envelope.body.payload = payload._element
 

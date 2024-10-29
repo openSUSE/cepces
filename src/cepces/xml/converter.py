@@ -22,12 +22,13 @@ import re
 import textwrap
 
 
-class Converter():
+class Converter:
     """A base class for any value converter.
 
     It is responsible for converting an arbitrary input to and from a string
     for use within an XML document.
     """
+
     @staticmethod
     def from_string(value, value_type=str):
         """Parse a string and convert it to a suitable type or format.
@@ -77,16 +78,18 @@ class Converter():
 StringConverter = Converter
 
 
-class BooleanConverter():
+class BooleanConverter:
     """Boolean Converter"""
+
     MAP = {
-        'true': True,
-        'false': False,
-        '1': True,
-        '0': False,
+        "true": True,
+        "false": False,
+        "1": True,
+        "0": False,
     }
 
     """Converts to and from booleans."""
+
     @staticmethod
     def from_string(value):
         """Converts the input value to a boolean
@@ -120,8 +123,9 @@ class BooleanConverter():
         return None
 
 
-class IntegerConverter():
+class IntegerConverter:
     """Converts to and from integers."""
+
     @staticmethod
     def from_string(value):
         """Converts the input value to an integer
@@ -150,7 +154,7 @@ class IntegerConverter():
         return Converter.to_string(value, int)
 
 
-class RangedIntegerConverter():
+class RangedIntegerConverter:
     """Converts to and from integers with a range constraint."""
 
     @staticmethod
@@ -167,10 +171,10 @@ class RangedIntegerConverter():
         if value is None:
             return None
         elif not isinstance(value, int):
-            raise TypeError('Unsupported type')
+            raise TypeError("Unsupported type")
         elif int(value) < int(lower) or int(value) > int(upper):
             raise ValueError(
-                '{0:d} outside allowed range ({1:d}, {2:d})'.format(
+                "{0:d} outside allowed range ({1:d}, {2:d})".format(
                     value,
                     lower,
                     upper,
@@ -230,7 +234,7 @@ class SignedIntegerConverter(Converter):
                            the input is outside the allowed range.
         :return: the input as a string, or None if value is None
         """
-        return RangedIntegerConverter.from_string(value, -2 ** 31, 2 ** 31 - 1)
+        return RangedIntegerConverter.from_string(value, -(2**31), 2**31 - 1)
 
     @staticmethod
     def to_string(value):
@@ -242,7 +246,7 @@ class SignedIntegerConverter(Converter):
                            the input is outside the allowed range.
         :return: the input as a string, or None if value is None
         """
-        return RangedIntegerConverter.to_string(value, -2 ** 31, 2 ** 31 - 1)
+        return RangedIntegerConverter.to_string(value, -(2**31), 2**31 - 1)
 
 
 class UnsignedIntegerConverter(Converter):
@@ -262,7 +266,7 @@ class UnsignedIntegerConverter(Converter):
                            the input is outside the allowed range.
         :return: the input as a string, or None if value is None
         """
-        return RangedIntegerConverter.from_string(value, 0, 2 ** 32 - 1)
+        return RangedIntegerConverter.from_string(value, 0, 2**32 - 1)
 
     @staticmethod
     def to_string(value):
@@ -274,7 +278,7 @@ class UnsignedIntegerConverter(Converter):
                            the input is outside the allowed range.
         :return: the input as a string, or None if value is None
         """
-        return RangedIntegerConverter.to_string(value, 0, 2 ** 32 - 1)
+        return RangedIntegerConverter.to_string(value, 0, 2**32 - 1)
 
 
 class DateTimeConverter(Converter):
@@ -293,8 +297,10 @@ class DateTimeConverter(Converter):
     Python has a built in limitation preventing years before 1900 from being
     used. Therefore, the initial [-] is meaningless.
     """
+
     class FixedOffset(tzinfo):
         """Internal class representing a fixed Time Zone."""
+
         def __init__(self, offset, name=None):
             self._offset = timedelta(minutes=offset)
             self._name = name
@@ -311,47 +317,47 @@ class DateTimeConverter(Converter):
     @staticmethod
     def from_string(value):
         match = re.search(
-            r'^'
-            r'(?P<year>\d{4})-'
-            r'(?P<month>\d{2})-'
-            r'(?P<day>\d{2})'
-            r'T'
-            r'(?P<hour>\d{2}):'
-            r'(?P<minute>\d{2}):'
-            r'(?P<second>\d{2})'
-            r'(?P<tz>Z|'
-            r'(?P<tz_sign>[+-])'
-            r'(?P<tz_hour>\d{2}):'
-            r'(?P<tz_minute>\d{2}))'
-            r'$',
+            r"^"
+            r"(?P<year>\d{4})-"
+            r"(?P<month>\d{2})-"
+            r"(?P<day>\d{2})"
+            r"T"
+            r"(?P<hour>\d{2}):"
+            r"(?P<minute>\d{2}):"
+            r"(?P<second>\d{2})"
+            r"(?P<tz>Z|"
+            r"(?P<tz_sign>[+-])"
+            r"(?P<tz_hour>\d{2}):"
+            r"(?P<tz_minute>\d{2}))"
+            r"$",
             value,
         )
 
-        if match.group('tz') == 'Z':
-            timezone = DateTimeConverter.FixedOffset(0, 'UTC')
+        if match.group("tz") == "Z":
+            timezone = DateTimeConverter.FixedOffset(0, "UTC")
         else:
-            tz_hour = int(match.group('tz_hour'))
-            tz_minute = int(match.group('tz_minute'))
-            tz_sign = match.group('tz_sign')
+            tz_hour = int(match.group("tz_hour"))
+            tz_minute = int(match.group("tz_minute"))
+            tz_sign = match.group("tz_sign")
             offset = 60 * tz_hour + tz_minute
 
             timezone = DateTimeConverter.FixedOffset(
                 int(
-                    '{0:s}{1:d}'.format(
+                    "{0:s}{1:d}".format(
                         tz_sign,
                         offset,
                     )
                 ),
-                'UTC',
+                "UTC",
             )
 
         return datetime(
-            year=int(match.group('year')),
-            month=int(match.group('month')),
-            day=int(match.group('day')),
-            hour=int(match.group('hour')),
-            minute=int(match.group('minute')),
-            second=int(match.group('second')),
+            year=int(match.group("year")),
+            month=int(match.group("month")),
+            day=int(match.group("day")),
+            hour=int(match.group("hour")),
+            minute=int(match.group("minute")),
+            second=int(match.group("second")),
             tzinfo=timezone,
         )
 
@@ -364,7 +370,7 @@ class DateTimeConverter(Converter):
         # Check the value type.
         if not isinstance(value, datetime):
             raise TypeError(
-                '{0:s} expected, got {1:s}'.format(
+                "{0:s} expected, got {1:s}".format(
                     datetime.__class__,
                     type(value).__class__,
                 ),
@@ -372,15 +378,15 @@ class DateTimeConverter(Converter):
 
         # If no timezone is set, default to 'Z'.
         if value.tzinfo is None:
-            timezone = 'Z'
+            timezone = "Z"
         else:
             offset = int(value.utcoffset().total_seconds() / 60)
-            timezone = '{0:0=+3d}:{1:0=2d}'.format(
+            timezone = "{0:0=+3d}:{1:0=2d}".format(
                 offset / 60,
                 abs(offset % 60),
             )
 
-        result = '{0:0=2d}-{1:0=2d}-{2:0=2d}T{3:0=2d}:{4:0=2d}:{5:0=2d}{6:s}'
+        result = "{0:0=2d}-{1:0=2d}-{2:0=2d}T{3:0=2d}:{4:0=2d}:{5:0=2d}{6:s}"
 
         return result.format(
             value.year,
@@ -393,8 +399,9 @@ class DateTimeConverter(Converter):
         )
 
 
-class CertificateConverter():
+class CertificateConverter:
     """Converts to and from PEM certificates."""
+
     @staticmethod
     def from_string(value):
         """Converts the input value to a proper PEM certificate
@@ -402,12 +409,12 @@ class CertificateConverter():
         :param value: the value to convert, or None
         :return: the input as a string, or None if value is None
         """
-        template = '{}\n{}\n{}'
+        template = "{}\n{}\n{}"
 
         return template.format(
-            '-----BEGIN CERTIFICATE-----',
+            "-----BEGIN CERTIFICATE-----",
             textwrap.fill(Converter.from_string(value), 64),
-            '-----END CERTIFICATE-----',
+            "-----END CERTIFICATE-----",
         )
 
     @staticmethod
@@ -418,10 +425,10 @@ class CertificateConverter():
         :return: the input as a string, or None if value is None
         """
         match = re.search(
-            '-----BEGIN CERTIFICATE-----'
-            '((?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?)'
-            '-----END CERTIFICATE-----',
-            ''.join(value.splitlines()),
+            "-----BEGIN CERTIFICATE-----"
+            "((?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?)"
+            "-----END CERTIFICATE-----",
+            "".join(value.splitlines()),
         )
 
         return Converter.to_string(match.group(1), str)

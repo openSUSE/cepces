@@ -24,12 +24,14 @@ from cepces.soap import auth as SOAPAuth
 
 
 def strtobool(value):
-    if str(value).lower() in ('t', 'true', 'y', 'yes', '1'):
+    if str(value).lower() in ("t", "true", "y", "yes", "1"):
         return True
     return False
 
+
 class AuthenticationHandler(Base, metaclass=ABCMeta):
     """Base class for any authentication handled."""
+
     def __init__(self, parser):
         super().__init__()
         self._parser = parser
@@ -41,47 +43,49 @@ class AuthenticationHandler(Base, metaclass=ABCMeta):
 
 class AnonymousAuthenticationHandler(AuthenticationHandler):
     """Constructs an anonymous authentication handler."""
+
     def handle(self):
         return SOAPAuth.AnonymousAuthentication()
 
 
 class KerberosAuthenticationHandler(AuthenticationHandler):
     """Kerberos Authentication Handler"""
+
     def handle(self):
         parser = self._parser
 
         # Ensure there's a kerberos section present.
-        if 'kerberos' not in parser:
+        if "kerberos" not in parser:
             raise RuntimeError('Missing "kerberos" section in configuration.')
 
-        section = parser['kerberos']
+        section = parser["kerberos"]
 
-        keytab = section.get('keytab', None)
-        realm = section.get('realm', None)
-        ccache = section.get('ccache', True)
-        principals = section.get('principals', '')
-        enctypes = section.get('enctypes', '')
-        delegate = strtobool(section.get('delegate', True))
+        keytab = section.get("keytab", None)
+        realm = section.get("realm", None)
+        ccache = section.get("ccache", True)
+        principals = section.get("principals", "")
+        enctypes = section.get("enctypes", "")
+        delegate = strtobool(section.get("delegate", True))
 
         # Decode all encryption types.
         etypes = []
 
-        for enctype in enctypes.strip().split('\n'):
-            etype = "KRB5_ENCTYPE_{}".format(enctype.replace('-', '_').upper())
+        for enctype in enctypes.strip().split("\n"):
+            etype = "KRB5_ENCTYPE_{}".format(enctype.replace("-", "_").upper())
 
             try:
                 etypes.append(KerberosEncryptionType[etype])
             except KeyError as e:
                 raise RuntimeError(
-                    'Unknown encryption type: {}'.format(enctype),
+                    "Unknown encryption type: {}".format(enctype),
                 ) from e
 
         # Figure out which principal to use.
         auth = None
 
-        for principal in principals.strip().split('\n'):
+        for principal in principals.strip().split("\n"):
             if realm:
-                principal = '{}@{}'.format(principal, realm)
+                principal = "{}@{}".format(principal, realm)
 
             try:
                 auth = SOAPAuth.TransportKerberosAuthentication(
@@ -97,24 +101,25 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
         if auth:
             return auth
         else:
-            raise RuntimeError('No suitable key found in keytab.')
+            raise RuntimeError("No suitable key found in keytab.")
 
 
 class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
     """Handler for Username and Password based authentication."""
+
     def handle(self):
         parser = self._parser
 
         # Ensure there's a usernamepassword section present.
-        if 'usernamepassword' not in parser:
+        if "usernamepassword" not in parser:
             raise RuntimeError(
                 'Missing "usernamepassword" section in configuration.',
             )
 
-        section = parser['usernamepassword']
+        section = parser["usernamepassword"]
 
-        username = section.get('username', None)
-        password = section.get('password', None)
+        username = section.get("username", None)
+        password = section.get("password", None)
 
         return SOAPAuth.MessageUsernamePasswordAuthentication(
             username,
@@ -124,20 +129,21 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 
 class CertificateAuthenticationHandler(AuthenticationHandler):
     """Handler for Certificate based authentication."""
+
     def handle(self):
         """Constructs and returns a SOAPAuth authentication handler."""
         parser = self._parser
 
         # Ensure there's a certificate section present.
-        if 'certificate' not in parser:
+        if "certificate" not in parser:
             raise RuntimeError(
                 'Missing "certificate" section in configuration.',
             )
 
-        section = parser['certificate']
+        section = parser["certificate"]
 
-        certfile = section.get('certfile', None)
-        keyfile = section.get('keyfile', None)
+        certfile = section.get("certfile", None)
+        keyfile = section.get("keyfile", None)
 
         return SOAPAuth.TransportCertificateAuthentication(
             certfile,

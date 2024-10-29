@@ -26,36 +26,38 @@ from cepces.soap import auth as SOAPAuth
 
 
 DEFAULT_CONFIG_FILES = [
-    '/etc/cepces/cepces.conf',
-    '/usr/local/etc/cepces/cepces.conf',
-    'conf/cepces.conf',
-    'cepces.conf',
+    "/etc/cepces/cepces.conf",
+    "/usr/local/etc/cepces/cepces.conf",
+    "conf/cepces.conf",
+    "cepces.conf",
 ]
 
 DEFAULT_CONFIG_DIRS = [
-    '/etc/cepces/conf.d',
-    '/usr/local/etc/cepces/conf.d'
-    'conf/conf.d',
+    "/etc/cepces/conf.d",
+    "/usr/local/etc/cepces/conf.d" "conf/conf.d",
 ]
 
 
 class Configuration(Base):
     """Base configuration class."""
+
     AUTH_HANDLER_MAP = {
-        'Anonymous': CoreAuth.AnonymousAuthenticationHandler,
-        'Kerberos': CoreAuth.KerberosAuthenticationHandler,
-        'UsernamePassword': CoreAuth.UsernamePasswordAuthenticationHandler,
-        'Certificate': CoreAuth.CertificateAuthenticationHandler,
+        "Anonymous": CoreAuth.AnonymousAuthenticationHandler,
+        "Kerberos": CoreAuth.KerberosAuthenticationHandler,
+        "UsernamePassword": CoreAuth.UsernamePasswordAuthenticationHandler,
+        "Certificate": CoreAuth.CertificateAuthenticationHandler,
     }
 
     AUTH_MAP = {
-        'Anonymous': SOAPAuth.AnonymousAuthentication,
-        'Kerberos': SOAPAuth.TransportKerberosAuthentication,
-        'UsernamePassword': SOAPAuth.MessageUsernamePasswordAuthentication,
-        'Certificate': SOAPAuth.TransportCertificateAuthentication,
+        "Anonymous": SOAPAuth.AnonymousAuthentication,
+        "Kerberos": SOAPAuth.TransportKerberosAuthentication,
+        "UsernamePassword": SOAPAuth.MessageUsernamePasswordAuthentication,
+        "Certificate": SOAPAuth.TransportCertificateAuthentication,
     }
 
-    def __init__(self, endpoint, endpoint_type, cas, auth, poll_interval, openssl_seclevel):
+    def __init__(
+        self, endpoint, endpoint_type, cas, auth, poll_interval, openssl_seclevel
+    ):
         super().__init__()
 
         self._endpoint = endpoint
@@ -96,35 +98,34 @@ class Configuration(Base):
         return self._openssl_seclevel
 
     @classmethod
-    def load(cls, files=None, dirs=None, global_overrides=None,
-             krb5_overrides=None):
+    def load(cls, files=None, dirs=None, global_overrides=None, krb5_overrides=None):
         """Load configuration files and directories and instantiate a new
         Configuration."""
-        name = '{}.{}'.format(
+        name = "{}.{}".format(
             cls.__module__,
             cls.__name__,
         )
         logger = logging.getLogger(name)
 
-        logger.debug('Initializing application configuration.')
+        logger.debug("Initializing application configuration.")
         config = ConfigParser(interpolation=ExtendedInterpolation())
         config.optionxform = str  # Make options case sensitive.
 
         # Add some defaults.
         hostname = socket.gethostname().lower()
         fqdn = socket.getfqdn()
-        shortname = hostname.split('.')[0]
+        shortname = hostname.split(".")[0]
 
-        config['DEFAULT']['hostname'] = hostname.lower()
-        config['DEFAULT']['HOSTNAME'] = hostname.upper()
-        config['DEFAULT']['fqdn'] = fqdn.lower()
-        config['DEFAULT']['FQDN'] = fqdn.upper()
-        config['DEFAULT']['shortname'] = shortname.lower()
-        config['DEFAULT']['SHORTNAME'] = shortname.upper()
+        config["DEFAULT"]["hostname"] = hostname.lower()
+        config["DEFAULT"]["HOSTNAME"] = hostname.upper()
+        config["DEFAULT"]["fqdn"] = fqdn.lower()
+        config["DEFAULT"]["FQDN"] = fqdn.upper()
+        config["DEFAULT"]["shortname"] = shortname.lower()
+        config["DEFAULT"]["SHORTNAME"] = shortname.upper()
 
-        if not config.has_section('global'):
-            config.add_section('global')
-        config['global']['openssl_seclevel'] = ''
+        if not config.has_section("global"):
+            config.add_section("global")
+        config["global"]["openssl_seclevel"] = ""
 
         if files is None:
             files = DEFAULT_CONFIG_FILES
@@ -135,23 +136,23 @@ class Configuration(Base):
         # Read all configuration files.
         for path in [Path(x) for x in files]:
             if path.is_file():
-                logger.debug('Reading: {0:s}'.format(path.__str__()))
+                logger.debug("Reading: {0:s}".format(path.__str__()))
                 config.read(path.__str__())
 
         # Read all configuration directories.
         for cdir in [Path(x) for x in dirs]:
             if cdir.is_dir():
                 for path in sorted([x for x in cdir.iterdir() if x.is_file()]):
-                    logger.debug('Reading: {0:s}'.format(path.__str__()))
+                    logger.debug("Reading: {0:s}".format(path.__str__()))
                     config.read(path)
 
         # Override globals set from the command line
         if global_overrides is not None:
             for key, val in global_overrides.items():
-                config['global'][key] = val
+                config["global"][key] = val
         if krb5_overrides is not None:
             for key, val in krb5_overrides.items():
-                config['kerberos'][key] = val
+                config["kerberos"][key] = val
 
         return Configuration.from_parser(config)
 
@@ -159,38 +160,45 @@ class Configuration(Base):
     def from_parser(cls, parser):
         """Create a Configuration instance from a ConfigParser."""
         # Ensure there's a global section present.
-        if 'global' not in parser:
+        if "global" not in parser:
             raise RuntimeError('Missing "global" section in configuration.')
 
-        section = parser['global']
+        section = parser["global"]
 
         # Ensure certain required variables are present.
-        for var in ['endpoint', 'auth', 'type', 'poll_interval', 'openssl_seclevel']:
+        for var in ["endpoint", "auth", "type", "poll_interval", "openssl_seclevel"]:
             if var not in section:
                 raise RuntimeError(
                     'Missing "{}/{}" variable in configuration.'.format(
-                        'global',
+                        "global",
                         var,
                     ),
                 )
 
         # Verify that the chosen authentication method is valid.
-        if section['auth'] not in Configuration.AUTH_HANDLER_MAP.keys():
+        if section["auth"] not in Configuration.AUTH_HANDLER_MAP.keys():
             raise RuntimeError(
-                'No such authentication method: {}'.format(
-                    section['auth'],
+                "No such authentication method: {}".format(
+                    section["auth"],
                 ),
             )
 
         # Store the global configuration options.
-        endpoint = section.get('endpoint')
-        endpoint_type = section.get('type')
-        authn = Configuration.AUTH_HANDLER_MAP[section['auth']](parser)
-        cas = section.get('cas', True)
-        poll_interval = section.get('poll_interval')
-        openssl_seclevel = section.get('openssl_seclevel')
+        endpoint = section.get("endpoint")
+        endpoint_type = section.get("type")
+        authn = Configuration.AUTH_HANDLER_MAP[section["auth"]](parser)
+        cas = section.get("cas", True)
+        poll_interval = section.get("poll_interval")
+        openssl_seclevel = section.get("openssl_seclevel")
 
-        if cas == '':
+        if cas == "":
             cas = False
 
-        return Configuration(endpoint, endpoint_type, cas, authn.handle(), poll_interval, openssl_seclevel)
+        return Configuration(
+            endpoint,
+            endpoint_type,
+            cas,
+            authn.handle(),
+            poll_interval,
+            openssl_seclevel,
+        )

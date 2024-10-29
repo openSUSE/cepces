@@ -21,11 +21,12 @@ from cepces.xml.converter import IntegerConverter
 
 class ClientAuthenticationConverter(IntegerConverter):
     """Converts to and from allowed authentication methods (int <-> str)."""
+
     MAP = [
-        (1, 'Anonymous'),
-        (2, 'Kerberos'),
-        (4, 'UsernamePassword'),
-        (8, 'Certificate')
+        (1, "Anonymous"),
+        (2, "Kerberos"),
+        (4, "UsernamePassword"),
+        (8, "Certificate"),
     ]
 
     @staticmethod
@@ -42,9 +43,9 @@ class ClientAuthenticationConverter(IntegerConverter):
         if value is None:
             return value
         elif not isinstance(value, str):
-            raise TypeError('Unsupported type.')
+            raise TypeError("Unsupported type.")
         elif int(value) not in values:
-            raise ValueError('Unsupported value.')
+            raise ValueError("Unsupported value.")
         else:
             index = values.index(int(value))
 
@@ -64,9 +65,9 @@ class ClientAuthenticationConverter(IntegerConverter):
         if value is None:
             return None
         elif not isinstance(value, str):
-            raise TypeError('Unsupported type.')
+            raise TypeError("Unsupported type.")
         elif value not in values:
-            raise ValueError('Unsupported value.')
+            raise ValueError("Unsupported value.")
         else:
             index = values.index(value)
 

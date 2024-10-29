@@ -23,9 +23,9 @@ import ctypes
 # in the list until successful.
 _shlib = None
 _libs = [
-    'libgssapi_krb5.so',
-    'libgssapi_krb5.so.2',
-    'libgssapi_krb5.dylib',
+    "libgssapi_krb5.so",
+    "libgssapi_krb5.so.2",
+    "libgssapi_krb5.dylib",
 ]
 
 for lib in _libs:

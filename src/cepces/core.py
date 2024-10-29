@@ -35,6 +35,7 @@ from cepces.wstep.service import Service as WSTEPService
 
 class PartialChainError(RuntimeError):
     """Error raised when a complete certificate chain cannot be retreived."""
+
     def __init__(self, msg, result):
         super().__init__(msg)
         self._result = result
@@ -47,8 +48,10 @@ class PartialChainError(RuntimeError):
 
 class Service(Base):
     """Main service."""
+
     class Endpoint(Base):
         """Internal class representing potential endpoints."""
+
         def __init__(self, url, priority, renewal_only):
             super().__init__()
 
@@ -79,7 +82,7 @@ class Service(Base):
 
         self._config = config
 
-        if config.endpoint_type == 'Policy':
+        if config.endpoint_type == "Policy":
             self._xcep = XCEPService(
                 endpoint=config.endpoint,
                 auth=config.auth,
@@ -88,7 +91,7 @@ class Service(Base):
 
             # Eagerly load the policy response.
             self._policies = self._xcep.get_policies()
-        elif config.endpoint_type == 'Enrollment':
+        elif config.endpoint_type == "Enrollment":
             self._xcep = None
             self._ces = WSTEPService(
                 endpoint=config.endpoint,
@@ -163,7 +166,7 @@ class Service(Base):
     def _request_ces(self, csr):
         """Request a certificate with a CSR from a CES endpoint."""
         csr_bytes = csr.public_bytes(serialization.Encoding.PEM)
-        csr_raw = csr_bytes.decode('utf-8').strip()
+        csr_raw = csr_bytes.decode("utf-8").strip()
         response = self._ces.request(csr_raw)
 
         # There should only be one response, as we only send one request.
@@ -249,15 +252,22 @@ class Service(Base):
         # Check the type of public key
         if isinstance(issuer_public_key, rsa.RSAPublicKey):
             issuer_public_key.verify(
-                sig_bytes, sig_data, padding.PKCS1v15(), sig_hash_alg,
+                sig_bytes,
+                sig_data,
+                padding.PKCS1v15(),
+                sig_hash_alg,
             )
         elif isinstance(issuer_public_key, ec.EllipticCurvePublicKey):
             issuer_public_key.verify(
-                sig_bytes, sig_data, ec.ECDSA(sig_hash_alg),
+                sig_bytes,
+                sig_data,
+                ec.ECDSA(sig_hash_alg),
             )
         else:
             issuer_public_key.verify(
-                sig_bytes, sig_data, sig_hash_alg,
+                sig_bytes,
+                sig_data,
+                sig_hash_alg,
             )
 
         return True
@@ -301,8 +311,8 @@ class Service(Base):
             result.append(cert)
         else:
             raise PartialChainError(
-                'Could not verify certificate chain '
-                '({} not signed by {})'.format(
+                "Could not verify certificate chain "
+                "({} not signed by {})".format(
                     child.subject,
                     cert.subject,
                 ),
@@ -332,7 +342,7 @@ class Service(Base):
                     if parent:
                         result.extend(parent)
         except x509.ExtensionNotFound as e:
-            raise PartialChainError('Missing AIA', result) from e
+            raise PartialChainError("Missing AIA", result) from e
         except requests.exceptions.RequestException as e:
             raise PartialChainError(e, result) from e
         except InvalidSignature as e:

@@ -18,8 +18,8 @@
 """Package for very rudimentary SOAP  handling."""
 from xml.etree.ElementTree import QName
 
-NS_SOAP = 'http://www.w3.org/2003/05/soap-envelope'
-NS_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
+NS_SOAP = "http://www.w3.org/2003/05/soap-envelope"
+NS_ADDRESSING = "http://www.w3.org/2005/08/addressing"
 
 # ACTION_FAULT = 'http://www.w3.org/2005/08/addressing/fault'
-QNAME_FAULT = QName('http://www.w3.org/2003/05/soap-envelope', 'Fault')
+QNAME_FAULT = QName("http://www.w3.org/2003/05/soap-envelope", "Fault")

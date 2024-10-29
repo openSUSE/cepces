@@ -29,15 +29,14 @@ from cepces.xml.converter import StringConverter
 
 class FaultSubcode(XMLNode):
     """SOAP Fault Subcode."""
-    value = XMLValue('Value',
-                     converter=StringConverter,
-                     namespace=NS_SOAP)
+
+    value = XMLValue("Value", converter=StringConverter, namespace=NS_SOAP)
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, 'Subcode'))
+        element = Element(QName(NS_SOAP, "Subcode"))
 
-        value = Element(QName(NS_SOAP, 'Value'))
+        value = Element(QName(NS_SOAP, "Value"))
         element.append(value)
 
         return element
@@ -45,19 +44,16 @@ class FaultSubcode(XMLNode):
 
 class FaultCode(XMLNode):
     """SOAP Fault Code."""
-    value = XMLValue('Value',
-                     converter=StringConverter,
-                     namespace=NS_SOAP)
 
-    subcode = XMLElement('Subcode',
-                         binder=FaultSubcode,
-                         namespace=NS_SOAP)
+    value = XMLValue("Value", converter=StringConverter, namespace=NS_SOAP)
+
+    subcode = XMLElement("Subcode", binder=FaultSubcode, namespace=NS_SOAP)
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, 'Code'))
+        element = Element(QName(NS_SOAP, "Code"))
 
-        value = Element(QName(NS_SOAP, 'Value'))
+        value = Element(QName(NS_SOAP, "Value"))
         element.append(value)
 
         element.append(FaultSubcode.create())
@@ -67,15 +63,14 @@ class FaultCode(XMLNode):
 
 class FaultReason(XMLNode):
     """SOAP Fault Reason."""
-    text = XMLValue('Text',
-                    converter=StringConverter,
-                    namespace=NS_SOAP)
+
+    text = XMLValue("Text", converter=StringConverter, namespace=NS_SOAP)
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, 'Reason'))
+        element = Element(QName(NS_SOAP, "Reason"))
 
-        value = Element(QName(NS_SOAP, 'Text'))
+        value = Element(QName(NS_SOAP, "Text"))
         element.append(value)
 
         return element
@@ -83,17 +78,14 @@ class FaultReason(XMLNode):
 
 class Fault(XMLNode):
     """SOAP Fault."""
-    code = XMLElement('Code',
-                      binder=FaultCode,
-                      namespace=NS_SOAP)
 
-    reason = XMLElement('Reason',
-                        binder=FaultReason,
-                        namespace=NS_SOAP)
+    code = XMLElement("Code", binder=FaultCode, namespace=NS_SOAP)
+
+    reason = XMLElement("Reason", binder=FaultReason, namespace=NS_SOAP)
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, 'Fault'))
+        element = Element(QName(NS_SOAP, "Fault"))
         element.append(FaultCode.create())
         element.append(FaultReason.create())
 
@@ -102,42 +94,39 @@ class Fault(XMLNode):
 
 class Header(XMLNode):
     """SOAP Header."""
-    action = XMLValue('Action',
-                      converter=StringConverter,
-                      namespace=NS_ADDRESSING,
-                      nillable=True)
 
-    message_id = XMLValue('MessageID',
-                          converter=StringConverter,
-                          namespace=NS_ADDRESSING,
-                          nillable=True)
+    action = XMLValue(
+        "Action", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+    )
 
-    to = XMLValue('To',
-                  converter=StringConverter,
-                  namespace=NS_ADDRESSING,
-                  nillable=True)
+    message_id = XMLValue(
+        "MessageID", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+    )
 
-    relates_to = XMLValue('RelatesTo',
-                          converter=StringConverter,
-                          namespace=NS_ADDRESSING,
-                          nillable=True)
+    to = XMLValue(
+        "To", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+    )
+
+    relates_to = XMLValue(
+        "RelatesTo", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+    )
 
     @staticmethod
     def create():
-        header = Element(QName(NS_SOAP, 'Header'))
+        header = Element(QName(NS_SOAP, "Header"))
 
-        action = Element(QName(NS_ADDRESSING, 'Action'))
-        action.attrib[QName(NS_SOAP, 'mustUnderstand')] = '1'
-        action.attrib[QName(NS_XSI, 'nil')] = 'true'
+        action = Element(QName(NS_ADDRESSING, "Action"))
+        action.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"
+        action.attrib[QName(NS_XSI, "nil")] = "true"
         header.append(action)
 
-        message_id = Element(QName(NS_ADDRESSING, 'MessageID'))
-        message_id.attrib[QName(NS_XSI, 'nil')] = 'true'
+        message_id = Element(QName(NS_ADDRESSING, "MessageID"))
+        message_id.attrib[QName(NS_XSI, "nil")] = "true"
         header.append(message_id)
 
-        to = Element(QName(NS_ADDRESSING, 'To'))
-        to.attrib[QName(NS_SOAP, 'mustUnderstand')] = '1'
-        to.attrib[QName(NS_XSI, 'nil')] = 'true'
+        to = Element(QName(NS_ADDRESSING, "To"))
+        to.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"
+        to.attrib[QName(NS_XSI, "nil")] = "true"
         header.append(to)
 
         return header
@@ -145,30 +134,26 @@ class Header(XMLNode):
 
 class Body(XMLNode):
     """SOAP Body."""
-    payload = XMLElement('*',
-                         binder=None,
-                         required=False)
+
+    payload = XMLElement("*", binder=None, required=False)
 
     @staticmethod
     def create():
-        body = Element(QName(NS_SOAP, 'Body'))
+        body = Element(QName(NS_SOAP, "Body"))
 
         return body
 
 
 class Envelope(XMLNode):
     """SOAP Envelope."""
-    header = XMLElement('Header',
-                        binder=Header,
-                        namespace=NS_SOAP)
 
-    body = XMLElement('Body',
-                      binder=Body,
-                      namespace=NS_SOAP)
+    header = XMLElement("Header", binder=Header, namespace=NS_SOAP)
+
+    body = XMLElement("Body", binder=Body, namespace=NS_SOAP)
 
     @staticmethod
     def create():
-        envelope = Element(QName(NS_SOAP, 'Envelope'))
+        envelope = Element(QName(NS_SOAP, "Envelope"))
         envelope.append(Header.create())
         envelope.append(Body.create())
 

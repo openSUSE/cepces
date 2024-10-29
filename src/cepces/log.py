@@ -22,9 +22,9 @@ from cepces import __title__
 
 # Load logging configuration settings properly.
 LOGGING_CONFIG_FILES = [
-    '{}/logging.conf'.format(__title__),
-    '/etc/{}/logging.conf'.format(__title__),
-    '/usr/local/etc/{}/logging.conf'.format(__title__),
+    "{}/logging.conf".format(__title__),
+    "/etc/{}/logging.conf".format(__title__),
+    "/usr/local/etc/{}/logging.conf".format(__title__),
 ]
 
 
