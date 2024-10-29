@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import unittest
 import sys
-sys.path.insert(0, '../')
+
+sys.path.insert(0, "../")
 import cepces_test
 
 if __name__ == "__main__":

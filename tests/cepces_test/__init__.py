@@ -15,6 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from .certmonger import * # noqa: F403
-from .xcep import * # noqa: F403
-from .xml import * # noqa: F403
+from .certmonger import *  # noqa: F403
+from .xcep import *  # noqa: F403
+from .xml import *  # noqa: F403

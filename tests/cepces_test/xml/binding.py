@@ -34,28 +34,28 @@ class MockXMLDescriptor(XMLDescriptor):
 class TestXMLDescriptor(unittest.TestCase):
     def testOnlyName(self):
         """Qualified name should be equal to name"""
-        descriptor = MockXMLDescriptor('name')
+        descriptor = MockXMLDescriptor("name")
 
-        self.assertEqual(descriptor._name, 'name')
+        self.assertEqual(descriptor._name, "name")
         self.assertEqual(descriptor._namespace, None)
-        self.assertEqual(descriptor._qname, 'name')
+        self.assertEqual(descriptor._qname, "name")
 
     def testNameAndNameSpace(self):
         """Qualified name should be in Clark's notation"""
-        descriptor = MockXMLDescriptor('name', 'namespace')
+        descriptor = MockXMLDescriptor("name", "namespace")
 
-        self.assertEqual(descriptor._name, 'name')
-        self.assertEqual(descriptor._namespace, 'namespace')
-        self.assertEqual(descriptor._qname, '{namespace}name')
+        self.assertEqual(descriptor._name, "name")
+        self.assertEqual(descriptor._namespace, "namespace")
+        self.assertEqual(descriptor._qname, "{namespace}name")
 
     def testIndexIncrement(self):
         """Static index should increase accordingly"""
         index = XMLDescriptor._index
 
         # Create three descriptors..
-        first = MockXMLDescriptor('first')
-        second = MockXMLDescriptor('second')
-        third = MockXMLDescriptor('third')
+        first = MockXMLDescriptor("first")
+        second = MockXMLDescriptor("second")
+        third = MockXMLDescriptor("third")
 
         self.assertEqual(first._index, index)
         self.assertEqual(second._index, index + 1)
@@ -69,22 +69,22 @@ class TestListingMeta(unittest.TestCase):
 
         # Create a dummy class.
         class MockClass(metaclass=ListingMeta):
-            first = MockXMLDescriptor('first')
-            second = MockXMLDescriptor('second')
-            third = MockXMLDescriptor('third')
+            first = MockXMLDescriptor("first")
+            second = MockXMLDescriptor("second")
+            third = MockXMLDescriptor("third")
 
         self._dummy = MockClass
 
     def testListingAttribute(self):
-        self.assertTrue(hasattr(self._dummy, '__listing__'))
+        self.assertTrue(hasattr(self._dummy, "__listing__"))
 
     def testOrderedListing(self):
         dummy = self._dummy
         listing = dummy.__listing__
 
-        self.assertEqual(listing[0][0], 'first')
-        self.assertEqual(listing[1][0], 'second')
-        self.assertEqual(listing[2][0], 'third')
+        self.assertEqual(listing[0][0], "first")
+        self.assertEqual(listing[1][0], "second")
+        self.assertEqual(listing[2][0], "third")
 
         self.assertEqual(listing[0][1], dummy.__dict__[listing[0][0]])
         self.assertEqual(listing[1][1], dummy.__dict__[listing[1][0]])

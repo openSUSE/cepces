@@ -31,7 +31,7 @@ class TestBase(unittest.TestCase):
 
     def testSuppliedLogger(self):
         """Test with supplied logger"""
-        logger = logging.getLogger('Test')
+        logger = logging.getLogger("Test")
         base = Base(logger=logger)
 
         self.assertIsNotNone(base._logger)
