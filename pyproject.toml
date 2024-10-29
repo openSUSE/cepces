@@ -36,3 +36,6 @@ readme = "README.rst"
 
 [tool.setuptools.data-files]
 "libexec/certmonger" = ["bin/cepces-submit"]
+
+[tool.black]
+target-version = ['py39']
