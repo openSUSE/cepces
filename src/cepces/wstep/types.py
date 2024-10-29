@@ -17,7 +17,6 @@
 #
 """WSTEP Types."""
 from xml.etree.ElementTree import Element, QName
-from cepces.soap import NS_ADDRESSING
 from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY, NS_ENROLLMENT
 from cepces.wstep import TOKEN_TYPE, VALUE_TYPE, ENCODING_TYPE
 from cepces.wstep import ISSUE_REQUEST_TYPE
