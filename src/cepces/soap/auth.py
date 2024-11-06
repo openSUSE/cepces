@@ -31,6 +31,7 @@ from cepces.krb5.core import CredentialOptions, Credentials, CredentialCache
 
 class Authentication(Base, metaclass=ABCMeta):
     """Base class for handling authentication of SOAP endpoints."""
+
     @abstractproperty
     def transport(self):
         """Property containing authentication mechanism for the transport layer
@@ -48,6 +49,7 @@ class Authentication(Base, metaclass=ABCMeta):
 
 class AnonymousAuthentication(Authentication):
     """A simple pass-through authentication method."""
+
     @property
     def transport(self):
         """Property containing authentication mechanism for the transport layer
@@ -61,20 +63,27 @@ class AnonymousAuthentication(Authentication):
 
 class TransportKerberosAuthentication(Authentication):
     """Kerberos authentication on the transport level."""
-    def __init__(self, principal_name=None, init_ccache=True, keytab=None,
-                 enctypes=None, delegate=True):
+
+    def __init__(
+        self,
+        principal_name=None,
+        init_ccache=True,
+        keytab=None,
+        enctypes=None,
+        delegate=True,
+    ):
         super().__init__()
 
         self._config = {}
-        self._config['name'] = principal_name
-        self._config['init_ccache'] = init_ccache
-        self._config['keytab'] = keytab
-        self._config['enctypes'] = enctypes
-        self._config['delegate'] = delegate
+        self._config["name"] = principal_name
+        self._config["init_ccache"] = init_ccache
+        self._config["keytab"] = keytab
+        self._config["enctypes"] = enctypes
+        self._config["delegate"] = delegate
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
-        if self._config['init_ccache']:
+        if self._config["init_ccache"]:
             self._init_ccache()
 
         self._init_transport()
@@ -83,17 +92,17 @@ class TransportKerberosAuthentication(Authentication):
         start_time = 0
 
         context = Context()
-        keytab = Keytab(context, keytab=self._config['keytab'])
+        keytab = Keytab(context, keytab=self._config["keytab"])
         principal = Principal(
             context,
-            name=self._config['name'],
+            name=self._config["name"],
             service_type=ktypes.PrincipalType.KRB5_NT_SRV_HST,
         )
         credential_options = CredentialOptions(context)
         credential_options.forwardable = True
-        credential_options.encryption_types = self._config['enctypes']
+        credential_options.encryption_types = self._config["enctypes"]
 
-        tkt_service = '{service}/{host}@{realm}'.format(
+        tkt_service = "{service}/{host}@{realm}".format(
             service=ktypes.KRB5_TGS_NAME,
             host=principal.realm,
             realm=principal.realm,
@@ -119,9 +128,13 @@ class TransportKerberosAuthentication(Authentication):
         os.environ["KRB5CCNAME"] = ccache_name
 
     def _init_transport(self):
-        name = gssapi.Name(self._config['name'], gssapi.NameType.user)
+        name = gssapi.Name(self._config["name"], gssapi.NameType.user)
         creds = gssapi.Credentials(name=name, usage="initiate")
-        self._transport = HTTPSPNEGOAuth(creds=creds, delegate=self._config['delegate'], mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"))
+        self._transport = HTTPSPNEGOAuth(
+            creds=creds,
+            delegate=self._config["delegate"],
+            mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"),
+        )
 
     @property
     def transport(self):
@@ -138,6 +151,7 @@ class TransportKerberosAuthentication(Authentication):
 
 class MessageUsernamePasswordAuthentication(Authentication):
     """Message authentication using a username and a password."""
+
     def __init__(self, username, password):
         super().__init__()
         self._username = username
@@ -157,6 +171,7 @@ class MessageUsernamePasswordAuthentication(Authentication):
 
 class TransportCertificateAuthentication(Authentication):
     """Transport authentication using a client certificate."""
+
     def __init__(self, certfile, keyfile):
         super().__init__()
         self._certfile = certfile
@@ -168,7 +183,7 @@ class TransportCertificateAuthentication(Authentication):
 
     @property
     def clientcertificate(self):
-        return ( self._certfile, self._keyfile )
+        return (self._certfile, self._keyfile)
 
     def post_process(self, envelope):
         # Nothing to be done here.

@@ -20,22 +20,23 @@
 
 import logging
 
-__title__ = 'cepces'
-__description__ = 'CEP/CES library.'
-__url__ = 'https://github.com/openSUSE/cepces/'
-__version__ = '0.3.9'
-__author__ = 'Daniel Uvehag'
-__author_email__ = 'daniel.uvehag@gmail.com'
-__license__ = 'GPLv3'
-__copyright__ = 'Copyright 2017 Daniel Uvehag'
+__title__ = "cepces"
+__description__ = "CEP/CES library."
+__url__ = "https://github.com/openSUSE/cepces/"
+__version__ = "0.3.9"
+__author__ = "Daniel Uvehag"
+__author_email__ = "daniel.uvehag@gmail.com"
+__license__ = "GPLv3"
+__copyright__ = "Copyright 2017 Daniel Uvehag"
 
 
-class Base():
+class Base:
     """Base for most classes.
 
     This class contains common behaviour for all classes used within the
     project.
     """
+
     def __init__(self, logger=None):
         """Initialize the instance.
 
@@ -44,18 +45,17 @@ class Base():
 
         :param logger: Optional logger.
         """
-        name = '{}.{}<0x{:02x}>'.format(
+        name = "{}.{}<0x{:02x}>".format(
             self.__module__,
             self.__class__.__name__,
             id(self),
         )
         self._logger = logger or logging.getLogger(name)
-        self._logger.debug('Initializing {0:s}.'
-                           .format(name))
+        self._logger.debug("Initializing {0:s}.".format(name))
 
     def __str__(self):
         """Returns a string representation of this instance.
 
         :return: A string representation of this instance.
         """
-        return '{0}<{1}>'.format(self.__class__.__name__, hex(id(self)))
+        return "{0}<{1}>".format(self.__class__.__name__, hex(id(self)))

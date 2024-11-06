@@ -23,7 +23,7 @@ from enum import IntEnum
 LINE_MAX = 2048
 
 # The name of the Kerberos ticket granting service
-KRB5_TGS_NAME = 'krbtgt'
+KRB5_TGS_NAME = "krbtgt"
 
 krb5_int32 = ctypes.c_int32
 krb5_enctype = krb5_int32
@@ -33,6 +33,7 @@ krb5_error_code = krb5_int32
 
 class PrincipalType(IntEnum):
     """Enumeration for all possible principal types."""
+
     # Name type not known
     KRB5_NT_UNKNOWN = 0
     # Just the name of the principal as in DCE, or for users
@@ -71,6 +72,7 @@ class PrincipalType(IntEnum):
 
 class EncryptionType(IntEnum):
     """Enumeration for all possible encryption types."""
+
     KRB5_ENCTYPE_NULL = 0
     KRB5_ENCTYPE_DES_CBC_CRC = 1
     KRB5_ENCTYPE_DES_CBC_MD4 = 2
@@ -129,18 +131,19 @@ krb5_const_principal = ctypes.POINTER(krb5_principal_data)
 
 class _krb5_get_init_creds_opt(ctypes.Structure):
     """Structure for Kerberos credential options."""
+
     _fields_ = [
-        ('flags', krb5_int32),
-        ('tkt_life', krb5_deltat),
-        ('renew_life', krb5_deltat),
-        ('forwardable', ctypes.c_int),
-        ('proxiable', ctypes.c_int),
-        ('etype_list', ctypes.POINTER(krb5_enctype)),
-        ('etype_list_length', ctypes.c_int),
-        ('address_list', ctypes.POINTER(ctypes.c_void_p)),
-        ('preauth_list', ctypes.POINTER(krb5_int32)),
-        ('preauth_list_length', ctypes.c_int),
-        ('salt', ctypes.c_void_p),
+        ("flags", krb5_int32),
+        ("tkt_life", krb5_deltat),
+        ("renew_life", krb5_deltat),
+        ("forwardable", ctypes.c_int),
+        ("proxiable", ctypes.c_int),
+        ("etype_list", ctypes.POINTER(krb5_enctype)),
+        ("etype_list_length", ctypes.c_int),
+        ("address_list", ctypes.POINTER(ctypes.c_void_p)),
+        ("preauth_list", ctypes.POINTER(krb5_int32)),
+        ("preauth_list_length", ctypes.c_int),
+        ("salt", ctypes.c_void_p),
     ]
 
 
@@ -155,8 +158,9 @@ class _krb5_creds(ctypes.Structure):
     generate a "large enough" struct that can be filled by the Kerberos
     library.
     """
+
     _fields_ = [
-        ('data', ctypes.c_byte * 256),
+        ("data", ctypes.c_byte * 256),
     ]
 
 

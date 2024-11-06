@@ -19,5 +19,5 @@
 from cepces.xml import util
 
 
-NS_XSI = 'http://www.w3.org/2001/XMLSchema-instance'
-ATTR_NIL = util.to_clark('nil', NS_XSI)
+NS_XSI = "http://www.w3.org/2001/XMLSchema-instance"
+ATTR_NIL = util.to_clark("nil", NS_XSI)

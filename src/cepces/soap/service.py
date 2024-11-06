@@ -28,6 +28,7 @@ from cepces.soap.types import Envelope, Fault
 
 class SOAPFault(Exception):
     """Runtime error representing a SOAP fault."""
+
     def __init__(self, fault):
         self._code = fault.code.value
         self._reason = fault.reason.text
@@ -48,6 +49,7 @@ class SOAPFault(Exception):
 
 class Service(Base):
     """Base class for a SOAP service endpoint."""
+
     def __init__(self, endpoint, auth=None, capath=True):
         super().__init__()
 
@@ -62,7 +64,7 @@ class Service(Base):
 
     def send(self, message):
         """Send a message to the remote SOAP service."""
-        headers = {'Content-Type': 'application/soap+xml; charset=utf-8'}
+        headers = {"Content-Type": "application/soap+xml; charset=utf-8"}
         data = ElementTree.tostring(message.element)
 
         self._logger.debug("Sending message:")
@@ -79,12 +81,14 @@ class Service(Base):
             self._logger.debug(" -data after post-processing: %s", data)
 
         # Post the envelope and raise an error if necessary.
-        req = requests.post(url=self._endpoint,
-                            data=data,
-                            headers=headers,
-                            verify=self._capath,
-                            cert=self._auth.clientcertificate,
-                            auth=self._auth.transport)
+        req = requests.post(
+            url=self._endpoint,
+            data=data,
+            headers=headers,
+            verify=self._capath,
+            cert=self._auth.clientcertificate,
+            auth=self._auth.transport,
+        )
 
         # If we get an internal server error (code 500), there's a chance that
         # we get a SOAP Envelope back containing a SOAP Fault.

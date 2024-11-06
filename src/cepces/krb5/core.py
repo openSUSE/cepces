@@ -24,12 +24,13 @@ from cepces.krb5 import types as ktypes
 from cepces.krb5 import functions as kfuncs
 
 # Regular expressions for matching against keytab and principal names.
-NAME_EX = r'^(?:(?P<type>[A-Z]+):)?(?P<residual>.+)$'
-PRINCIPAL_EX = r'^(?P<primary>[^/]+)(?:/(?P<instance>.+))?@(?P<realm>.+)$'
+NAME_EX = r"^(?:(?P<type>[A-Z]+):)?(?P<residual>.+)$"
+PRINCIPAL_EX = r"^(?P<primary>[^/]+)(?:/(?P<instance>.+))?@(?P<realm>.+)$"
 
 
 class Base(CoreBase):
     """Base class for any Kerberos wrapper class."""
+
     def __init__(self, handle):
         super().__init__()
 
@@ -39,7 +40,7 @@ class Base(CoreBase):
     @property
     def handle(self):
         """Get the Kerberos context handle."""
-        if hasattr(self, '_handle'):
+        if hasattr(self, "_handle"):
             return self._handle
 
         return None
@@ -47,6 +48,7 @@ class Base(CoreBase):
 
 class Context(Base):
     """Represents the Kerberos context."""
+
     def __init__(self):
         super().__init__(ktypes.krb5_context())
 
@@ -69,6 +71,7 @@ class KeytabName(Base):
     Setting normalize to True constructs a 'TYPE:RESIDUAL' name, even if
     the native call to krb5_kt_get_name only returns the residual part.
     """
+
     def __init__(self, name=None, context=None, keytab=None, normalize=True):
         super().__init__(None)
 
@@ -86,10 +89,10 @@ class KeytabName(Base):
         return self._name
 
     def _init_name(self, name):
-        parts = name.split(':', maxsplit=1)
+        parts = name.split(":", maxsplit=1)
 
         if not len(parts) == 2:
-            raise RuntimeError("Name has to equal \"TYPE:RESIDUAL\".")
+            raise RuntimeError('Name has to equal "TYPE:RESIDUAL".')
 
         self._name = name
         self._type = parts[0]
@@ -105,11 +108,11 @@ class KeytabName(Base):
             ktypes.LINE_MAX,
         )
 
-        name = buffer.value.decode('utf-8')
+        name = buffer.value.decode("utf-8")
         match = re.match(NAME_EX, name)
 
-        self._type = match.group('type')
-        self._residual = match.group('residual')
+        self._type = match.group("type")
+        self._residual = match.group("residual")
 
         if not self._type:
             buffer = kfuncs.kt_get_type(
@@ -119,12 +122,12 @@ class KeytabName(Base):
 
             # If type is still None, assume that it's 'FILE'.
             if buffer:
-                self._type = buffer.decode('utf-8')
+                self._type = buffer.decode("utf-8")
             else:
-                self._type = 'FILE'
+                self._type = "FILE"
 
             if normalize:
-                self._name = '{}:{}'.format(self._type, self._residual)
+                self._name = "{}:{}".format(self._type, self._residual)
             else:
                 self._name = self._residual
         else:
@@ -151,11 +154,12 @@ class KeytabName(Base):
             ktypes.LINE_MAX,
         )
 
-        return buffer.value.decode('utf-8')
+        return buffer.value.decode("utf-8")
 
 
 class Keytab(Base):
     """Wrapper class for a keytab."""
+
     def __init__(self, context, keytab=None):
         super().__init__(ktypes.krb5_keytab())
 
@@ -165,7 +169,7 @@ class Keytab(Base):
         if self._keytab:
             kfuncs.kt_resolve(
                 self._context.handle,
-                self._keytab.encode('utf-8'),
+                self._keytab.encode("utf-8"),
                 self.handle,
             )
         else:
@@ -202,13 +206,14 @@ class PrincipalName(Base):
     optionally followed by the @ character and a realm name. If the realm name
     is not specified, the local realm is used.
     """
+
     def __init__(self, principal, name, context, host, service, service_type):
         super().__init__(None)
 
         if name:
             kfuncs.parse_name(
                 context.handle,
-                name.encode('utf-8'),
+                name.encode("utf-8"),
                 principal.handle,
             )
         else:
@@ -224,14 +229,14 @@ class PrincipalName(Base):
         # components.
         buffer = ctypes.c_char_p()
         kfuncs.unparse_name(context.handle, principal.handle, buffer)
-        name = buffer.value.decode('utf-8')
+        name = buffer.value.decode("utf-8")
         kfuncs.free_unparsed_name(context.handle, buffer)
 
         match = re.match(PRINCIPAL_EX, name)
 
-        self._primary = match.group('primary')
-        self._instance = match.group('instance')
-        self._realm = match.group('realm')
+        self._primary = match.group("primary")
+        self._instance = match.group("instance")
+        self._realm = match.group("realm")
 
     @property
     def primary(self):
@@ -251,8 +256,15 @@ class PrincipalName(Base):
 
 class Principal(Base):
     """Representation of a Kerberos Principal."""
-    def __init__(self, context, name=None, host=None, service=None,
-                 service_type=ktypes.PrincipalType.KRB5_NT_SRV_HST):
+
+    def __init__(
+        self,
+        context,
+        name=None,
+        host=None,
+        service=None,
+        service_type=ktypes.PrincipalType.KRB5_NT_SRV_HST,
+    ):
         super().__init__(ktypes.krb5_principal())
 
         self._context = context
@@ -288,6 +300,7 @@ class Principal(Base):
 
 class CredentialOptions(Base):
     """Represents a Kerberos Credential Options structure."""
+
     def __init__(self, context):
         super().__init__(ktypes.krb5_get_init_creds_opt_p())
 
@@ -313,10 +326,7 @@ class CredentialOptions(Base):
 
     @forwardable.setter
     def forwardable(self, value):
-        kfuncs.get_init_creds_opt_set_forwardable(
-            self.handle,
-            int(value is True)
-        )
+        kfuncs.get_init_creds_opt_set_forwardable(self.handle, int(value is True))
 
         self._forwardable = value
 
@@ -343,8 +353,8 @@ class CredentialOptions(Base):
 
 class Credentials(Base):
     """Representation of a set of Kerberos Credentials."""
-    def __init__(self, context, client, keytab, start_time, tkt_service,
-                 options):
+
+    def __init__(self, context, client, keytab, start_time, tkt_service, options):
         super().__init__(ktypes.krb5_creds())
 
         self._context = context
@@ -362,7 +372,7 @@ class Credentials(Base):
             self._client.handle,
             self._keytab.handle,
             self._start_time,
-            self._tkt_service.encode('utf-8'),
+            self._tkt_service.encode("utf-8"),
             self._options.handle,
         )
 
@@ -375,6 +385,7 @@ class Credentials(Base):
 
 class CredentialCache(Base):
     """Representation of a Credential Cache."""
+
     def __init__(self, context, name, client, credentials):
         super().__init__(ktypes.krb5_ccache())
 
@@ -385,7 +396,7 @@ class CredentialCache(Base):
 
         kfuncs.cc_resolve(
             self._context.handle,
-            self._name.encode('utf-8'),
+            self._name.encode("utf-8"),
             self.handle,
         )
 

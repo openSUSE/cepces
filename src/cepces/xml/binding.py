@@ -32,6 +32,7 @@ class XMLDescriptor(metaclass=ABCMeta):
     This class maintains a static index used for ordering all declared XML
     descriptors in an subclass. It is automatically incremented as needed.
     """
+
     _index = 0
 
     def __init__(self, name, namespace=None):
@@ -92,6 +93,7 @@ class ListingMeta(type):
 
 class XMLAttribute(XMLDescriptor):
     """This class binds to an attribute of an element."""
+
     def __init__(self, name, namespace=None, converter=None):
         """Initializes a new `XMLAttribute`.
 
@@ -134,9 +136,11 @@ class XMLNode(metaclass=ListingMeta):
         if element is None:
             element = self.create()
         elif not isinstance(element, ElementTree.Element):
-            raise TypeError('Expected {0:s}, got {1:s}'.format(
-                ElementTree.__name__,
-                element.__class__.__name__))
+            raise TypeError(
+                "Expected {0:s}, got {1:s}".format(
+                    ElementTree.__name__, element.__class__.__name__
+                )
+            )
 
         self._element = element
         self._bindings = {}
@@ -155,11 +159,14 @@ class XMLNode(metaclass=ListingMeta):
 
 class XMLElement(XMLDescriptor):
     """Map an element to an XMLNode instance."""
-    def __init__(self, name, binder=None, namespace=None,
-                 required=True, nillable=False):
+
+    def __init__(
+        self, name, binder=None, namespace=None, required=True, nillable=False
+    ):
         super().__init__(name, namespace)
 
         if binder is None:
+
             def func(value):
                 """Simple pass-through function."""
                 return value
@@ -171,11 +178,11 @@ class XMLElement(XMLDescriptor):
         self._nillable = nillable
 
     def index(self, instance):
-        """Returns the element index of this descriptor for a given class.
-        """
+        """Returns the element index of this descriptor for a given class."""
         if not isinstance(type(instance), ListingMeta):
-            raise TypeError('Expected type ListingMeta, got {0:s}'.format(
-                str(type(instance))))
+            raise TypeError(
+                "Expected type ListingMeta, got {0:s}".format(str(type(instance)))
+            )
 
         # Get the index of the descriptor.
         descriptors = [e[1] for e in instance.__listing__]
@@ -246,8 +253,10 @@ class XMLElement(XMLDescriptor):
 
 class XMLElementList(XMLElement):
     """XML Element List"""
+
     class List(MutableSequence):
         """Internal list."""
+
         def __init__(self, parent, element, binder, qname):
             super().__init__()
 
@@ -280,14 +289,15 @@ class XMLElementList(XMLElement):
 
             if self._parent._nillable:
                 if not self._list:
-                    self._element.set(ATTR_NIL, 'true')
+                    self._element.set(ATTR_NIL, "true")
                     self._element.text = None
 
         def __setitem__(self, key, value):
             # Value has to be of the same type as the binder.
             if not isinstance(value, self._binder):
-                raise TypeError('Expected value of {0:s}'
-                                .format(str(type(self._binder))))
+                raise TypeError(
+                    "Expected value of {0:s}".format(str(type(self._binder)))
+                )
 
             # If there is a previous value assigned, remove it.
             old = self._list[key]
@@ -311,13 +321,23 @@ class XMLElementList(XMLElement):
         def __str__(self):
             return str(self._list)
 
-    def __init__(self, name, child_name, binder, namespace=None,
-                 child_namespace=None, required=True, nillable=False):
-        super().__init__(name=name,
-                         binder=None,
-                         namespace=namespace,
-                         required=required,
-                         nillable=nillable)
+    def __init__(
+        self,
+        name,
+        child_name,
+        binder,
+        namespace=None,
+        child_namespace=None,
+        required=True,
+        nillable=False,
+    ):
+        super().__init__(
+            name=name,
+            binder=None,
+            namespace=namespace,
+            required=required,
+            nillable=nillable,
+        )
 
         self._child_binder = binder
         self._child_name = child_name
@@ -335,10 +355,12 @@ class XMLElementList(XMLElement):
         if binder is self:
             return binder
         elif not isinstance(binder, XMLElementList.List):
-            binder = XMLElementList.List(parent=self,
-                                         element=binder,
-                                         binder=self._child_binder,
-                                         qname=self._child_qname)
+            binder = XMLElementList.List(
+                parent=self,
+                element=binder,
+                binder=self._child_binder,
+                qname=self._child_qname,
+            )
 
             instance._bindings[hash(self)] = binder
 
@@ -347,13 +369,11 @@ class XMLElementList(XMLElement):
 
 class XMLValue(XMLElement):
     """XML Value"""
-    def __init__(self, name, converter, namespace=None,
-                 required=True, nillable=False):
-        super().__init__(name,
-                         binder=None,
-                         namespace=namespace,
-                         required=required,
-                         nillable=nillable)
+
+    def __init__(self, name, converter, namespace=None, required=True, nillable=False):
+        super().__init__(
+            name, binder=None, namespace=namespace, required=required, nillable=nillable
+        )
 
         self._converter = converter
 
@@ -367,15 +387,15 @@ class XMLValue(XMLElement):
 
         # Check if nillable.
         if self._nillable:
-            if hasattr(element, 'attrib') and ATTR_NIL in element.attrib:
-                if element.get(ATTR_NIL) == 'true':
+            if hasattr(element, "attrib") and ATTR_NIL in element.attrib:
+                if element.get(ATTR_NIL) == "true":
                     # Since nil=true, return None regardless of any text.
                     return None
 
-        if hasattr(element, 'text'):
+        if hasattr(element, "text"):
             return self._converter.from_string(element.text)
 
-        return self._converter.from_string('')
+        return self._converter.from_string("")
 
     def __set__(self, instance, value):
         element = super().__get__(instance, None)
@@ -385,23 +405,25 @@ class XMLValue(XMLElement):
             super().__set__(instance, element)
 
         if self._nillable:
-            attr = '{{{0:s}}}{1:s}'.format(NS_XSI, 'nil')
+            attr = "{{{0:s}}}{1:s}".format(NS_XSI, "nil")
 
             if value is None:
-                element.attrib[attr] = 'true'
+                element.attrib[attr] = "true"
             else:
                 if attr in element.attrib:
                     del element.attrib[attr]
         elif value is None:
-            raise ValueError('Element not nillable.')
+            raise ValueError("Element not nillable.")
 
         element.text = self._converter.to_string(value)
 
 
 class XMLValueList(XMLElement):
     """XML Value List"""
+
     class List(MutableSequence):
         """Internal list"""
+
         def __init__(self, parent, element, converter, qname):
             super().__init__()
 
@@ -429,7 +451,7 @@ class XMLValueList(XMLElement):
 
             if self._parent._nillable:
                 if not self._list:
-                    self._element.set(ATTR_NIL, 'true')
+                    self._element.set(ATTR_NIL, "true")
                     self._element.text = None
 
         def __setitem__(self, key, value):
@@ -451,13 +473,23 @@ class XMLValueList(XMLElement):
         def __str__(self):
             return str(self._list)
 
-    def __init__(self, name, child_name, converter, namespace=None,
-                 child_namespace=None, required=True, nillable=False):
-        super().__init__(name=name,
-                         binder=None,
-                         namespace=namespace,
-                         required=required,
-                         nillable=nillable)
+    def __init__(
+        self,
+        name,
+        child_name,
+        converter,
+        namespace=None,
+        child_namespace=None,
+        required=True,
+        nillable=False,
+    ):
+        super().__init__(
+            name=name,
+            binder=None,
+            namespace=namespace,
+            required=required,
+            nillable=nillable,
+        )
 
         self._converter = converter
         self._child_name = child_name
@@ -475,10 +507,12 @@ class XMLValueList(XMLElement):
         if binder is self:
             return binder
         elif not isinstance(binder, XMLValueList.List):
-            binder = XMLValueList.List(parent=self,
-                                       element=binder,
-                                       converter=self._converter,
-                                       qname=self._child_qname)
+            binder = XMLValueList.List(
+                parent=self,
+                element=binder,
+                converter=self._converter,
+                qname=self._child_qname,
+            )
 
             instance._bindings[hash(self)] = binder
 

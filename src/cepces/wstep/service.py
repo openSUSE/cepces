@@ -27,14 +27,15 @@ from cepces.wstep import QUERY_REQUEST_TYPE, NS_ENROLLMENT
 from cepces.wstep.types import SecurityTokenRequest
 from cepces.wstep.types import SecurityTokenResponseCollection
 
-ACTION = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollment/' \
-         'RST/wstep'
+ACTION = "http://schemas.microsoft.com/windows/pki/2009/01/enrollment/" "RST/wstep"
 
 
 class Service(SOAPService):
     """WSTEP Service proxy."""
+
     class Response(Base):
         """Inner class for a service response."""
+
         def __init__(self, request_id, token=None, reference=None):
             super().__init__()
 
@@ -80,11 +81,13 @@ class Service(SOAPService):
 
     def request(self, csr):
         """Request a certificate using a certificate signing request."""
-        match = re.search(r'^\-{5}BEGIN (?:NEW )?CERTIFICATE REQUEST\-{5}\n'
-                          r'(.*)\n'
-                          r'\-{5}END (?:NEW )?CERTIFICATE REQUEST\-{5}\s*$',
-                          csr,
-                          flags=re.DOTALL)
+        match = re.search(
+            r"^\-{5}BEGIN (?:NEW )?CERTIFICATE REQUEST\-{5}\n"
+            r"(.*)\n"
+            r"\-{5}END (?:NEW )?CERTIFICATE REQUEST\-{5}\s*$",
+            csr,
+            flags=re.DOTALL,
+        )
 
         if not match:
             raise LookupError("Invalid CSR.")
@@ -102,12 +105,12 @@ class Service(SOAPService):
         results = []
 
         for response in result.responses:
-            self._logger.debug('Got response: %s', str(response))
+            self._logger.debug("Got response: %s", str(response))
 
             token = response.requested_token
 
             if token.text:
-                token.text = token.text.replace('&#xD;', '')
+                token.text = token.text.replace("&#xD;", "")
 
                 results.append(
                     Service.Response(
@@ -123,19 +126,19 @@ class Service(SOAPService):
                     ),
                 )
 
-        self._logger.debug('Returning curated responses: %s', results)
+        self._logger.debug("Returning curated responses: %s", results)
 
         return results
 
     def poll(self, request_id):
         """Poll the service endpoint for the status of a previous request."""
-        self._logger.debug('Sending info for previous request %s', request_id)
+        self._logger.debug("Sending info for previous request %s", request_id)
 
         token = SecurityTokenRequest()
         token.request_type = QUERY_REQUEST_TYPE
 
         # Improve this handling since we're manually inserting an element here.
-        qname = ElementTree.QName(NS_ENROLLMENT, 'RequestID')
+        qname = ElementTree.QName(NS_ENROLLMENT, "RequestID")
         element = ElementTree.Element(qname)
         token._element.append(element)
         token.request_id = request_id
@@ -150,12 +153,12 @@ class Service(SOAPService):
         results = []
 
         for response in result.responses:
-            self._logger.debug('Got response: %s', response)
+            self._logger.debug("Got response: %s", response)
 
             token = response.requested_token
 
             if token.text:
-                token.text = token.text.replace('&#xD;', '')
+                token.text = token.text.replace("&#xD;", "")
 
                 results.append(
                     Service.Response(
@@ -171,6 +174,6 @@ class Service(SOAPService):
                     ),
                 )
 
-        self._logger.debug('Returning curated responses: %s', results)
+        self._logger.debug("Returning curated responses: %s", results)
 
         return results

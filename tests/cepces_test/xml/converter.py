@@ -29,7 +29,7 @@ class TestStringConverter(TestCase):
 
     def testFromString(self):
         """A string as input should return an equal string"""
-        input = 'TestString'
+        input = "TestString"
         result = converter.StringConverter.from_string(input)
 
         self.assertEqual(input, result)
@@ -43,7 +43,7 @@ class TestStringConverter(TestCase):
 
     def testToString(self):
         """A string as input should return an equal string"""
-        input = 'TestString'
+        input = "TestString"
         result = converter.StringConverter.to_string(input)
 
         self.assertEqual(str(input), result)
@@ -61,10 +61,10 @@ class TestBooleanConverter(TestCase):
         """Boolean strings as input should return a boolean"""
         c = converter.BooleanConverter
 
-        self.assertEqual(True, c.from_string('true'))
-        self.assertEqual(True, c.from_string('1'))
-        self.assertEqual(False, c.from_string('false'))
-        self.assertEqual(False, c.from_string('0'))
+        self.assertEqual(True, c.from_string("true"))
+        self.assertEqual(True, c.from_string("1"))
+        self.assertEqual(False, c.from_string("false"))
+        self.assertEqual(False, c.from_string("0"))
 
     def testToNone(self):
         """None as input should return None"""
@@ -77,8 +77,8 @@ class TestBooleanConverter(TestCase):
         """A boolean as input should return an equal boolean (lower) string"""
         c = converter.BooleanConverter
 
-        self.assertEqual('true', c.to_string(True))
-        self.assertEqual('false', c.to_string(False))
+        self.assertEqual("true", c.to_string(True))
+        self.assertEqual("false", c.to_string(False))
 
 
 class TestIntegerConverter(TestCase):
@@ -156,8 +156,8 @@ class TestSignedIntegerConverter(TestCase):
         f = converter.SignedIntegerConverter.from_string
 
         self.assertEqual(10, f(str(10)))
-        self.assertRaises(ValueError, f, str(-2 ** 31 - 1))
-        self.assertRaises(ValueError, f, str(2 ** 31))
+        self.assertRaises(ValueError, f, str(-(2**31) - 1))
+        self.assertRaises(ValueError, f, str(2**31))
 
     def testToNone(self):
         """None as input should return None"""
@@ -171,8 +171,8 @@ class TestSignedIntegerConverter(TestCase):
         f = converter.SignedIntegerConverter.to_string
 
         self.assertEqual(str(10), f(10))
-        self.assertRaises(ValueError, f, -2 ** 31 - 1)
-        self.assertRaises(ValueError, f, 2 ** 31)
+        self.assertRaises(ValueError, f, -(2**31) - 1)
+        self.assertRaises(ValueError, f, 2**31)
 
 
 class TestUnsignedIntegerConverter(TestCase):
@@ -189,7 +189,7 @@ class TestUnsignedIntegerConverter(TestCase):
 
         self.assertEqual(10, f(str(10)))
         self.assertRaises(ValueError, f, str(-1))
-        self.assertRaises(ValueError, f, str(2 ** 32))
+        self.assertRaises(ValueError, f, str(2**32))
 
     def testToNone(self):
         """None as input should return None"""
@@ -204,7 +204,7 @@ class TestUnsignedIntegerConverter(TestCase):
 
         self.assertEqual(str(10), f(10))
         self.assertRaises(ValueError, f, -1)
-        self.assertRaises(ValueError, f, 2 ** 32)
+        self.assertRaises(ValueError, f, 2**32)
 
 
 class TestDateTimeConverter(TestCase):

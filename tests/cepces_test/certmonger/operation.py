@@ -29,7 +29,7 @@ class TestGetDefaultTemplate(unittest.TestCase):
         operation = CertmongerOperations.GetDefaultTemplate(None, out=out)
         operation()
 
-        self.assertEqual(out.getvalue(), '')
+        self.assertEqual(out.getvalue(), "")
 
 
 class TestIdentify(unittest.TestCase):
@@ -42,5 +42,5 @@ class TestIdentify(unittest.TestCase):
 
         self.assertEqual(
             out.getvalue(),
-            '{} {}\n'.format(__title__, __version__),
+            "{} {}\n".format(__title__, __version__),
         )

@@ -28,3 +28,21 @@ jobs:
           python -m pip install tox tox-gh-actions
       - name: Test with tox
         run: tox
+
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toxenv:
+          - "lint"
+          - "format"
+          - "type"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo apt-get install libkrb5-dev
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      - name: "Run tox for ${{ matrix.toxenv }}"
+        run: "tox -e ${{ matrix.toxenv }}"

@@ -23,6 +23,7 @@ from enum import IntEnum
 
 class Result(IntEnum):
     """This enumeration contains the result codes expected by certmonger."""
+
     DEFAULT = 0
     ISSUED = 0
     WAIT = 1
@@ -34,8 +35,8 @@ class Result(IntEnum):
 
 
 class MissingEnvironmentVariable(RuntimeError):
-    """This error is raised when an expected environment variable is missing.
-    """
+    """This error is raised when an expected environment variable is missing."""
+
     def __init__(self, variable):
         """Initializes the error.
 
@@ -44,8 +45,8 @@ class MissingEnvironmentVariable(RuntimeError):
         self._variable = variable
 
         super().__init__(
-            'The mandatory environment variable {} is missing, '
-            'cannot proceed.'.format(variable)
+            "The mandatory environment variable {} is missing, "
+            "cannot proceed.".format(variable)
         )
 
     @property

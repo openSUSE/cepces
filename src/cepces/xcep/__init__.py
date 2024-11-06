@@ -16,4 +16,4 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-NS_CEP = 'http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy'
+NS_CEP = "http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy"

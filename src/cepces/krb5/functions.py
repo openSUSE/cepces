@@ -25,11 +25,12 @@ from cepces.krb5.lib import _shlib
 
 class Error(RuntimeError):
     """Generic error class, representing a runtime error from Kerberos."""
+
     def __init__(self, context, code):
         message_p = get_error_message(context, code)
 
         self._code = code
-        self._message = message_p.value.decode('utf-8')
+        self._message = message_p.value.decode("utf-8")
         super().__init__(self._message)
 
         free_error_message(context, message_p)
@@ -199,28 +200,28 @@ get_init_creds_opt_free = error_decorator(krb5_get_init_creds_opt_free)
 
 # void krb5_get_init_creds_opt_set_etype_list(krb5_get_init_creds_opt * opt,
 #     krb5_enctype * etype_list, int etype_list_length)
-krb5_get_init_creds_opt_set_etype_list = \
-    _shlib.krb5_get_init_creds_opt_set_etype_list
+krb5_get_init_creds_opt_set_etype_list = _shlib.krb5_get_init_creds_opt_set_etype_list
 krb5_get_init_creds_opt_set_etype_list.restype = None
 krb5_get_init_creds_opt_set_etype_list.argtypes = [
     ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
     ctypes.POINTER(ktypes.krb5_enctype),
     ctypes.c_int,
 ]
-get_init_creds_opt_set_etype_list = \
-    error_decorator(krb5_get_init_creds_opt_set_etype_list)
+get_init_creds_opt_set_etype_list = error_decorator(
+    krb5_get_init_creds_opt_set_etype_list
+)
 
 # void krb5_get_init_creds_opt_set_forwardable(krb5_get_init_creds_opt * opt,
 #     int forwardable)
-krb5_get_init_creds_opt_set_forwardable = \
-    _shlib.krb5_get_init_creds_opt_set_forwardable
+krb5_get_init_creds_opt_set_forwardable = _shlib.krb5_get_init_creds_opt_set_forwardable
 krb5_get_init_creds_opt_set_forwardable.restype = None
 krb5_get_init_creds_opt_set_forwardable.argtypes = [
     ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
     ctypes.c_int,
 ]
-get_init_creds_opt_set_forwardable = \
-    error_decorator(krb5_get_init_creds_opt_set_forwardable)
+get_init_creds_opt_set_forwardable = error_decorator(
+    krb5_get_init_creds_opt_set_forwardable
+)
 
 # krb5_error_code krb5_init_context(krb5_context * context)
 krb5_init_context = _shlib.krb5_init_context
