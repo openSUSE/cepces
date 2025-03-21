@@ -116,3 +116,14 @@ delegate=True
 #
 # Default: <not defined>
 #keyfile = /path/to/openssl-keyfile.pem
+
+[usernamepassword]
+# Use the following AD username in UPN notation.
+#
+# Default: <not defined>
+#username = user@your-ad.local
+ 
+# Use the following AD password.
+#
+# Default: <not defined>
+#password = ADpassword
