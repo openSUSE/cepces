@@ -118,12 +118,18 @@ delegate=True
 #keyfile = /path/to/openssl-keyfile.pem
 
 [usernamepassword]
+# Name of service in default keyring item
+#
+# Default: <not defined>
+#keyring = cepces
+#
 # Use the following AD username in UPN notation.
 #
 # Default: <not defined>
 #username = user@your-ad.local
- 
+#
 # Use the following AD password.
+# Omit if using keyring
 #
 # Default: <not defined>
 #password = ADpassword

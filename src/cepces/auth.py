@@ -17,6 +17,8 @@
 #
 """Module containing authentication type handlers."""
 from abc import ABCMeta, abstractmethod
+import keyring
+from keyring.errors import KeyringLocked
 from cepces import Base
 from cepces.krb5.functions import Error as KerberosError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
@@ -116,10 +118,19 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
                 'Missing "usernamepassword" section in configuration.',
             )
 
-        section = parser["usernamepassword"]
+        section = parser['usernamepassword']
 
-        username = section.get("username", None)
-        password = section.get("password", None)
+        keyring_service = section.get('keyring', None)
+        username = section.get('username', None)
+        password = section.get('password', None)
+
+        if keyring_service and username:
+            try:
+                password = keyring.get_password(keyring_service, username)
+            except KeyringLocked as exc:
+                raise RuntimeError(
+                    'Keyring locked.',
+                ) from exc
 
         return SOAPAuth.MessageUsernamePasswordAuthentication(
             username,
