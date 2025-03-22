@@ -17,8 +17,10 @@
 #
 """Module containing authentication type handlers."""
 from abc import ABCMeta, abstractmethod
+import os
+import subprocess
 import keyring
-from keyring.errors import KeyringLocked
+from keyring.errors import KeyringLocked, KeyringError
 from cepces import Base
 from cepces.krb5.functions import Error as KerberosError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
@@ -109,6 +111,30 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
 class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
     """Handler for Username and Password based authentication."""
 
+    def prompt_credentials(self) -> tuple[str, str]:
+        """Asks interactively for credentials to store in keyring."""
+        try:
+            env = os.environ.copy()
+            env.setdefault("DISPLAY", ":0")
+            result = subprocess.run(
+                args=["zenity",
+                      "--username",
+                      "--password",
+                      "--text=Enter your username and password",
+                      "--title=Login credentials"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                env=env,
+            )
+            credentials = result.stdout.strip().split('|', 1)
+            if len(credentials) != 2:
+                return None, None
+            return credentials[0], credentials[1]
+        except subprocess.CalledProcessError:
+            return None, None
+
     def handle(self):
         parser = self._parser
 
@@ -120,17 +146,30 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 
         section = parser['usernamepassword']
 
-        keyring_service = section.get('keyring', None)
+        keyring_service = section.get('keyring_service', "cepces")
         username = section.get('username', None)
         password = section.get('password', None)
 
-        if keyring_service and username:
-            try:
-                password = keyring.get_password(keyring_service, username)
-            except KeyringLocked as e:
-                raise RuntimeError(
-                    'Keyring locked. Can not unlock.',
-                ) from e
+        try:
+            keyring_password = keyring.get_password(keyring_service, username)
+            if keyring_password:
+                password = keyring_password
+            if not username or not password:
+                username, password = self.prompt_credentials()
+                try:
+                    keyring.set_password(keyring_service, username, password)
+                except KeyringLocked as e:
+                    raise RuntimeError(
+                        'Keyring locked. Can not unlock.',
+                    ) from e
+                except KeyringError as e:
+                    raise RuntimeError(
+                        'Can not set credentials in default keyring for service {keyring_service}',
+                    ) from e
+        except KeyringLocked as e:
+            raise RuntimeError(
+                'Keyring locked. Can not unlock.',
+            ) from e
 
         return SOAPAuth.MessageUsernamePasswordAuthentication(
             username,
