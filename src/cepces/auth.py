@@ -127,10 +127,10 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
         if keyring_service and username:
             try:
                 password = keyring.get_password(keyring_service, username)
-            except KeyringLocked as exc:
+            except KeyringLocked as e:
                 raise RuntimeError(
-                    'Keyring locked.',
-                ) from exc
+                    'Keyring locked. Can not unlock.',
+                ) from e
 
         return SOAPAuth.MessageUsernamePasswordAuthentication(
             username,
