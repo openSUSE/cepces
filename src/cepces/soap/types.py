@@ -21,10 +21,10 @@
 # pylint: disable=invalid-name
 """This module contains common SOAP types."""
 from xml.etree.ElementTree import Element, QName
-from cepces.soap import NS_ADDRESSING, NS_SOAP, NS_WSSE
+from cepces.soap import NS_ADDRESSING, NS_SOAP, NS_WSSE, NS_WSU
 from cepces.xml import NS_XSI
 from cepces.xml.binding import XMLElement, XMLNode, XMLValue
-from cepces.xml.converter import StringConverter
+from cepces.xml.converter import StringConverter, DateTimeConverter
 
 
 class FaultSubcode(XMLNode):
@@ -101,6 +101,12 @@ class UsernameToken(XMLNode):
     password = XMLValue(
         'Password', converter=StringConverter, namespace=NS_WSSE
     )
+    nonce = XMLValue(
+        'Nonce', converter=StringConverter, namespace=NS_WSSE
+    )
+    created = XMLValue(
+        'Created', converter=DateTimeConverter, namespace=NS_WSU
+    )
 
     @staticmethod
     def create():
@@ -111,7 +117,14 @@ class UsernameToken(XMLNode):
 
         password = Element(QName(NS_WSSE, 'Password'))
         password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText'
+        # password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest'
         usernametoken.append(password)
+        
+        nonce = Element(QName(NS_WSSE, 'Nonce'))
+        usernametoken.append(nonce)
+        
+        created = Element(QName(NS_WSU, 'Created'))
+        usernametoken.append(created)
 
         return usernametoken
 

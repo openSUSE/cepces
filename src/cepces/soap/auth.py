@@ -21,6 +21,9 @@
 """This module contains SOAP related authentication."""
 from abc import ABCMeta, abstractmethod, abstractproperty
 import os
+import base64
+import hashlib
+from datetime import datetime
 import gssapi
 from requests_gssapi import HTTPSPNEGOAuth
 from cepces import Base
@@ -155,8 +158,22 @@ class MessageUsernamePasswordAuthentication(Authentication):
 
     def __init__(self, username, password):
         super().__init__()
-        self._username = username
-        self._password = password
+        self._username: str = username
+        self._password: str = password
+        self._init_digest()
+
+    def _init_digest(self):
+        self._created = datetime.now()
+        raw_nonce = f"{self._username}:{self._password}:{self._created}"
+        self._nonce = hashlib.md5(raw_nonce.encode("utf-8")).digest()
+
+        # m = hashlib.sha1()
+        # m.update(self._nonce)
+        # m.update(self._created.strftime("%Y-%m-%dT%H:%M:%SZ").encode("utf-8"))
+        # m.update(self._password.encode("utf-8"))
+        # self._password = base64.b64encode(m.digest()).decode("utf-8")
+
+        self._nonce = base64.b64encode(self._nonce).decode("utf-8")
 
     @property
     def transport(self):
@@ -172,6 +189,9 @@ class MessageUsernamePasswordAuthentication(Authentication):
         envelope.header.security.element.append(UsernameToken.create())
         envelope.header.security.usernametoken.username = self._username
         envelope.header.security.usernametoken.password = self._password
+        # envelope.header.security.usernametoken.password = self._password_digest
+        envelope.header.security.usernametoken.nonce = self._nonce
+        envelope.header.security.usernametoken.created = self._created
 
         return envelope
 
