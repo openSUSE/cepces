@@ -21,10 +21,10 @@
 # pylint: disable=invalid-name
 """This module contains common SOAP types."""
 from xml.etree.ElementTree import Element, QName
-from cepces.soap import NS_ADDRESSING, NS_SOAP
+from cepces.soap import NS_ADDRESSING, NS_SOAP, NS_WSSE, NS_WSU
 from cepces.xml import NS_XSI
 from cepces.xml.binding import XMLElement, XMLNode, XMLValue
-from cepces.xml.converter import StringConverter
+from cepces.xml.converter import StringConverter, DateTimeConverter
 
 
 class FaultSubcode(XMLNode):
@@ -92,6 +92,58 @@ class Fault(XMLNode):
         return element
 
 
+class UsernameToken(XMLNode):
+    """WSSE UsernameToken."""
+
+    username = XMLValue(
+        'Username', converter=StringConverter, namespace=NS_WSSE
+    )
+    password = XMLValue(
+        'Password', converter=StringConverter, namespace=NS_WSSE
+    )
+    nonce = XMLValue(
+        'Nonce', converter=StringConverter, namespace=NS_WSSE
+    )
+    created = XMLValue(
+        'Created', converter=DateTimeConverter, namespace=NS_WSU
+    )
+
+    @staticmethod
+    def create():
+        usernametoken = Element(QName(NS_WSSE, 'UsernameToken'))
+
+        username = Element(QName(NS_WSSE, 'Username'))
+        usernametoken.append(username)
+
+        password = Element(QName(NS_WSSE, 'Password'))
+        password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText'
+        # password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest'
+        usernametoken.append(password)
+        
+        nonce = Element(QName(NS_WSSE, 'Nonce'))
+        usernametoken.append(nonce)
+        
+        created = Element(QName(NS_WSU, 'Created'))
+        usernametoken.append(created)
+
+        return usernametoken
+
+
+class Security(XMLNode):
+    """WSSE Security."""
+
+    usernametoken = XMLElement(
+        'UsernameToken', binder=UsernameToken, namespace=NS_WSSE
+    )
+
+    @staticmethod
+    def create():
+        security = Element(QName(NS_WSSE, 'Security'))
+        security.attrib[QName(NS_SOAP, 'mustUnderstand')] = '1'
+
+        return security
+
+
 class Header(XMLNode):
     """SOAP Header."""
 
@@ -109,6 +161,10 @@ class Header(XMLNode):
 
     relates_to = XMLValue(
         "RelatesTo", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+    )
+
+    security =  XMLElement (
+        'Security', binder=Security, namespace=NS_WSSE
     )
 
     @staticmethod
