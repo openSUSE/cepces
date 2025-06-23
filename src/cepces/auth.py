@@ -98,10 +98,10 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
                 # Ignore
                 pass
 
-        if auth:
-            return auth
-        else:
-            raise RuntimeError("No suitable key found in keytab.")
+            if auth:
+                return auth
+
+        raise RuntimeError("No suitable key found in keytab.")
 
 
 class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
