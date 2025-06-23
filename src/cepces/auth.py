@@ -117,18 +117,20 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
             env = os.environ.copy()
             env.setdefault("DISPLAY", ":0")
             result = subprocess.run(
-                args=["zenity",
-                      "--username",
-                      "--password",
-                      "--text=Enter your username and password",
-                      "--title=Login credentials"],
+                args=[
+                    "zenity",
+                    "--username",
+                    "--password",
+                    "--text=Enter your username and password",
+                    "--title=Login credentials",
+                ],
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
                 text=True,
                 env=env,
             )
-            credentials = result.stdout.strip().split('|', 1)
+            credentials = result.stdout.strip().split("|", 1)
             if len(credentials) != 2:
                 return None, None
             return credentials[0], credentials[1]
@@ -144,11 +146,11 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
                 'Missing "usernamepassword" section in configuration.',
             )
 
-        section = parser['usernamepassword']
+        section = parser["usernamepassword"]
 
-        keyring_service = section.get('keyring_service', "cepces")
-        username = section.get('username', None)
-        password = section.get('password', None)
+        keyring_service = section.get("keyring_service", "cepces")
+        username = section.get("username", None)
+        password = section.get("password", None)
 
         try:
             keyring_password = keyring.get_password(keyring_service, username)
@@ -160,15 +162,15 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
                     keyring.set_password(keyring_service, username, password)
                 except KeyringLocked as e:
                     raise RuntimeError(
-                        'Keyring locked. Can not unlock.',
+                        "Keyring locked. Can not unlock.",
                     ) from e
                 except KeyringError as e:
                     raise RuntimeError(
-                        'Can not set credentials in default keyring for service {keyring_service}',
+                        "Can not set credentials in default keyring for service {keyring_service}",
                     ) from e
         except KeyringLocked as e:
             raise RuntimeError(
-                'Keyring locked. Can not unlock.',
+                "Keyring locked. Can not unlock.",
             ) from e
 
         return SOAPAuth.MessageUsernamePasswordAuthentication(

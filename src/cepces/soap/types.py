@@ -95,35 +95,29 @@ class Fault(XMLNode):
 class UsernameToken(XMLNode):
     """WSSE UsernameToken."""
 
-    username = XMLValue(
-        'Username', converter=StringConverter, namespace=NS_WSSE
-    )
-    password = XMLValue(
-        'Password', converter=StringConverter, namespace=NS_WSSE
-    )
-    nonce = XMLValue(
-        'Nonce', converter=StringConverter, namespace=NS_WSSE
-    )
-    created = XMLValue(
-        'Created', converter=DateTimeConverter, namespace=NS_WSU
-    )
+    username = XMLValue("Username", converter=StringConverter, namespace=NS_WSSE)
+    password = XMLValue("Password", converter=StringConverter, namespace=NS_WSSE)
+    nonce = XMLValue("Nonce", converter=StringConverter, namespace=NS_WSSE)
+    created = XMLValue("Created", converter=DateTimeConverter, namespace=NS_WSU)
 
     @staticmethod
     def create():
-        usernametoken = Element(QName(NS_WSSE, 'UsernameToken'))
+        usernametoken = Element(QName(NS_WSSE, "UsernameToken"))
 
-        username = Element(QName(NS_WSSE, 'Username'))
+        username = Element(QName(NS_WSSE, "Username"))
         usernametoken.append(username)
 
-        password = Element(QName(NS_WSSE, 'Password'))
-        password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText'
+        password = Element(QName(NS_WSSE, "Password"))
+        password.attrib[QName(NS_WSSE, "Type")] = (
+            "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText"
+        )
         # password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest'
         usernametoken.append(password)
-        
-        nonce = Element(QName(NS_WSSE, 'Nonce'))
+
+        nonce = Element(QName(NS_WSSE, "Nonce"))
         usernametoken.append(nonce)
-        
-        created = Element(QName(NS_WSU, 'Created'))
+
+        created = Element(QName(NS_WSU, "Created"))
         usernametoken.append(created)
 
         return usernametoken
@@ -132,14 +126,12 @@ class UsernameToken(XMLNode):
 class Security(XMLNode):
     """WSSE Security."""
 
-    usernametoken = XMLElement(
-        'UsernameToken', binder=UsernameToken, namespace=NS_WSSE
-    )
+    usernametoken = XMLElement("UsernameToken", binder=UsernameToken, namespace=NS_WSSE)
 
     @staticmethod
     def create():
-        security = Element(QName(NS_WSSE, 'Security'))
-        security.attrib[QName(NS_SOAP, 'mustUnderstand')] = '1'
+        security = Element(QName(NS_WSSE, "Security"))
+        security.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"
 
         return security
 
@@ -163,9 +155,7 @@ class Header(XMLNode):
         "RelatesTo", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
     )
 
-    security =  XMLElement (
-        'Security', binder=Security, namespace=NS_WSSE
-    )
+    security = XMLElement("Security", binder=Security, namespace=NS_WSSE)
 
     @staticmethod
     def create():
