@@ -20,16 +20,15 @@
 #
 """This module contains SOAP related authentication."""
 from abc import ABCMeta, abstractmethod, abstractproperty
-import os
 import base64
 import hashlib
+import os
 from datetime import datetime
 import gssapi
 from requests_gssapi import HTTPSPNEGOAuth
 from cepces import Base
 from cepces.krb5 import types as ktypes
-from cepces.krb5.core import Context, Keytab, Principal
-from cepces.krb5.core import CredentialOptions, Credentials, CredentialCache
+from cepces.krb5.core import Context, Principal
 from cepces.soap.types import Security as WSSecurity, UsernameToken
 
 
@@ -85,55 +84,53 @@ class TransportKerberosAuthentication(Authentication):
         self._config["enctypes"] = enctypes
         self._config["delegate"] = delegate
 
-        # Only initialize a credential cache if requested. Otherwise, rely on
-        # a credential cache already being available.
-        if self._config["init_ccache"]:
-            self._init_ccache()
-
-        self._init_transport()
-
-    def _init_ccache(self):
-        start_time = 0
-
         context = Context()
-        keytab = Keytab(context, keytab=self._config["keytab"])
+
+        # Create a valid principal using default realm if none is specified
         principal = Principal(
             context,
             name=self._config["name"],
-            service_type=ktypes.PrincipalType.KRB5_NT_SRV_HST,
+            service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
         )
-        credential_options = CredentialOptions(context)
-        credential_options.forwardable = True
-        credential_options.encryption_types = self._config["enctypes"]
-
-        tkt_service = "{service}/{host}@{realm}".format(
-            service=ktypes.KRB5_TGS_NAME,
-            host=principal.realm,
-            realm=principal.realm,
+        self._config["principal"] = "%s@%s" % (
+            principal.primary,
+            principal.realm,
         )
 
-        credentials = Credentials(
-            context,
-            principal,
-            keytab,
-            start_time,
-            tkt_service,
-            credential_options,
+        # Only initialize a credential cache if requested. Otherwise, rely on
+        # a credential cache already being available.
+        gssapi_cred = None
+        if self._config["init_ccache"]:
+            gssapi_cred = self._init_ccache()
+
+        self._init_transport(gssapi_cred)
+
+    def _init_ccache(self):
+        krb5_mech = gssapi.OID.from_int_seq("1.2.840.113554.1.2.2")
+        gss_name = gssapi.Name(self._config["principal"], gssapi.NameType.user)
+
+        os.environ["KRB5CCNAME"] = "MEMORY:cepces"
+
+        gssapi_cred = gssapi.raw.acquire_cred_from(
+            store={
+                b"client_keytab": self._config["keytab"],
+                # This doesn't work, we need to set KRB5CCNAME
+                # b"ccache": "MEMORY:cepces",
+            },
+            name=gss_name,
+            mechs=[krb5_mech],
+            usage="initiate",
         )
 
-        ccache_name = "MEMORY:cepces"
-        self._ccache = CredentialCache(
-            context,
-            ccache_name,
-            principal,
-            credentials,
+        return gssapi_cred
+
+    def _init_transport(self, gssapi_cred=None):
+        gss_name = gssapi.Name(self._config["principal"], gssapi.NameType.user)
+
+        creds = gssapi.Credentials(
+            base=gssapi_cred.creds, name=gss_name, usage="initiate"
         )
 
-        os.environ["KRB5CCNAME"] = ccache_name
-
-    def _init_transport(self):
-        name = gssapi.Name(self._config["name"], gssapi.NameType.user)
-        creds = gssapi.Credentials(name=name, usage="initiate")
         self._transport = HTTPSPNEGOAuth(
             creds=creds,
             delegate=self._config["delegate"],
