@@ -64,49 +64,6 @@ def error_decorator(func):
     return wrapper
 
 
-# krb5_error_code krb5_cc_close(krb5_context context, krb5_ccache cache)
-krb5_cc_close = _shlib.krb5_cc_close
-krb5_cc_close.restype = ktypes.krb5_error_code
-krb5_cc_close.argtypes = [
-    ktypes.krb5_context,
-    ktypes.krb5_ccache,
-]
-cc_close = error_decorator(krb5_cc_close)
-
-# krb5_error_code krb5_cc_initialize(krb5_context context, krb5_ccache cache,
-#     krb5_principal principal)
-krb5_cc_initialize = _shlib.krb5_cc_initialize
-krb5_cc_initialize.restype = ktypes.krb5_error_code
-krb5_cc_initialize.argtypes = [
-    ktypes.krb5_context,
-    ktypes.krb5_ccache,
-    ktypes.krb5_principal,
-]
-cc_initialize = error_decorator(krb5_cc_initialize)
-
-# krb5_error_code krb5_cc_resolve(krb5_context context, const char * name,
-#     krb5_ccache * cache)
-krb5_cc_resolve = _shlib.krb5_cc_resolve
-krb5_cc_resolve.restype = ktypes.krb5_error_code
-krb5_cc_resolve.argtypes = [
-    ktypes.krb5_context,
-    ctypes.c_char_p,
-    ctypes.POINTER(ktypes.krb5_ccache),
-]
-cc_resolve = error_decorator(krb5_cc_resolve)
-
-# krb5_error_code krb5_cc_store_cred(krb5_context context, krb5_ccache cache,
-#     krb5_creds * creds)
-krb5_cc_store_cred = _shlib.krb5_cc_store_cred
-krb5_cc_store_cred.restype = ktypes.krb5_error_code
-krb5_cc_store_cred.argtypes = [
-    ktypes.krb5_context,
-    ktypes.krb5_ccache,
-    ctypes.POINTER(ktypes.krb5_creds),
-]
-cc_store_cred = error_decorator(krb5_cc_store_cred)
-
-
 # void krb5_free_context(krb5_context context)
 krb5_free_context = _shlib.krb5_free_context
 krb5_free_context.restype = None
@@ -114,16 +71,6 @@ krb5_free_context.argtypes = [
     ktypes.krb5_context,
 ]
 free_context = error_decorator(krb5_free_context)
-
-# void krb5_free_cred_contents(krb5_context context, krb5_creds * val)
-krb5_free_cred_contents = _shlib.krb5_free_cred_contents
-krb5_free_cred_contents.restype = None
-krb5_free_cred_contents.argtypes = [
-    ktypes.krb5_context,
-    ctypes.POINTER(ktypes.krb5_creds),
-]
-free_cred_contents = error_decorator(krb5_free_cred_contents)
-
 
 # void krb5_free_error_message(krb5_context ctx, const char * msg)
 krb5_free_error_message = _shlib.krb5_free_error_message
@@ -161,72 +108,6 @@ krb5_get_error_message.argtypes = [
 ]
 get_error_message = error_decorator(krb5_get_error_message)
 
-# krb5_error_code krb5_get_init_creds_keytab(krb5_context context,
-#     krb5_creds * creds, krb5_principal client, krb5_keytab arg_keytab,
-#     krb5_deltat start_time, const char * in_tkt_service,
-#     krb5_get_init_creds_opt * k5_gic_options)
-krb5_get_init_creds_keytab = _shlib.krb5_get_init_creds_keytab
-krb5_get_init_creds_keytab.restype = ktypes.krb5_error_code
-krb5_get_init_creds_keytab.argtypes = [
-    ktypes.krb5_context,
-    ctypes.POINTER(ktypes.krb5_creds),
-    ktypes.krb5_principal,
-    ktypes.krb5_keytab,
-    ktypes.krb5_deltat,
-    ctypes.c_char_p,
-    ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
-]
-get_init_creds_keytab = error_decorator(krb5_get_init_creds_keytab)
-
-# krb5_error_code krb5_get_init_creds_opt_alloc(krb5_context context,
-#     krb5_get_init_creds_opt ** opt)
-krb5_get_init_creds_opt_alloc = _shlib.krb5_get_init_creds_opt_alloc
-krb5_get_init_creds_opt_alloc.restype = ktypes.krb5_error_code
-krb5_get_init_creds_opt_alloc.argtypes = [
-    ktypes.krb5_context,
-    ctypes.POINTER(ctypes.POINTER(ktypes.krb5_get_init_creds_opt)),
-]
-get_init_creds_opt_alloc = error_decorator(krb5_get_init_creds_opt_alloc)
-
-# void krb5_get_init_creds_opt_free(krb5_context context,
-#     krb5_get_init_creds_opt * opt)
-krb5_get_init_creds_opt_free = _shlib.krb5_get_init_creds_opt_free
-krb5_get_init_creds_opt_free.restype = None
-krb5_get_init_creds_opt_free.argtypes = [
-    ktypes.krb5_context,
-    ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
-]
-get_init_creds_opt_free = error_decorator(krb5_get_init_creds_opt_free)
-
-# void krb5_get_init_creds_opt_set_etype_list(krb5_get_init_creds_opt * opt,
-#     krb5_enctype * etype_list, int etype_list_length)
-krb5_get_init_creds_opt_set_etype_list = (
-    _shlib.krb5_get_init_creds_opt_set_etype_list
-)
-krb5_get_init_creds_opt_set_etype_list.restype = None
-krb5_get_init_creds_opt_set_etype_list.argtypes = [
-    ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
-    ctypes.POINTER(ktypes.krb5_enctype),
-    ctypes.c_int,
-]
-get_init_creds_opt_set_etype_list = error_decorator(
-    krb5_get_init_creds_opt_set_etype_list
-)
-
-# void krb5_get_init_creds_opt_set_forwardable(krb5_get_init_creds_opt * opt,
-#     int forwardable)
-krb5_get_init_creds_opt_set_forwardable = (
-    _shlib.krb5_get_init_creds_opt_set_forwardable
-)
-krb5_get_init_creds_opt_set_forwardable.restype = None
-krb5_get_init_creds_opt_set_forwardable.argtypes = [
-    ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
-    ctypes.c_int,
-]
-get_init_creds_opt_set_forwardable = error_decorator(
-    krb5_get_init_creds_opt_set_forwardable
-)
-
 # krb5_error_code krb5_init_context(krb5_context * context)
 krb5_init_context = _shlib.krb5_init_context
 krb5_init_context.restype = ktypes.krb5_error_code
@@ -234,67 +115,6 @@ krb5_init_context.argtypes = [
     ctypes.POINTER(ktypes.krb5_context),
 ]
 init_context = error_decorator(krb5_init_context)
-
-# krb5_error_code krb5_kt_close(krb5_context context, krb5_keytab keytab)
-krb5_kt_close = _shlib.krb5_kt_close
-krb5_kt_close.restype = ktypes.krb5_error_code
-krb5_kt_close.argtypes = [
-    ktypes.krb5_context,
-    ktypes.krb5_keytab,
-]
-kt_close = error_decorator(krb5_kt_close)
-
-# krb5_error_code krb5_kt_default(krb5_context context, krb5_keytab * id)
-krb5_kt_default = _shlib.krb5_kt_default
-krb5_kt_default.restype = ktypes.krb5_error_code
-krb5_kt_default.argtypes = [
-    ktypes.krb5_context,
-    ctypes.POINTER(ktypes.krb5_keytab),
-]
-kt_default = error_decorator(krb5_kt_default)
-
-# krb5_error_code krb5_kt_default_name(krb5_context context, char * name,
-#     int name_size)
-krb5_kt_default_name = _shlib.krb5_kt_default_name
-krb5_kt_default_name.restype = ktypes.krb5_error_code
-krb5_kt_default_name.argtypes = [
-    ktypes.krb5_context,
-    ctypes.POINTER(ctypes.c_char),
-    ctypes.c_uint,
-]
-kt_default_name = error_decorator(krb5_kt_default_name)
-
-# krb5_error_code krb5_kt_get_name(krb5_context context, krb5_keytab keytab,
-#     char * name, unsigned int namelen)
-krb5_kt_get_name = _shlib.krb5_kt_get_name
-krb5_kt_get_name.restype = ktypes.krb5_error_code
-krb5_kt_get_name.argtypes = [
-    ktypes.krb5_context,
-    ktypes.krb5_keytab,
-    ctypes.POINTER(ctypes.c_char),
-    ctypes.c_uint,
-]
-kt_get_name = error_decorator(krb5_kt_get_name)
-
-# const char * krb5_kt_get_type(krb5_context context, krb5_keytab keytab)
-krb5_kt_get_type = _shlib.krb5_kt_get_type
-krb5_kt_get_type.restype = ctypes.c_char_p
-krb5_kt_get_type.argtypes = [
-    ktypes.krb5_context,
-    ktypes.krb5_keytab,
-]
-kt_get_type = error_decorator(krb5_kt_get_type)
-
-# krb5_error_code krb5_kt_resolve(krb5_context context, const char * name,
-#     krb5_keytab * ktid)
-krb5_kt_resolve = _shlib.krb5_kt_resolve
-krb5_kt_resolve.restype = ktypes.krb5_error_code
-krb5_kt_resolve.argtypes = [
-    ktypes.krb5_context,
-    ctypes.c_char_p,
-    ctypes.POINTER(ktypes.krb5_keytab),
-]
-kt_resolve = error_decorator(krb5_kt_resolve)
 
 # krb5_error_code krb5_kt_default(krb5_context context, krb5_keytab * id)
 krb5_parse_name = _shlib.krb5_parse_name
