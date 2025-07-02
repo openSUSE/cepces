@@ -39,6 +39,7 @@ readme = "README.rst"
 "libexec/certmonger" = ["bin/cepces-submit"]
 
 [tool.black]
+line-length = 80
 target-version = ['py39']
 
 [tool.ruff.per-file-ignores]

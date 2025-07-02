@@ -56,7 +56,13 @@ class Configuration(Base):
     }
 
     def __init__(
-        self, endpoint, endpoint_type, cas, auth, poll_interval, openssl_seclevel
+        self,
+        endpoint,
+        endpoint_type,
+        cas,
+        auth,
+        poll_interval,
+        openssl_seclevel,
     ):
         super().__init__()
 
@@ -98,7 +104,9 @@ class Configuration(Base):
         return self._openssl_seclevel
 
     @classmethod
-    def load(cls, files=None, dirs=None, global_overrides=None, krb5_overrides=None):
+    def load(
+        cls, files=None, dirs=None, global_overrides=None, krb5_overrides=None
+    ):
         """Load configuration files and directories and instantiate a new
         Configuration."""
         name = "{}.{}".format(
@@ -166,7 +174,13 @@ class Configuration(Base):
         section = parser["global"]
 
         # Ensure certain required variables are present.
-        for var in ["endpoint", "auth", "type", "poll_interval", "openssl_seclevel"]:
+        for var in [
+            "endpoint",
+            "auth",
+            "type",
+            "poll_interval",
+            "openssl_seclevel",
+        ]:
             if var not in section:
                 raise RuntimeError(
                     'Missing "{}/{}" variable in configuration.'.format(

@@ -32,7 +32,8 @@ class TestToClarkNotation(unittest.TestCase):
         namespace = "TestNameSpace"
 
         self.assertEqual(
-            util.to_clark(name, namespace), "{{{1:s}}}{0:s}".format(name, namespace)
+            util.to_clark(name, namespace),
+            "{{{1:s}}}{0:s}".format(name, namespace),
         )
 
     def testNamespace(self):
