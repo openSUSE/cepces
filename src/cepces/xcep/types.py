@@ -35,12 +35,18 @@ class Client(XMLNode):
     and preferences."""
 
     last_update = XMLValue(
-        "lastUpdate", converter=DateTimeConverter, namespace=NS_CEP, nillable=True
+        "lastUpdate",
+        converter=DateTimeConverter,
+        namespace=NS_CEP,
+        nillable=True,
     )
 
     # This should probably use a LanguageConverter for proper validation.
     preferred_language = XMLValue(
-        "preferredLanguage", converter=StringConverter, namespace=NS_CEP, nillable=True
+        "preferredLanguage",
+        converter=StringConverter,
+        namespace=NS_CEP,
+        nillable=True,
     )
 
     @staticmethod
@@ -158,7 +164,10 @@ class CertificateAuthorityURI(XMLNode):
     #
     # <xs:element name="priority" type="xs:unsignedInt" nillable="true" />
     priority = XMLValue(
-        "priority", converter=UnsignedIntegerConverter, namespace=NS_CEP, nillable=True
+        "priority",
+        converter=UnsignedIntegerConverter,
+        namespace=NS_CEP,
+        nillable=True,
     )
 
     # The <renewalOnly> element is an xs:boolean value that identifies whether
@@ -167,7 +176,10 @@ class CertificateAuthorityURI(XMLNode):
     # the CAURI object only accepts renewal requests. If the value is false,
     # other request types are supported.
     renewal_only = XMLValue(
-        "renewalOnly", converter=BooleanConverter, namespace=NS_CEP, nillable=True
+        "renewalOnly",
+        converter=BooleanConverter,
+        namespace=NS_CEP,
+        nillable=True,
     )
 
     @staticmethod
@@ -218,7 +230,9 @@ class CertificateAuthority(XMLNode):
     # scope of a GetPoliciesResponse message.
     #
     # <xs:element name="cAReferenceID" type="xs:int" />
-    id = XMLValue("cAReferenceID", converter=SignedIntegerConverter, namespace=NS_CEP)
+    id = XMLValue(
+        "cAReferenceID", converter=SignedIntegerConverter, namespace=NS_CEP
+    )
 
     @staticmethod
     def create():
@@ -234,7 +248,9 @@ class Attributes(XMLNode):
     #
     # <xs:element ref="xcep:commonName" />
     # <xs:element name="commonName" type="xs:string" />
-    common_name = XMLValue("commonName", converter=StringConverter, namespace=NS_CEP)
+    common_name = XMLValue(
+        "commonName", converter=StringConverter, namespace=NS_CEP
+    )
 
     @staticmethod
     def create():
@@ -289,7 +305,10 @@ class Response(XMLNode):
     #
     # <xs:element name="policyFriendlyName" type="xs:string" nillable="true" />
     name = XMLValue(
-        "policyFriendlyName", converter=StringConverter, namespace=NS_CEP, nillable=True
+        "policyFriendlyName",
+        converter=StringConverter,
+        namespace=NS_CEP,
+        nillable=True,
     )
 
     # An integer representing the number of hours that the server recommends
@@ -351,7 +370,9 @@ class GetPoliciesResponse(XMLNode):
     # policies.
     #
     # <xs:element name="response" nillable="true" type="xcep:Response" />
-    response = XMLElement("response", binder=Response, namespace=NS_CEP, nillable=True)
+    response = XMLElement(
+        "response", binder=Response, namespace=NS_CEP, nillable=True
+    )
 
     # The <xcep:cAs> element is an instance of a CACollection object as defined
     # in section 3.1.4.1.3.3 that contains the issuers for the certificate

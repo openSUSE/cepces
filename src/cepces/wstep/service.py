@@ -27,7 +27,9 @@ from cepces.wstep import QUERY_REQUEST_TYPE, NS_ENROLLMENT
 from cepces.wstep.types import SecurityTokenRequest
 from cepces.wstep.types import SecurityTokenResponseCollection
 
-ACTION = "http://schemas.microsoft.com/windows/pki/2009/01/enrollment/" "RST/wstep"
+ACTION = (
+    "http://schemas.microsoft.com/windows/pki/2009/01/enrollment/" "RST/wstep"
+)
 
 
 class Service(SOAPService):

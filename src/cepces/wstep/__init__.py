@@ -34,9 +34,12 @@ TOKEN_TYPE = (
 )
 ISSUE_REQUEST_TYPE = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue"
 QUERY_REQUEST_TYPE = (
-    "http://schemas.microsoft.com/windows/pki/2009/01/" "enrollment/QueryTokenStatus"
+    "http://schemas.microsoft.com/windows/pki/2009/01/"
+    "enrollment/QueryTokenStatus"
 )
-VALUE_TYPE = "http://schemas.microsoft.com/windows/pki/2009/01/" "enrollment#PKCS10"
+VALUE_TYPE = (
+    "http://schemas.microsoft.com/windows/pki/2009/01/" "enrollment#PKCS10"
+)
 ENCODING_TYPE = (
     "http://docs.oasis-open.org/wss/2004/01/"
     "oasis-200401-wss-wssecurity-secext-1.0.xsd#base64binary"

@@ -35,14 +35,18 @@ class SecurityTokenRequest(XMLNode):
         "TokenType", converter=StringConverter, namespace=NS_WST, required=False
     )
 
-    request_type = XMLValue("RequestType", converter=StringConverter, namespace=NS_WST)
+    request_type = XMLValue(
+        "RequestType", converter=StringConverter, namespace=NS_WST
+    )
 
     request_id = XMLValue(
         "RequestID", converter=UnsignedIntegerConverter, namespace=NS_ENROLLMENT
     )
 
     token = XMLValue(
-        "BinarySecurityToken", converter=StringConverter, namespace=NS_WST_SECEXT
+        "BinarySecurityToken",
+        converter=StringConverter,
+        namespace=NS_WST_SECEXT,
     )
 
     @staticmethod
@@ -92,7 +96,9 @@ class RequestedToken(XMLNode):
     """Requested Token"""
 
     text = XMLValue(
-        "BinarySecurityToken", converter=CertificateConverter, namespace=NS_WST_SECEXT
+        "BinarySecurityToken",
+        converter=CertificateConverter,
+        namespace=NS_WST_SECEXT,
     )
 
     token_reference = XMLElement(
@@ -120,7 +126,9 @@ class SecurityTokenResponse(XMLNode):
     )
 
     token = XMLValue(
-        "BinarySecurityToken", converter=StringConverter, namespace=NS_WST_SECEXT
+        "BinarySecurityToken",
+        converter=StringConverter,
+        namespace=NS_WST_SECEXT,
     )
 
     requested_token = XMLElement(
