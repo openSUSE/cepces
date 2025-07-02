@@ -181,7 +181,9 @@ class XMLElement(XMLDescriptor):
         """Returns the element index of this descriptor for a given class."""
         if not isinstance(type(instance), ListingMeta):
             raise TypeError(
-                "Expected type ListingMeta, got {0:s}".format(str(type(instance)))
+                "Expected type ListingMeta, got {0:s}".format(
+                    str(type(instance))
+                )
             )
 
         # Get the index of the descriptor.
@@ -370,9 +372,15 @@ class XMLElementList(XMLElement):
 class XMLValue(XMLElement):
     """XML Value"""
 
-    def __init__(self, name, converter, namespace=None, required=True, nillable=False):
+    def __init__(
+        self, name, converter, namespace=None, required=True, nillable=False
+    ):
         super().__init__(
-            name, binder=None, namespace=namespace, required=required, nillable=nillable
+            name,
+            binder=None,
+            namespace=namespace,
+            required=required,
+            nillable=nillable,
         )
 
         self._converter = converter
