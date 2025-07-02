@@ -95,8 +95,12 @@ class Fault(XMLNode):
 class UsernameToken(XMLNode):
     """WSSE UsernameToken."""
 
-    username = XMLValue("Username", converter=StringConverter, namespace=NS_WSSE)
-    password = XMLValue("Password", converter=StringConverter, namespace=NS_WSSE)
+    username = XMLValue(
+        "Username", converter=StringConverter, namespace=NS_WSSE
+    )
+    password = XMLValue(
+        "Password", converter=StringConverter, namespace=NS_WSSE
+    )
     nonce = XMLValue("Nonce", converter=StringConverter, namespace=NS_WSSE)
     created = XMLValue("Created", converter=DateTimeConverter, namespace=NS_WSU)
 
@@ -126,7 +130,9 @@ class UsernameToken(XMLNode):
 class Security(XMLNode):
     """WSSE Security."""
 
-    usernametoken = XMLElement("UsernameToken", binder=UsernameToken, namespace=NS_WSSE)
+    usernametoken = XMLElement(
+        "UsernameToken", binder=UsernameToken, namespace=NS_WSSE
+    )
 
     @staticmethod
     def create():
@@ -140,11 +146,17 @@ class Header(XMLNode):
     """SOAP Header."""
 
     action = XMLValue(
-        "Action", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+        "Action",
+        converter=StringConverter,
+        namespace=NS_ADDRESSING,
+        nillable=True,
     )
 
     message_id = XMLValue(
-        "MessageID", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+        "MessageID",
+        converter=StringConverter,
+        namespace=NS_ADDRESSING,
+        nillable=True,
     )
 
     to = XMLValue(
@@ -152,7 +164,10 @@ class Header(XMLNode):
     )
 
     relates_to = XMLValue(
-        "RelatesTo", converter=StringConverter, namespace=NS_ADDRESSING, nillable=True
+        "RelatesTo",
+        converter=StringConverter,
+        namespace=NS_ADDRESSING,
+        nillable=True,
     )
 
     security = XMLElement("Security", binder=Security, namespace=NS_WSSE)

@@ -326,7 +326,9 @@ class CredentialOptions(Base):
 
     @forwardable.setter
     def forwardable(self, value):
-        kfuncs.get_init_creds_opt_set_forwardable(self.handle, int(value is True))
+        kfuncs.get_init_creds_opt_set_forwardable(
+            self.handle, int(value is True)
+        )
 
         self._forwardable = value
 
@@ -354,7 +356,9 @@ class CredentialOptions(Base):
 class Credentials(Base):
     """Representation of a set of Kerberos Credentials."""
 
-    def __init__(self, context, client, keytab, start_time, tkt_service, options):
+    def __init__(
+        self, context, client, keytab, start_time, tkt_service, options
+    ):
         super().__init__(ktypes.krb5_creds())
 
         self._context = context

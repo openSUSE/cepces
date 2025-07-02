@@ -200,7 +200,9 @@ get_init_creds_opt_free = error_decorator(krb5_get_init_creds_opt_free)
 
 # void krb5_get_init_creds_opt_set_etype_list(krb5_get_init_creds_opt * opt,
 #     krb5_enctype * etype_list, int etype_list_length)
-krb5_get_init_creds_opt_set_etype_list = _shlib.krb5_get_init_creds_opt_set_etype_list
+krb5_get_init_creds_opt_set_etype_list = (
+    _shlib.krb5_get_init_creds_opt_set_etype_list
+)
 krb5_get_init_creds_opt_set_etype_list.restype = None
 krb5_get_init_creds_opt_set_etype_list.argtypes = [
     ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
@@ -213,7 +215,9 @@ get_init_creds_opt_set_etype_list = error_decorator(
 
 # void krb5_get_init_creds_opt_set_forwardable(krb5_get_init_creds_opt * opt,
 #     int forwardable)
-krb5_get_init_creds_opt_set_forwardable = _shlib.krb5_get_init_creds_opt_set_forwardable
+krb5_get_init_creds_opt_set_forwardable = (
+    _shlib.krb5_get_init_creds_opt_set_forwardable
+)
 krb5_get_init_creds_opt_set_forwardable.restype = None
 krb5_get_init_creds_opt_set_forwardable.argtypes = [
     ctypes.POINTER(ktypes.krb5_get_init_creds_opt),
