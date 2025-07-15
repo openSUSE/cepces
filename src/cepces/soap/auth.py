@@ -135,6 +135,7 @@ class TransportKerberosAuthentication(Authentication):
             creds=creds,
             delegate=self._config["delegate"],
             mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"),
+            channel_bindings="tls-server-end-point",
         )
 
     @property
