@@ -132,7 +132,9 @@ class TransportKerberosAuthentication(Authentication):
         os.environ["KRB5CCNAME"] = ccache_name
 
     def _init_transport(self):
-        name = gssapi.Name(self._config["name"], gssapi.NameType.user)
+        name = None
+        if self._config["name"].strip() != "":
+            name = gssapi.Name(self._config["name"], gssapi.NameType.user)
         creds = gssapi.Credentials(name=name, usage="initiate")
         self._transport = HTTPSPNEGOAuth(
             creds=creds,
