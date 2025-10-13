@@ -66,7 +66,7 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
 
         keytab = section.get("keytab", None)
         realm = section.get("realm", None)
-        ccache = section.get("ccache", True)
+        ccache = strtobool(section.get("ccache", True))
         principals = section.get("principals", "")
         enctypes = section.get("enctypes", "")
         delegate = strtobool(section.get("delegate", True))
