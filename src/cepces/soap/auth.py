@@ -93,15 +93,17 @@ class TransportGSSAPIAuthentication(Authentication):
         context = Context()
 
         # Create a valid principal using default realm if none is specified
-        principal = Principal(
-            context,
-            name=self._config["name"],
-            service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
-        )
-        self._config["principal"] = "%s@%s" % (
-            principal.primary,
-            principal.realm,
-        )
+        self._config["principal"] = None
+        if self._config["name"] != None and self._config["name"].strip() != "":
+            principal = Principal(
+                context,
+                name=self._config["name"],
+                service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
+            )
+            self._config["principal"] = "%s@%s" % (
+                principal.primary,
+                principal.realm,
+            )
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
@@ -140,13 +142,15 @@ class TransportGSSAPIAuthentication(Authentication):
 
     def _init_transport(self, gssapi_cred=None):
         gss_name = None
-        if self._config["principal"].strip() != "":
+        if self._config["principal"] != None and self._config["principal"].strip() != "":
             gss_name = gssapi.Name(
                 self._config["principal"], gssapi.NameType.user
             )
 
         creds = gssapi.Credentials(
-            base=gssapi_cred.creds, name=gss_name, usage="initiate"
+            base=gssapi_cred.creds if gssapi_cred != None else None,
+            name=gss_name,
+            usage="initiate"
         )
 
         self._transport = HTTPSPNEGOAuth(
