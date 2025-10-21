@@ -92,9 +92,12 @@ class TransportGSSAPIAuthentication(Authentication):
 
         context = Context()
 
-        # Create a valid principal using default realm if none is specified
+        # If no "name" was specified, krb5 will use the default principal
+        # of the given credential cache (KRB5CCNAME).
+        # This is important for usage with init_ccache=False.
         self._config["principal"] = None
         if self._config["name"] != None and self._config["name"].strip() != "":
+            # Create a valid principal using default realm if none is specified
             principal = Principal(
                 context,
                 name=self._config["name"],
@@ -141,6 +144,9 @@ class TransportGSSAPIAuthentication(Authentication):
         return gssapi_cred
 
     def _init_transport(self, gssapi_cred=None):
+        # If no "principal" was specified, krb5 will use the default principal
+        # of the given credential cache (KRB5CCNAME).
+        # This is important for usage with init_ccache=False.
         gss_name = None
         if self._config["principal"] != None and self._config["principal"].strip() != "":
             gss_name = gssapi.Name(

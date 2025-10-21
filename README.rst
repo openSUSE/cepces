@@ -99,6 +99,9 @@ containing all CA certificates in the chain.
 Usage
 =====
 
+Requesting a Machine Certificate
+--------------------------------
+
 `certmonger`_ should have a CA already configured after the packages were
 installed:
 
@@ -119,3 +122,38 @@ all supported operations and usage examples, see `doc/CERTMONGER.md`_.
 
 .. _certmonger: https://pagure.io/certmonger
 .. _doc/CERTMONGER.md: doc/CERTMONGER.md
+
+
+Requesting a User Certificate
+-----------------------------
+
+First, make sure that you have a valid kerberos ticket for the user for who
+you want to request a certificate by executing `klist`.
+
+You normally get a kerberos ticket automatically when logging in with a
+domain account using `SSSD`_, stored in `/tmp/krb5cc_<UID>`.
+
+You can get a kerberos ticket manually by executing `kinit userename@DOMAIN.TLD`.
+
+
+.. code-block:: bash
+
+    $ bin/cepces-user list-templates
+    User
+    User with Approval
+    .....
+
+    $ bin/cepces-user request -k key.pem -f cert.pem --profile "User"
+    Certificate written to: cert.pem
+
+    $ bin/cepces-user request -k key.pem -f cert.pem --profile "User with Approval"
+    Certificate approval pending. Poll later with the following info.
+    Request ID: 111
+    Reference: https://SERVERNAME/DOMAIN-DC-CA_CES_Kerberos/service.svc/CES
+
+    ... later that day ...
+    $ bin/cepces-user poll -f cert.pem -i 111 -r https://SERVERNAME/DOMAIN-DC-CA_CES_Kerberos/service.svc/CES
+    Certificate written to: cert.pem
+
+
+.. _SSSD: https://github.com/SSSD/sssd
