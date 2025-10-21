@@ -141,7 +141,9 @@ class TransportGSSAPIAuthentication(Authentication):
     def _init_transport(self, gssapi_cred=None):
         gss_name = None
         if self._config["principal"].strip() != "":
-            gss_name = gssapi.Name(self._config["principal"], gssapi.NameType.user)
+            gss_name = gssapi.Name(
+                self._config["principal"], gssapi.NameType.user
+            )
 
         creds = gssapi.Credentials(
             base=gssapi_cred.creds, name=gss_name, usage="initiate"
