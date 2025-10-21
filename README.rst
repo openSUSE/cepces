@@ -128,12 +128,12 @@ Requesting a User Certificate
 -----------------------------
 
 First, make sure that you have a valid kerberos ticket for the user for who
-you want to request a certificate by executing `klist`.
+you want to request a certificate by executing :code:`klist`.
 
 You normally get a kerberos ticket automatically when logging in with a
-domain account using `SSSD`_, stored in `/tmp/krb5cc_<UID>`.
+domain account using `SSSD`_, stored in :code:`/tmp/krb5cc_<UID>`.
 
-You can get a kerberos ticket manually by executing `kinit userename@DOMAIN.TLD`.
+You can get a kerberos ticket manually by executing :code:`kinit userename@DOMAIN.TLD`.
 
 
 .. code-block:: bash
