@@ -151,17 +151,26 @@ if __name__ == '__main__':
         choices=['Anonymous', 'Kerberos',
                  'UsernamePassword', 'Certificate'],
         default='Kerberos')
-    parser.add_argument('--keytab', help='Use the specified keytab')
+    parser.add_argument('--keytab',
+        help='Use the specified keytab')
     parser.add_argument('--principals',
         help='A list of principals to try when requesting a ticket')
-    parser.add_argument('--openssl-seclevel', help='The openssl security level')
-    parser.add_argument('--profile', '-T', help='The template name for the request')
-    parser.add_argument('--keyfile', '-k', help='The private key file for the signing request, will be generated/created if does not exist')
-    parser.add_argument('--certfile', '-f', help='The certificate file to write on successful request')
-    parser.add_argument('--keysize', '-s', help='The key size of the key to generate', default='4096')
-    parser.add_argument('--passphrase', '-p', help='The passphrase to decrypt the existing key file or to encrypt the generated key')
-    parser.add_argument('--request-id', '-i', help='The request ID to poll for')
-    parser.add_argument('--reference', '-r', help='The request refrence to poll for')
+    parser.add_argument('--openssl-seclevel',
+        help='The openssl security level')
+    parser.add_argument('--profile', '-T',
+        help='The template name for the request')
+    parser.add_argument('--keyfile', '-k',
+        help='The private key file for the signing request, will be generated/created if does not exist')
+    parser.add_argument('--certfile', '-f',
+        help='The certificate file to write on successful request')
+    parser.add_argument('--keysize', '-s',
+        help='The key size of the key to generate', default='4096')
+    parser.add_argument('--passphrase', '-p',
+        help='The passphrase to decrypt the existing key file or to encrypt the generated key')
+    parser.add_argument('--request-id', '-i',
+        help='The request ID to poll for')
+    parser.add_argument('--reference', '-r',
+        help='The request refrence to poll for')
     args = parser.parse_args()
 
     g_overrides = {}
