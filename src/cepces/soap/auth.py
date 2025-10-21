@@ -96,7 +96,7 @@ class TransportGSSAPIAuthentication(Authentication):
         # of the given credential cache (KRB5CCNAME).
         # This is important for usage with init_ccache=False.
         self._config["principal"] = None
-        if self._config["name"] != None and self._config["name"].strip() != "":
+        if self._config["name"] is not None and self._config["name"].strip() != "":
             # Create a valid principal using default realm if none is specified
             principal = Principal(
                 context,
@@ -148,13 +148,13 @@ class TransportGSSAPIAuthentication(Authentication):
         # of the given credential cache (KRB5CCNAME).
         # This is important for usage with init_ccache=False.
         gss_name = None
-        if self._config["principal"] != None and self._config["principal"].strip() != "":
+        if self._config["principal"] is not None and self._config["principal"].strip() != "":
             gss_name = gssapi.Name(
                 self._config["principal"], gssapi.NameType.user
             )
 
         creds = gssapi.Credentials(
-            base=gssapi_cred.creds if gssapi_cred != None else None,
+            base=gssapi_cred.creds if gssapi_cred is not None else None,
             name=gss_name,
             usage="initiate"
         )
