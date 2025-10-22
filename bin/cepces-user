@@ -21,10 +21,9 @@
 """
 This is a submission helper for user certificates.
 
-It requires that you have a valid kerberos ticket in your credential cache (/tmp/krb5cc_<UID>).
+It requires that you have a valid kerberos ticket in your credential cache (check with `klist`).
 This is normally automatically created during login with a domain account by SSSD.
 You can manually aquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
-Check your ticket with `klist`.
 """
 
 import os
