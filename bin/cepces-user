@@ -39,8 +39,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cepces.certmonger.core import Result
-from cepces.certmonger.operation import Operation
 from cepces.config import Configuration
 from cepces.core import Service
 
