@@ -134,8 +134,8 @@ Then, make sure that you have a valid kerberos ticket for the user for who
 you want to request a certificate by executing :code:`klist`.
 
 You normally get a kerberos ticket automatically when logging in with a
-domain account using `SSSD`_, stored in :code:`/tmp/krb5cc_<UID>`. You
-can get a kerberos ticket manually by executing :code:`kinit userename@DOMAIN.TLD`.
+domain account using `SSSD`_. You can get a kerberos ticket manually
+by executing :code:`kinit userename@DOMAIN.TLD`.
 
 Now, you can use the :code:`cepces-user` script as shown in the following examples.
 
