@@ -115,7 +115,7 @@ def request(service, key_file, cert_file, profile, keysize, passphrase):
     print('Certificate approval pending. Poll later with the following info.')
     print('Request ID:', result.request_id)
     print('Reference:', result.reference)
-    sys.exit(0)
+    sys.exit(2)
 
 def poll(service, cert_file, request_id, reference):
     result = service.poll(int(request_id), reference)
@@ -133,7 +133,7 @@ def poll(service, cert_file, request_id, reference):
     print('Certificate approval still pending. Poll later with the following info.')
     print('Request ID:', result.request_id)
     print('Reference:', result.reference)
-    sys.exit(0)
+    sys.exit(2)
 
 
 if __name__ == '__main__':
