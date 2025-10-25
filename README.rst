@@ -2,8 +2,9 @@
 CEP/CES Certificate Enrollment
 ==============================
 
-``cepces`` is an application for enrolling certificates through CEP and CES. It
-requires `certmonger`_ to operate.
+``cepces`` is an application for enrolling certificates through CEP and CES.
+For machine certificates, it requires `certmonger`_ to operate. For user
+certifcates, it can operate standalone.
 
 Only simple deployments using Microsoft Active Directory Certificate Services
 have been tested.
@@ -15,8 +16,10 @@ Requirements
 ============
 
 This application uses two SOAP endpoints over HTTPS provided by Microsoft
-Active Directory Certificate Services. The following authentication methods are
-supported:
+Active Directory Certificate Services. Your server needs to have the CEP/CES
+SOAP API installed and configured.
+
+The following authentication methods are supported:
 
 * **Kerberos (GSSAPI)** - Requires the client to be a Windows Domain Member with
   a valid Kerberos keytab
@@ -52,8 +55,11 @@ them, credential storage and interactive password prompting will not be availabl
 Installation
 ============
 
-``cepces`` is currently supported on any system running `certmonger`_. It
-requires Python 3.10 or later.
+``cepces`` is currently supported on any system with:
+
+* Python 3.10 or later
+* Python dependencies specified in ``pyproject.toml``
+* `certmonger`_ (only for machine certifcates)
 
 If available, it is recommended to use a repository for installing the
 application and all dependencies. Please consult the project's wiki for more
@@ -161,8 +167,8 @@ Now, you can use the :code:`cepces-user` script as shown in the following exampl
 
 .. _SSSD: https://github.com/SSSD/sssd
 
-Example: User Certificate Auto Enrollment
------------------------------------------
+User Certificate Auto Enrollment
+--------------------------------
 
 As known from Windows, with this script, you can automatically enroll and renew
 user certifcates. The prerequisites are the same as mentioned in the above example.
