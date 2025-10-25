@@ -17,6 +17,7 @@
 #
 """Module containing user cert enroll logic."""
 import os
+import requests
 from pyasn1.codec.der.encoder import encode
 from pyasn1.type import char
 from cryptography import x509
