@@ -37,58 +37,69 @@ class ApprovalPendingException(Exception):
         self.reference = reference
 
 
-class UserEnrollment():
+class UserEnrollment:
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.service = self._init_service(*args, **kwargs)
 
     def _init_service(self, global_overrides=None, krb5_overrides=None):
         # Load the configuration and instantiate a service.
-        config = Configuration.load(global_overrides=global_overrides,
-                                    krb5_overrides=krb5_overrides)
+        config = Configuration.load(
+            global_overrides=global_overrides, krb5_overrides=krb5_overrides
+        )
         if config.openssl_seclevel and config.openssl_seclevel.isnumeric():
-            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=%s' % config.openssl_seclevel
+            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = (
+                "ALL:@SECLEVEL=%s" % config.openssl_seclevel
+            )
 
         return Service(config)
 
     def request(self, key_file, cert_file, profile, keysize, passphrase):
         if os.path.exists(key_file):
-            with open(key_file, 'rb') as f:
+            with open(key_file, "rb") as f:
                 key = serialization.load_pem_private_key(
                     f.read(),
                     password=passphrase.encode() if passphrase else None,
-                    backend=default_backend()
+                    backend=default_backend(),
                 )
         else:
-            print(str(key_file)+' does not exist, generating a new key...')
+            print(str(key_file) + " does not exist, generating a new key...")
             key = rsa.generate_private_key(
                 public_exponent=65537,
                 key_size=int(keysize),
             )
             enc = serialization.NoEncryption()
-            if(passphrase):
+            if passphrase:
                 enc = serialization.BestAvailableEncryption(passphrase.encode())
-            with open(os.open(key_file, os.O_CREAT | os.O_WRONLY, 0o400), 'wb') as f:
-                f.write(key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.TraditionalOpenSSL,
-                    encryption_algorithm=enc,
-                ))
+            with open(
+                os.open(key_file, os.O_CREAT | os.O_WRONLY, 0o400), "wb"
+            ) as f:
+                f.write(
+                    key.private_bytes(
+                        encoding=serialization.Encoding.PEM,
+                        format=serialization.PrivateFormat.TraditionalOpenSSL,
+                        encryption_algorithm=enc,
+                    )
+                )
 
-        csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
-            x509.NameAttribute(NameOID.COMMON_NAME, profile),
-        ]))
+        csr = x509.CertificateSigningRequestBuilder().subject_name(
+            x509.Name(
+                [
+                    x509.NameAttribute(NameOID.COMMON_NAME, profile),
+                ]
+            )
+        )
         csr = csr.add_extension(
             x509.UnrecognizedExtension(
-                oid=x509.ObjectIdentifier('1.3.6.1.4.1.311.20.2'),
-                value=encode(char.BMPString(profile))
+                oid=x509.ObjectIdentifier("1.3.6.1.4.1.311.20.2"),
+                value=encode(char.BMPString(profile)),
             ),
-            critical=False
+            critical=False,
         )
         csr = csr.sign(key, hashes.SHA256())
 
-        #csr_text = csr.public_bytes(serialization.Encoding.PEM).decode()
-        #print(csr_text)
+        # csr_text = csr.public_bytes(serialization.Encoding.PEM).decode()
+        # print(csr_text)
 
         result = self.service.request(
             csr,
@@ -106,9 +117,9 @@ class UserEnrollment():
         if result.token:
             pem = result.token.public_bytes(serialization.Encoding.PEM)
 
-            with open(cert_file, 'w') as f:
+            with open(cert_file, "w") as f:
                 f.write(pem.decode().strip())
-                print('Certificate written to:', cert_file)
+                print("Certificate written to:", cert_file)
             return
 
         # return a "cookie" that can be used to later poll the status
