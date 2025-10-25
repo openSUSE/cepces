@@ -160,3 +160,22 @@ Now, you can use the :code:`cepces-user` script as shown in the following exampl
 
 
 .. _SSSD: https://github.com/SSSD/sssd
+
+Example: User Certificate Auto Enrollment
+-----------------------------------------
+
+As known from Windows, with this script, you can automatically enroll and renew
+user certifcates. The prerequisites are the same as mentioned in the above example.
+
+To make this magic happen, add the :code:`cepces-user-autoenroll` script
+into the autostart for your users by creating :code:`/etc/xdg/autostart/`:
+
+.. code-block::
+
+    [Desktop Entry]
+    Name=cepces auto enrollment
+    Exec=cepces-user-autoenroll
+    Type=Application
+    Comment=Certificate auto enrollment
+    Categories=Application;Office
+    Terminal=false

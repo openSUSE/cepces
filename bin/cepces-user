@@ -26,115 +26,17 @@ This is normally automatically created during login with a domain account by SSS
 You can manually aquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
 """
 
-import os
 import sys
 import traceback
 import argparse
-import requests
-from pyasn1.codec.der.encoder import encode
-from pyasn1.type import char
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cepces.config import Configuration
-from cepces.core import Service
+from cepces.user import UserEnrollment, ApprovalPendingException
 
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-def init_service(global_overrides, krb5_overrides):
-    # Load the configuration and instantiate a service.
-    config = Configuration.load(global_overrides=global_overrides,
-                                krb5_overrides=krb5_overrides)
-    if config.openssl_seclevel and config.openssl_seclevel.isnumeric():
-        requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=%s' % config.openssl_seclevel
-    service = Service(config)
-    return service
-
-def list_templates(service):
-    print("\n".join(service.templates))
-
-def request(service, key_file, cert_file, profile, keysize, passphrase):
-    if os.path.exists(key_file):
-        with open(key_file, 'rb') as f:
-            key = serialization.load_pem_private_key(
-                f.read(),
-                password=passphrase.encode() if passphrase else None,
-                backend=default_backend()
-            )
-    else:
-        print(str(key_file)+' does not exist, generating a new key...')
-        key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=int(keysize),
-        )
-        enc = serialization.NoEncryption()
-        if(passphrase):
-            enc = serialization.BestAvailableEncryption(passphrase.encode())
-        with open(key_file, 'wb') as f:
-            f.write(key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=enc,
-            ))
-
-    csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, profile),
-    ]))
-    csr = csr.add_extension(
-        x509.UnrecognizedExtension(
-            oid=x509.ObjectIdentifier('1.3.6.1.4.1.311.20.2'),
-            value=encode(char.BMPString(profile))
-        ),
-        critical=False
-    )
-    csr = csr.sign(key, hashes.SHA256())
-
-    #csr_text = csr.public_bytes(serialization.Encoding.PEM).decode()
-    #print(csr_text)
-
-    result = service.request(
-        csr,
-        renew=None,
-    )
-
-    # If we have a certificate, save it
-    if result.token:
-        pem = result.token.public_bytes(serialization.Encoding.PEM)
-
-        with open(cert_file, 'w') as f:
-            f.write(pem.decode().strip())
-            print('Certificate written to:', cert_file)
-        sys.exit(0)
-
-    # Output a "cookie" that can be used to later poll the status.
-    print('Certificate approval pending. Poll later with the following info.')
-    print('Request ID:', result.request_id)
-    print('Reference:', result.reference)
-    sys.exit(2)
-
-def poll(service, cert_file, request_id, reference):
-    result = service.poll(int(request_id), reference)
-
-    # If we have a certificate, save it
-    if result.token:
-        pem = result.token.public_bytes(serialization.Encoding.PEM)
-
-        with open(cert_file, 'w') as f:
-            f.write(pem.decode().strip())
-            print('Certificate written to:', cert_file)
-        sys.exit(0)
-
-    # Output a "cookie" that can be used to later poll the status.
-    print('Certificate approval still pending. Poll later with the following info.')
-    print('Request ID:', result.request_id)
-    print('Reference:', result.reference)
-    sys.exit(2)
-
+def list_templates(templates):
+        print("\n".join(templates))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -194,17 +96,28 @@ if __name__ == '__main__':
         k_overrides['principals'] = args.principals
 
     try:
-        service = init_service(g_overrides, k_overrides)
+        user_enrollment = UserEnrollment(g_overrides, k_overrides)
+
         if args.action == 'list-templates':
-            list_templates(service)
+            list_templates(user_enrollment.service.templates)
+
         elif args.action == 'request':
             if args.keyfile == None or args.certfile == None or args.profile == None:
                 raise Exception('--keyfile, --certfile, --profile is required')
-            request(service, args.keyfile, args.certfile, args.profile, args.keysize, args.passphrase)
+            user_enrollment.request(args.keyfile, args.certfile, args.profile, args.keysize, args.passphrase)
+
         elif args.action == 'poll':
             if args.certfile == None or args.request_id == None or args.reference == None:
                 raise Exception('--certfile, --request-id, --reference is required')
-            poll(service, args.certfile, args.request_id, args.reference)
+            user_enrollment.poll(args.certfile, args.request_id, args.reference)
+
+    except ApprovalPendingException as e:
+        # output the "cookie" that can be used to later poll the status
+        print('Certificate approval pending. Poll later with the following info.')
+        print('Request ID:', e.request_id)
+        print('Reference:', e.reference)
+        sys.exit(2)
+
     except Exception:
         eprint(traceback.format_exc())
         sys.exit(1)
