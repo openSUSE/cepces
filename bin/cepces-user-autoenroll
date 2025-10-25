@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# This file is part of cepces.
+#
+# cepces is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# cepces is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with cepces.  If not, see <http://www.gnu.org/licenses/>.
+#
+# pylint: disable=broad-except,invalid-name
+
+"""
+This is a submission helper for automatic user certificate enrollment.
+
+It requires that you have a valid kerberos ticket in your credential cache (check with `klist`).
+This is normally automatically created during login with a domain account by SSSD.
+You can manually aquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
+"""
+
+import os
+import time
+from cryptography import x509
+from datetime import datetime, timezone
+from cepces.user import UserEnrollment, ApprovalPendingException
+
+
+def load_config(parser):
+    # Ensure there's a user section present.
+    if "user" not in parser:
+        raise RuntimeError('Missing "user" section in configuration.')
+    section = parser["user"]
+
+    key_file = os.path.expanduser(section.get("key_file"))
+    cert_file = os.path.expanduser(section.get("cert_file"))
+    req_file = os.path.expanduser(section.get("req_file"))
+    profile = section.get("profile")
+    renew_days = int(section.get("renew_days"))
+    key_size = section.get("key_size", 4096)
+    if not key_file or not cert_file or not req_file or not profile or not renew_days:
+        raise RuntimeError("One or more required config options are missing (key_file,cert_file,profile,renew_days)")
+
+    return key_file, cert_file, req_file, profile, renew_days, key_size
+
+if __name__ == '__main__':
+    g_overrides = {}
+    k_overrides = {
+        # this script is intended to use as normal user with
+        # existing ccache created during login, e.g. /tmp/krb5cc_1000
+        # so we disable the ccache creation feature and
+        # pass empty principals to use the default one
+        'ccache': 'False',
+        'principals': '',
+    }
+    user_enrollment = UserEnrollment(g_overrides, k_overrides)
+    key_file, cert_file, req_file, profile, renew_days, key_size = load_config(user_enrollment.service._config.parser)
+    poll_interval = 60
+
+    while True:
+        try:
+            if os.path.isfile(req_file):
+                print(f"Found pending request file {req_file}, checking approval...")
+                with open(req_file, "r") as f:
+                    lines = f.readlines()
+                    request_id = lines[0]
+                    reference = lines[1]
+                user_enrollment.poll(cert_file, request_id, reference)
+                os.unlink(req_file)
+
+            elif os.path.isfile(cert_file):
+                print(f"Found cert file {cert_file}, checking expiration...")
+                with open(cert_file, "rb") as f:
+                    cert = x509.load_pem_x509_certificate(f.read())
+                    remaining_days = (cert.not_valid_after_utc - datetime.now(timezone.utc)).days
+                    if renew_days > 0 and remaining_days < renew_days:
+                        print(f"Expires in {remaining_days}d (< {renew_days}d), trying to request a new cert...")
+                        user_enrollment.request(key_file, cert_file, profile, key_size, None)
+                    else:
+                        print(f"Expires in {remaining_days}d (> {renew_days}d), nothing to do.")
+                        time.sleep(poll_interval)
+                        continue
+
+            else:
+                print(f"Cert file {cert_file} not found, try requesting one...")
+                user_enrollment.request(key_file, cert_file, profile, key_size, None)
+
+            time.sleep(poll_interval)
+
+        except ApprovalPendingException as e:
+            # output the "cookie" that can be used to later poll the status
+            print(f"Certificate approval pending, trying to poll in {poll_interval}s.", e.request_id, e.reference)
+            with open(req_file, "w") as f:
+                f.write(str(e.request_id)+"\n"+e.reference)
+            time.sleep(poll_interval)
+
+        except Exception as e:
+            print("Error:", e, f"(trying again in {poll_interval}s)")
+            time.sleep(poll_interval)
