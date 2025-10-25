@@ -38,84 +38,84 @@ def eprint(*args, **kwargs):
 def list_templates(templates):
         print("\n".join(templates))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='cepces submission helper for user certs')
-    parser.add_argument('action',
-        choices=['list-templates', 'request', 'poll'])
-    parser.add_argument('--server',
-        help='Hostname of the issuing certification authority')
-    parser.add_argument('--auth',
-        help='Authentication mechanism used for connecting to the service',
-        choices=['Anonymous', 'Kerberos',
-                 'UsernamePassword', 'Certificate'],
-        default='Kerberos')
-    parser.add_argument('--keytab',
-        help='Use the specified keytab')
-    parser.add_argument('--principals',
-        help='A list of principals to try when requesting a ticket')
-    parser.add_argument('--openssl-seclevel',
-        help='The openssl security level')
-    parser.add_argument('--profile', '-T',
-        help='The template name for the request')
-    parser.add_argument('--keyfile', '-k',
-        help='The private key file for the signing request, will be generated/created if does not exist')
-    parser.add_argument('--certfile', '-f',
-        help='The certificate file to write on successful request')
-    parser.add_argument('--keysize', '-s',
-        help='The key size of the key to generate', default='4096')
-    parser.add_argument('--passphrase', '-p',
-        help='The passphrase to decrypt the existing key file or to encrypt the generated key')
-    parser.add_argument('--request-id', '-i',
-        help='The request ID to poll for')
-    parser.add_argument('--reference', '-r',
-        help='The request refrence to poll for')
+        description="cepces submission helper for user certs")
+    parser.add_argument("action",
+        choices=["list-templates", "request", "poll"])
+    parser.add_argument("--server",
+        help="Hostname of the issuing certification authority")
+    parser.add_argument("--auth",
+        help="Authentication mechanism used for connecting to the service",
+        choices=["Anonymous", "Kerberos",
+                 "UsernamePassword", "Certificate"],
+        default="Kerberos")
+    parser.add_argument("--keytab",
+        help="Use the specified keytab")
+    parser.add_argument("--principals",
+        help="A list of principals to try when requesting a ticket")
+    parser.add_argument("--openssl-seclevel",
+        help="The openssl security level")
+    parser.add_argument("--profile", "-T",
+        help="The template name for the request")
+    parser.add_argument("--keyfile", "-k",
+        help="The private key file for the signing request, will be generated/created if does not exist")
+    parser.add_argument("--certfile", "-f",
+        help="The certificate file to write on successful request")
+    parser.add_argument("--keysize", "-s",
+        help="The key size of the key to generate", default="4096")
+    parser.add_argument("--passphrase", "-p",
+        help="The passphrase to decrypt the existing key file or to encrypt the generated key")
+    parser.add_argument("--request-id", "-i",
+        help="The request ID to poll for")
+    parser.add_argument("--reference", "-r",
+        help="The request refrence to poll for")
     args = parser.parse_args()
 
     g_overrides = {}
     if args.server is not None:
-        g_overrides['server'] = args.server
-        g_overrides['auth'] = args.auth
-        endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % \
+        g_overrides["server"] = args.server
+        g_overrides["auth"] = args.auth
+        endpoint = "https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP" % \
                         (args.server, args.auth)
-        g_overrides['endpoint'] = endpoint
+        g_overrides["endpoint"] = endpoint
     if args.openssl_seclevel is not None:
-        g_overrides['openssl_seclevel'] = args.openssl_seclevel
+        g_overrides["openssl_seclevel"] = args.openssl_seclevel
 
     k_overrides = {
         # this script is intended to use as normal user with
         # existing ccache created during login, e.g. /tmp/krb5cc_1000
         # so we disable the ccache creation feature and
         # pass empty principals to use the default one
-        'ccache': 'False',
-        'principals': '',
+        "ccache": "False",
+        "principals": "",
     }
     if args.keytab is not None:
-        k_overrides['keytab'] = args.keytab
+        k_overrides["keytab"] = args.keytab
     if args.principals is not None:
-        k_overrides['principals'] = args.principals
+        k_overrides["principals"] = args.principals
 
     try:
         user_enrollment = UserEnrollment(g_overrides, k_overrides)
 
-        if args.action == 'list-templates':
+        if args.action == "list-templates":
             list_templates(user_enrollment.service.templates)
 
-        elif args.action == 'request':
+        elif args.action == "request":
             if args.keyfile == None or args.certfile == None or args.profile == None:
-                raise Exception('--keyfile, --certfile, --profile is required')
+                raise Exception("--keyfile, --certfile, --profile is required")
             user_enrollment.request(args.keyfile, args.certfile, args.profile, args.keysize, args.passphrase)
 
-        elif args.action == 'poll':
+        elif args.action == "poll":
             if args.certfile == None or args.request_id == None or args.reference == None:
-                raise Exception('--certfile, --request-id, --reference is required')
+                raise Exception("--certfile, --request-id, --reference is required")
             user_enrollment.poll(args.certfile, args.request_id, args.reference)
 
     except ApprovalPendingException as e:
         # output the "cookie" that can be used to later poll the status
-        print('Certificate approval pending. Poll later with the following info.')
-        print('Request ID:', e.request_id)
-        print('Reference:', e.reference)
+        print("Certificate approval pending. Poll later with the following info.")
+        print("Request ID:", e.request_id)
+        print("Reference:", e.reference)
         sys.exit(2)
 
     except Exception:
