@@ -194,10 +194,12 @@ Example: User Certificate Auto Enrollment
 -----------------------------------------
 
 As known from Windows, with this script, you can automatically enroll and renew
-user certifcates. The prerequisites are the same as mentioned in the above example.
+user certifcates. The prerequisites are the same as mentioned in the above example,
+plus you need to provide valid values in the ``[user]`` section in ``cepces.conf``
+(cert template name and file paths, where to place the user cert/key).
 
 To make this magic happen, add the :code:`cepces-user-autoenroll` script
-into the autostart for your users by creating :code:`/etc/xdg/autostart/`:
+into the autostart for your users by creating ``/etc/xdg/autostart/cepces-user-autoenroll.desktop``:
 
 .. code-block::
 
