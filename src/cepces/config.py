@@ -57,6 +57,7 @@ class Configuration(Base):
 
     def __init__(
         self,
+        parser,
         endpoint,
         endpoint_type,
         cas,
@@ -66,12 +67,18 @@ class Configuration(Base):
     ):
         super().__init__()
 
+        self._parser = parser
         self._endpoint = endpoint
         self._endpoint_type = endpoint_type
         self._cas = cas
         self._auth = auth
         self._poll_interval = poll_interval
         self._openssl_seclevel = openssl_seclevel
+
+    @property
+    def parser(self):
+        """Return the parser."""
+        return self._parser
 
     @property
     def endpoint(self):
@@ -209,6 +216,7 @@ class Configuration(Base):
             cas = False
 
         return Configuration(
+            parser,
             endpoint,
             endpoint_type,
             cas,
