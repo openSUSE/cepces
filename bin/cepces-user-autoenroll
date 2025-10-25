@@ -36,7 +36,7 @@ from cepces.user import UserEnrollment, ApprovalPendingException
 def load_config(parser):
     # Ensure there's a user section present.
     if "user" not in parser:
-        raise RuntimeError('Missing "user" section in configuration.')
+        raise RuntimeError("Missing 'user' section in configuration.")
     section = parser["user"]
 
     key_file = os.path.expanduser(section.get("key_file"))
@@ -50,15 +50,15 @@ def load_config(parser):
 
     return key_file, cert_file, req_file, profile, renew_days, key_size
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     g_overrides = {}
     k_overrides = {
         # this script is intended to use as normal user with
         # existing ccache created during login, e.g. /tmp/krb5cc_1000
         # so we disable the ccache creation feature and
         # pass empty principals to use the default one
-        'ccache': 'False',
-        'principals': '',
+        "ccache": "False",
+        "principals": "",
     }
     user_enrollment = UserEnrollment(g_overrides, k_overrides)
     key_file, cert_file, req_file, profile, renew_days, key_size = load_config(user_enrollment.service._config.parser)
