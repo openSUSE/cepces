@@ -45,7 +45,7 @@ if __name__ == "__main__":
     }
     user_enrollment = UserEnrollment(g_overrides, k_overrides)
     key_file, cert_file, req_file, profile, renew_days, key_size = load_config(user_enrollment.service._config.parser)
-    poll_interval = 60
+    poll_interval = int(user_enrollment.service._config.poll_interval)
 
     while True:
         try:
