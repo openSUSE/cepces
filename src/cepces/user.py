@@ -98,9 +98,6 @@ class UserEnrollment:
         )
         csr = csr.sign(key, hashes.SHA256())
 
-        # csr_text = csr.public_bytes(serialization.Encoding.PEM).decode()
-        # print(csr_text)
-
         result = self.service.request(
             csr,
             renew=None,
