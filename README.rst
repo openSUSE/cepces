@@ -4,7 +4,7 @@ CEP/CES Certificate Enrollment
 
 ``cepces`` is an application for enrolling certificates through CEP and CES.
 For machine certificates, it requires `certmonger`_ to operate. For user
-certifcates, it can operate standalone.
+certifcates, it operates standalone.
 
 Only simple deployments using Microsoft Active Directory Certificate Services
 have been tested.
