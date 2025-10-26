@@ -70,7 +70,7 @@ extracted directory:
 
 .. code-block:: bash
 
-    # pip3 install .
+    # pip3 install .[user-submit]
 
 Configuration
 =============
@@ -187,3 +187,5 @@ into the autostart for your users by creating ``/etc/xdg/autostart/cepces-user-a
     Comment=Certificate auto enrollment
     Categories=Application;Office
     Terminal=false
+    X-GNOME-Autostart-Delay=2
+    X-MATE-Autostart-Delay=2
