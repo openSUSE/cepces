@@ -124,3 +124,20 @@ class UserEnrollment:
 
         # return a "cookie" that can be used to later poll the status
         raise ApprovalPendingException(result.request_id, result.reference)
+
+def load_config(parser):
+    # Ensure there's a user section present.
+    if "user" not in parser:
+        raise RuntimeError("Missing 'user' section in configuration.")
+    section = parser["user"]
+
+    key_file = os.path.expanduser(section.get("key_file"))
+    cert_file = os.path.expanduser(section.get("cert_file"))
+    req_file = os.path.expanduser(section.get("req_file"))
+    profile = section.get("profile")
+    renew_days = int(section.get("renew_days"))
+    key_size = section.get("key_size", 4096)
+    if not key_file or not cert_file or not req_file or not profile or not renew_days:
+        raise RuntimeError("One or more required config options are missing (key_file,cert_file,profile,renew_days)")
+
+    return key_file, cert_file, req_file, profile, renew_days, key_size
