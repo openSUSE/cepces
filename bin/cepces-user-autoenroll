@@ -62,7 +62,10 @@ if __name__ == "__main__":
                 print(f"Found cert file {cert_file}, checking expiration...")
                 with open(cert_file, "rb") as f:
                     cert = x509.load_pem_x509_certificate(f.read())
-                    remaining_days = (cert.not_valid_after_utc - datetime.now(timezone.utc)).days
+                    if hasattr(cert, 'not_valid_after_utc'):
+                        remaining_days = (cert.not_valid_after_utc - datetime.now(timezone.utc)).days
+                    else:
+                        remaining_days = (cert.not_valid_after - datetime.now()).days
                     if renew_days > 0 and remaining_days < renew_days:
                         print(f"Expires in {remaining_days}d (< {renew_days}d), trying to request a new cert...")
                         user_enrollment.request(key_file, cert_file, profile, key_size, None)
