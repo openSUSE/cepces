@@ -27,11 +27,18 @@ You can manually aquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
 """
 
 import os
+import sys
 import time
 from cryptography import x509
 from datetime import datetime, timezone
 from cepces.user import UserEnrollment, ApprovalPendingException, load_config
 
+
+def sleepOrExit(interval):
+    if interval < 1:
+        sys.exit(0)
+    else:
+        time.sleep(interval)
 
 if __name__ == "__main__":
     g_overrides = {}
@@ -71,22 +78,22 @@ if __name__ == "__main__":
                         user_enrollment.request(key_file, cert_file, profile, key_size, None)
                     else:
                         print(f"Expires in {remaining_days}d (> {renew_days}d), nothing to do.")
-                        time.sleep(poll_interval)
+                        sleepOrExit(poll_interval)
                         continue
 
             else:
                 print(f"Cert file {cert_file} not found, try requesting one...")
                 user_enrollment.request(key_file, cert_file, profile, key_size, None)
 
-            time.sleep(poll_interval)
+            sleepOrExit(poll_interval)
 
         except ApprovalPendingException as e:
             # output the "cookie" that can be used to later poll the status
             print(f"Certificate approval pending, trying to poll in {poll_interval}s.", e.request_id, e.reference)
             with open(req_file, "w") as f:
                 f.write(str(e.request_id)+"\n"+e.reference)
-            time.sleep(poll_interval)
+            sleepOrExit(poll_interval)
 
         except Exception as e:
             print("Error:", e, f"(trying again in {poll_interval}s)")
-            time.sleep(poll_interval)
+            sleepOrExit(poll_interval)
