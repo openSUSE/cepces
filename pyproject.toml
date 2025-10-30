@@ -9,8 +9,7 @@ requires-python = ">=3.8"
 dependencies = [
     "cryptography >= 1.2",
     "requests",
-    "requests_gssapi >= 1.4.0",
-    "keyring"
+    "requests_gssapi >= 1.4.0"
 ]
 license = { file = "LICENSE" }
 authors = [
