@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-import unittest
+import pytest
 from cepces.xml.binding import ListingMeta
 from cepces.xml.binding import XMLDescriptor
 
@@ -31,66 +31,65 @@ class MockXMLDescriptor(XMLDescriptor):
         pass
 
 
-class TestXMLDescriptor(unittest.TestCase):
-    def testOnlyName(self):
-        """Qualified name should be equal to name"""
-        descriptor = MockXMLDescriptor("name")
+def test_xml_descriptor_only_name():
+    """Qualified name should be equal to name"""
+    descriptor = MockXMLDescriptor("name")
 
-        self.assertEqual(descriptor._name, "name")
-        self.assertEqual(descriptor._namespace, None)
-        self.assertEqual(descriptor._qname, "name")
+    assert descriptor._name == "name"
+    assert descriptor._namespace is None
+    assert descriptor._qname == "name"
 
-    def testNameAndNameSpace(self):
-        """Qualified name should be in Clark's notation"""
-        descriptor = MockXMLDescriptor("name", "namespace")
 
-        self.assertEqual(descriptor._name, "name")
-        self.assertEqual(descriptor._namespace, "namespace")
-        self.assertEqual(descriptor._qname, "{namespace}name")
+def test_xml_descriptor_name_and_namespace():
+    """Qualified name should be in Clark's notation"""
+    descriptor = MockXMLDescriptor("name", "namespace")
 
-    def testIndexIncrement(self):
-        """Static index should increase accordingly"""
-        index = XMLDescriptor._index
+    assert descriptor._name == "name"
+    assert descriptor._namespace == "namespace"
+    assert descriptor._qname == "{namespace}name"
 
-        # Create three descriptors..
+
+def test_xml_descriptor_index_increment():
+    """Static index should increase accordingly"""
+    index = XMLDescriptor._index
+
+    # Create three descriptors..
+    first = MockXMLDescriptor("first")
+    second = MockXMLDescriptor("second")
+    third = MockXMLDescriptor("third")
+
+    assert first._index == index
+    assert second._index == index + 1
+    assert third._index == index + 2
+    assert XMLDescriptor._index == index + 3
+
+
+@pytest.fixture
+def mock_class():
+    """Create a dummy class for testing ListingMeta"""
+
+    class MockClass(metaclass=ListingMeta):
         first = MockXMLDescriptor("first")
         second = MockXMLDescriptor("second")
         third = MockXMLDescriptor("third")
 
-        self.assertEqual(first._index, index)
-        self.assertEqual(second._index, index + 1)
-        self.assertEqual(third._index, index + 2)
-        self.assertEqual(XMLDescriptor._index, index + 3)
+    return MockClass
 
 
-class TestListingMeta(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
+def test_listing_meta_listing_attribute(mock_class):
+    """Test that __listing__ attribute exists"""
+    assert hasattr(mock_class, "__listing__")
 
-        # Create a dummy class.
-        class MockClass(metaclass=ListingMeta):
-            first = MockXMLDescriptor("first")
-            second = MockXMLDescriptor("second")
-            third = MockXMLDescriptor("third")
 
-        self._dummy = MockClass
+def test_listing_meta_ordered_listing(mock_class):
+    """Test that listing is ordered correctly"""
+    dummy = mock_class
+    listing = dummy.__listing__
 
-    def testListingAttribute(self):
-        self.assertTrue(hasattr(self._dummy, "__listing__"))
+    assert listing[0][0] == "first"
+    assert listing[1][0] == "second"
+    assert listing[2][0] == "third"
 
-    def testOrderedListing(self):
-        dummy = self._dummy
-        listing = dummy.__listing__
-
-        self.assertEqual(listing[0][0], "first")
-        self.assertEqual(listing[1][0], "second")
-        self.assertEqual(listing[2][0], "third")
-
-        self.assertEqual(listing[0][1], dummy.__dict__[listing[0][0]])
-        self.assertEqual(listing[1][1], dummy.__dict__[listing[1][0]])
-        self.assertEqual(listing[2][1], dummy.__dict__[listing[2][0]])
-
-    def tearDown(self):
-        super().tearDown()
-
-        self._dummy = None
+    assert listing[0][1] == dummy.__dict__[listing[0][0]]
+    assert listing[1][1] == dummy.__dict__[listing[1][0]]
+    assert listing[2][1] == dummy.__dict__[listing[2][0]]
