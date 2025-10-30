@@ -23,13 +23,13 @@ from cepces import Base
 class TestBase(unittest.TestCase):
     """Tests the Base class"""
 
-    def testDefaultLogger(self):
+    def test_default_logger(self):
         """Test with default logger"""
         base = Base()
 
         self.assertIsNotNone(base._logger)
 
-    def testSuppliedLogger(self):
+    def test_supplied_logger(self):
         """Test with supplied logger"""
         logger = logging.getLogger("Test")
         base = Base(logger=logger)

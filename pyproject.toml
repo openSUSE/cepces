@@ -50,3 +50,14 @@ target-version = ['py39']
 mypy_path = "src/:stubs/:tests/"
 explicit_package_bases = true
 check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]

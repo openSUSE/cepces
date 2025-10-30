@@ -16,31 +16,23 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 from cepces import __title__, __version__
-import unittest
 import cepces.certmonger.operation as CertmongerOperations
 import io
 
 
-class TestGetDefaultTemplate(unittest.TestCase):
+def test_get_default_template_call():
     """Tests the GetDefaultTemplate operation"""
+    out = io.StringIO()
+    operation = CertmongerOperations.GetDefaultTemplate(None, out=out)
+    operation()
 
-    def testCall(self):
-        out = io.StringIO()
-        operation = CertmongerOperations.GetDefaultTemplate(None, out=out)
-        operation()
-
-        self.assertEqual(out.getvalue(), "")
+    assert out.getvalue() == ""
 
 
-class TestIdentify(unittest.TestCase):
+def test_identify_call():
     """Tests the Identity operation"""
+    out = io.StringIO()
+    operation = CertmongerOperations.Identify(None, out=out)
+    operation()
 
-    def testCall(self):
-        out = io.StringIO()
-        operation = CertmongerOperations.Identify(None, out=out)
-        operation()
-
-        self.assertEqual(
-            out.getvalue(),
-            "{} {}\n".format(__title__, __version__),
-        )
+    assert out.getvalue() == "{} {}\n".format(__title__, __version__)

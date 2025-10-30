@@ -15,53 +15,50 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from unittest import TestCase
 import cepces.xcep.converter as converter
 
 
-class TestClientAuthenticationConverter(TestCase):
-    def testFromNone(self):
-        """None as input should return None"""
-        input = None
-        c = converter.ClientAuthenticationConverter
+def test_client_authentication_converter_from_none():
+    """None as input should return None"""
+    input = None
+    c = converter.ClientAuthenticationConverter
 
-        self.assertIsNone(c.from_string(input))
+    assert c.from_string(input) is None
 
-    def testFromString(self):
-        """Valid input integer strings should return the correct string"""
-        c = converter.ClientAuthenticationConverter
 
-        for i in range(len(converter.ClientAuthenticationConverter.MAP)):
-            result = c.from_string(str(1 << i))
+def test_client_authentication_converter_from_string():
+    """Valid input integer strings should return the correct string"""
+    c = converter.ClientAuthenticationConverter
 
-            self.assertEqual(
-                converter.ClientAuthenticationConverter.MAP[i][1],
-                result,
-                msg="{} should return {}".format(
-                    str(i),
-                    converter.ClientAuthenticationConverter.MAP[i][1],
-                ),
-            )
-            self.assertIs(
-                type(result),
-                str,
-                msg="{} should be of type str".format(str(i)),
-            )
+    for i in range(len(converter.ClientAuthenticationConverter.MAP)):
+        result = c.from_string(str(1 << i))
 
-    def testToNone(self):
-        """None as input should return None"""
-        input = None
-        result = converter.IntegerConverter.to_string(input)
+        assert (
+            converter.ClientAuthenticationConverter.MAP[i][1] == result
+        ), "{} should return {}".format(
+            str(i),
+            converter.ClientAuthenticationConverter.MAP[i][1],
+        )
+        assert isinstance(result, str), "{} should be of type str".format(
+            str(i)
+        )
 
-        self.assertIsNone(result)
 
-    def testToString(self):
-        """A valid string should yield the correct stringified integer"""
-        c = converter.ClientAuthenticationConverter
+def test_client_authentication_converter_to_none():
+    """None as input should return None"""
+    input = None
+    result = converter.IntegerConverter.to_string(input)
 
-        for i in range(len(converter.ClientAuthenticationConverter.MAP)):
-            value = converter.ClientAuthenticationConverter.MAP[i]
-            result = c.to_string(value[1])
+    assert result is None
 
-            self.assertEqual(type(result), str)
-            self.assertEqual(result, str(value[0]))
+
+def test_client_authentication_converter_to_string():
+    """A valid string should yield the correct stringified integer"""
+    c = converter.ClientAuthenticationConverter
+
+    for i in range(len(converter.ClientAuthenticationConverter.MAP)):
+        value = converter.ClientAuthenticationConverter.MAP[i]
+        result = c.to_string(value[1])
+
+        assert isinstance(result, str)
+        assert result == str(value[0])
