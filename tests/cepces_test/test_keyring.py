@@ -61,6 +61,66 @@ def test_keyctl_handler_initialization_with_default_service_name(mock_which):
     assert handler._keyctl_available is True
 
 
+@patch("cepces.keyring.shutil.which")
+@patch("cepces.keyring.subprocess.run")
+def test_keyctl_handler_is_supported_success(mock_run, mock_which):
+    """Test is_supported when keyctl is available and keyring is accessible"""
+    mock_which.return_value = "/usr/bin/keyctl"
+    mock_run.return_value = MagicMock(returncode=0)
+
+    handler = KeyringHandler("test-service")
+    result = handler.is_supported()
+
+    assert result is True
+    mock_run.assert_called_once_with(
+        ["/usr/bin/keyctl", "show", "@u"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+
+@patch("cepces.keyring.shutil.which")
+def test_keyctl_handler_is_supported_keyctl_unavailable(mock_which):
+    """Test is_supported when keyctl is not available"""
+    mock_which.return_value = None
+
+    handler = KeyringHandler("test-service")
+    result = handler.is_supported()
+
+    assert result is False
+
+
+@patch("cepces.keyring.shutil.which")
+@patch("cepces.keyring.subprocess.run")
+def test_keyctl_handler_is_supported_keyring_not_accessible(
+    mock_run, mock_which
+):
+    """Test is_supported when keyctl is available but keyring is not accessible"""
+    mock_which.return_value = "/usr/bin/keyctl"
+    mock_run.side_effect = subprocess.CalledProcessError(
+        1, "keyctl", stderr="Required key not available"
+    )
+
+    handler = KeyringHandler("test-service")
+    result = handler.is_supported()
+
+    assert result is False
+
+
+@patch("cepces.keyring.shutil.which")
+@patch("cepces.keyring.subprocess.run")
+def test_keyctl_handler_is_supported_file_not_found(mock_run, mock_which):
+    """Test is_supported when keyctl command raises FileNotFoundError"""
+    mock_which.return_value = "/usr/bin/keyctl"
+    mock_run.side_effect = FileNotFoundError()
+
+    handler = KeyringHandler("test-service")
+    result = handler.is_supported()
+
+    assert result is False
+
+
 def test_keyctl_handler_get_key_description():
     """Test key description generation"""
     with patch("cepces.keyring.shutil.which", return_value="/usr/bin/keyctl"):

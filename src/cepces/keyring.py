@@ -67,6 +67,27 @@ class KeyringHandler(Base):
         self._logger.debug(f"keyctl utility found at: {self._keyctl_path}")
         return True
 
+    def is_supported(self) -> bool:
+        """Check if kernel keyring is supported on this system.
+
+        Returns:
+            True if keyctl utility is available and user keyring is accessible,
+            False otherwise
+        """
+        if not self._keyctl_available:
+            return False
+
+        try:
+            subprocess.run(
+                [self._keyctl_path, "show", KEYRING],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False
+
     def _get_key_description(self, username: str) -> str:
         """Generate key description from service name and username.
 
