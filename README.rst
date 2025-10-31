@@ -22,6 +22,26 @@ valid Kerberos keytab.
 `cepces` is implemented in Python and requires at least Python 3.4 in order to
 run, with all the required dependencies.
 
+For credential management and secure password storage, `cepces` requires the
+following system utilities:
+
+* **keyutils** - Provides the `keyctl` utility for storing credentials in the
+  Linux kernel keyring. This is the recommended method for secure credential
+  storage. Install with:
+
+  * Fedora/RHEL/CentOS: ``sudo dnf install keyutils``
+  * Debian/Ubuntu: ``sudo apt install keyutils``
+  * openSUSE: ``sudo zypper install keyutils``
+
+* **pinentry** - Provides secure password prompting functionality. Install with:
+
+  * Fedora/RHEL/CentOS: ``sudo dnf install pinentry``
+  * Debian/Ubuntu: ``sudo apt install pinentry-curses`` or ``pinentry-gtk2``
+  * openSUSE: ``sudo zypper install pinentry``
+
+These utilities are optional but highly recommended for production use. Without
+them, credential storage and interactive password prompting will not be available.
+
 Installation
 ============
 
