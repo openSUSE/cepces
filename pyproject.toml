@@ -42,7 +42,7 @@ readme = "README.rst"
 line-length = 80
 target-version = ['py39']
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # don't resort auto-generated stub files
 "stubs/*" = ["I"]
 
