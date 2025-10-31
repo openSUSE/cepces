@@ -268,3 +268,101 @@ class KeyringHandler(Base):
                 "keyctl utility not found despite availability check"
             )
             return False
+
+    # Using typing.Dict and typing.Optional for Python 3.9 compatibility (dict[] and | require 3.10+)
+    def dump_key(self, username: str) -> Optional[Dict[str, str]]:
+        """Dump key information from kernel keyring for debugging.
+
+        Args:
+            username: The username for which to dump key information
+
+        Returns:
+            Dictionary containing key metadata if found, None otherwise.
+            The dictionary contains: key_id, key_type, uid, gid, perms, description
+        """
+        if not username:
+            self._logger.debug("No username provided for key dump")
+            return None
+
+        if not self._keyctl_available:
+            self._logger.error(
+                "Cannot dump key: keyctl utility is not available"
+            )
+            return None
+
+        key_description = self._get_key_description(username)
+        try:
+            # Request the key to get its ID
+            result = subprocess.run(
+                [self._keyctl_path, "request", "user", key_description],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            key_id = result.stdout.strip()
+
+            # Describe the key to get metadata
+            result = subprocess.run(
+                [self._keyctl_path, "describe", key_id],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            # Parse the describe output format:
+            # KEY_ID: PERMISSIONS  UID  GID TYPE: DESCRIPTION
+            # Example: 123456: alswrv-----v------------  1000  1000 user: test:desc
+            output = result.stdout.strip()
+
+            # Split on first colon to separate key_id from the rest
+            if ": " not in output:
+                self._logger.warning(
+                    f"Unexpected describe output format for user '{username}': {output}"
+                )
+                return None
+
+            _, rest = output.split(": ", 1)
+
+            # Split the rest on whitespace and handle type:description
+            parts = rest.split()
+            if len(parts) >= 4:
+                perms = parts[0]
+                uid = parts[1]
+                gid = parts[2]
+                # The rest is "type: description", rejoin everything after gid
+                type_and_desc = " ".join(parts[3:])
+
+                # Split type and description on the last occurrence of ": "
+                if ": " in type_and_desc:
+                    key_type, description = type_and_desc.split(": ", 1)
+                else:
+                    key_type = type_and_desc
+                    description = ""
+
+                key_info = {
+                    "key_id": key_id,
+                    "key_type": key_type,
+                    "uid": uid,
+                    "gid": gid,
+                    "perms": perms,
+                    "description": description,
+                }
+                self._logger.debug(
+                    f"Successfully dumped key information for user '{username}'"
+                )
+                return key_info
+
+            self._logger.warning(
+                f"Unexpected describe output format for user '{username}': {output}"
+            )
+            return None
+        except subprocess.CalledProcessError as e:
+            self._logger.debug(
+                f"Failed to dump key for user '{username}': {e.stderr}"
+            )
+            return None
+        except FileNotFoundError:
+            self._logger.error(
+                "keyctl utility not found despite availability check"
+            )
+            return None
