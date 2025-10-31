@@ -17,9 +17,8 @@
 #
 """Module containing authentication type handlers."""
 from abc import ABCMeta, abstractmethod
-import os
-import subprocess
 from cepces import Base
+from cepces.credentials import CredentialsHandler
 from cepces.keyring import KeyringHandler, KeyringOperationError
 from cepces.krb5.functions import Error as KerberosError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
@@ -112,29 +111,19 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 
     def prompt_credentials(self) -> tuple[str, str]:
         """Asks interactively for credentials to store in keyring."""
-        try:
-            env = os.environ.copy()
-            env.setdefault("DISPLAY", ":0")
-            result = subprocess.run(
-                args=[
-                    "zenity",
-                    "--username",
-                    "--password",
-                    "--text=Enter your username and password",
-                    "--title=Login credentials",
-                ],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                text=True,
-                env=env,
+        credentials_handler = CredentialsHandler(title="Login credentials")
+        if not credentials_handler.is_supported():
+            self._logger.error(
+                "Cannot prompt for credentials: "
+                "pinentry utility is not available"
             )
-            credentials = result.stdout.strip().split("|", 1)
-            if len(credentials) != 2:
-                return None, None
-            return credentials[0], credentials[1]
-        except subprocess.CalledProcessError:
             return None, None
+
+        username, password = credentials_handler.prompt_credentials(
+            username_description="Enter your username",
+            password_description="Enter your password",
+        )
+        return username, password
 
     def handle(self):
         parser = self._parser
