@@ -43,7 +43,7 @@ class Configuration(Base):
 
     AUTH_HANDLER_MAP = {
         "Anonymous": CoreAuth.AnonymousAuthenticationHandler,
-        "Kerberos": CoreAuth.KerberosAuthenticationHandler,
+        "Kerberos": CoreAuth.GSSAPIAuthenticationHandler,
         "UsernamePassword": CoreAuth.UsernamePasswordAuthenticationHandler,
         "Certificate": CoreAuth.CertificateAuthenticationHandler,
     }

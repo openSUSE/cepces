@@ -50,8 +50,8 @@ class AnonymousAuthenticationHandler(AuthenticationHandler):
         return SOAPAuth.AnonymousAuthentication()
 
 
-class KerberosAuthenticationHandler(AuthenticationHandler):
-    """Kerberos Authentication Handler"""
+class GSSAPIAuthenticationHandler(AuthenticationHandler):
+    """GSSAPI Authentication Handler"""
 
     def handle(self):
         parser = self._parser
