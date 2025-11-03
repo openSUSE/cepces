@@ -20,9 +20,9 @@ from abc import ABCMeta, abstractmethod
 from cepces import Base
 from cepces.credentials import CredentialsHandler
 from cepces.keyring import KeyringHandler, KeyringOperationError
-from cepces.krb5.functions import Error as KerberosError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
 from cepces.soap import auth as SOAPAuth
+import gssapi.exceptions
 
 
 def strtobool(value):
@@ -96,11 +96,18 @@ class KerberosAuthenticationHandler(AuthenticationHandler):
                     keytab=keytab,
                     delegate=delegate,
                 )
-            except KerberosError:
-                # Ignore
-                pass
+            except gssapi.exceptions.GSSError as e:
+                # Log the error and continue trying other principals
+                self._logger.warning(
+                    "GSSError for principal %s: %s", principal, e
+                )
+                continue
 
+            # On success, check if auth is valid and then leave
             if auth:
+                self._logger.info(
+                    "Successfully authenticated with principal %s", principal
+                )
                 return auth
 
         raise RuntimeError("No suitable key found in keytab.")
