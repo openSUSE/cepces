@@ -28,7 +28,7 @@ import gssapi
 from requests_gssapi import HTTPSPNEGOAuth
 from cepces import Base
 from cepces.krb5 import types as ktypes
-from cepces.krb5.core import Context, Principal
+from cepces.krb5.core import Context, Principal, get_default_keytab_name
 from cepces.soap.types import Security as WSSecurity, UsernameToken
 
 
@@ -111,13 +111,17 @@ class TransportKerberosAuthentication(Authentication):
 
         os.environ["KRB5CCNAME"] = "MEMORY:cepces"
 
-        store = None
+        keytab = None
         if self._config["keytab"]:
-            store = {
-                b"client_keytab": self._config["keytab"],
-                # This doesn't work, we need to set KRB5CCNAME
-                # b"ccache": "MEMORY:cepces",
-            }
+            keytab = self._config["keytab"]
+        else:
+            keytab = get_default_keytab_name()
+
+        store = {
+            b"client_keytab": keytab,
+            # This doesn't work, we need to set KRB5CCNAME
+            # b"ccache": "MEMORY:cepces",
+        }
 
         gssapi_cred = gssapi.raw.acquire_cred_from(
             store=store,
