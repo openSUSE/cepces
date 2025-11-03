@@ -90,7 +90,7 @@ class GSSAPIAuthenticationHandler(AuthenticationHandler):
                 principal = "{}@{}".format(principal, realm)
 
             try:
-                auth = SOAPAuth.TransportKerberosAuthentication(
+                auth = SOAPAuth.TransportGSSAPIAuthentication(
                     principal_name=principal,
                     init_ccache=ccache,
                     keytab=keytab,

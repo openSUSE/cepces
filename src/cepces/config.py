@@ -50,7 +50,7 @@ class Configuration(Base):
 
     AUTH_MAP = {
         "Anonymous": SOAPAuth.AnonymousAuthentication,
-        "Kerberos": SOAPAuth.TransportKerberosAuthentication,
+        "Kerberos": SOAPAuth.TransportGSSAPIAuthentication,
         "UsernamePassword": SOAPAuth.MessageUsernamePasswordAuthentication,
         "Certificate": SOAPAuth.TransportCertificateAuthentication,
     }

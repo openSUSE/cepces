@@ -64,8 +64,8 @@ class AnonymousAuthentication(Authentication):
         return envelope
 
 
-class TransportKerberosAuthentication(Authentication):
-    """Kerberos authentication on the transport level."""
+class TransportGSSAPIAuthentication(Authentication):
+    """GSSAPI authentication on the transport level."""
 
     def __init__(
         self,
