@@ -157,3 +157,15 @@ class Principal(Base):
     def realm(self):
         """Get the realm component of the name."""
         return self._name.realm
+
+
+def get_default_keytab_name() -> str:
+    """Get the default keytab name.
+
+    Returns:
+        str: The default keytab name.
+    """
+    context = Context()
+    buffer = ctypes.create_string_buffer(ktypes.LINE_MAX)
+    kfuncs.kt_default_name(context.handle, buffer, ktypes.LINE_MAX)
+    return buffer.value.decode("utf-8")

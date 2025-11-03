@@ -116,6 +116,17 @@ krb5_init_context.argtypes = [
 ]
 init_context = error_decorator(krb5_init_context)
 
+# krb5_error_code krb5_kt_default_name(krb5_context context, char * name,
+#     int name_size)
+krb5_kt_default_name = _shlib.krb5_kt_default_name
+krb5_kt_default_name.restype = ktypes.krb5_error_code
+krb5_kt_default_name.argtypes = [
+    ktypes.krb5_context,
+    ctypes.POINTER(ctypes.c_char),
+    ctypes.c_uint,
+]
+kt_default_name = error_decorator(krb5_kt_default_name)
+
 # krb5_error_code krb5_kt_default(krb5_context context, krb5_keytab * id)
 krb5_parse_name = _shlib.krb5_parse_name
 krb5_parse_name.restype = ktypes.krb5_error_code
