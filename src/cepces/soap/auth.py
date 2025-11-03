@@ -111,12 +111,16 @@ class TransportKerberosAuthentication(Authentication):
 
         os.environ["KRB5CCNAME"] = "MEMORY:cepces"
 
-        gssapi_cred = gssapi.raw.acquire_cred_from(
-            store={
+        store = None
+        if self._config["keytab"]:
+            store = {
                 b"client_keytab": self._config["keytab"],
                 # This doesn't work, we need to set KRB5CCNAME
                 # b"ccache": "MEMORY:cepces",
-            },
+            }
+
+        gssapi_cred = gssapi.raw.acquire_cred_from(
+            store=store,
             name=gss_name,
             mechs=[krb5_mech],
             usage="initiate",
