@@ -17,11 +17,9 @@
 #
 """Module containing authentication type handlers."""
 from abc import ABCMeta, abstractmethod
-import os
-import subprocess
-import keyring
-from keyring.errors import KeyringLocked, KeyringError
 from cepces import Base
+from cepces.credentials import CredentialsHandler
+from cepces.keyring import KeyringHandler, KeyringOperationError
 from cepces.krb5.functions import Error as KerberosError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
 from cepces.soap import auth as SOAPAuth
@@ -113,29 +111,19 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 
     def prompt_credentials(self) -> tuple[str, str]:
         """Asks interactively for credentials to store in keyring."""
-        try:
-            env = os.environ.copy()
-            env.setdefault("DISPLAY", ":0")
-            result = subprocess.run(
-                args=[
-                    "zenity",
-                    "--username",
-                    "--password",
-                    "--text=Enter your username and password",
-                    "--title=Login credentials",
-                ],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                text=True,
-                env=env,
+        credentials_handler = CredentialsHandler(title="Login credentials")
+        if not credentials_handler.is_supported():
+            self._logger.error(
+                "Cannot prompt for credentials: "
+                "pinentry utility is not available"
             )
-            credentials = result.stdout.strip().split("|", 1)
-            if len(credentials) != 2:
-                return None, None
-            return credentials[0], credentials[1]
-        except subprocess.CalledProcessError:
             return None, None
+
+        username, password = credentials_handler.prompt_credentials(
+            username_description="Enter your username",
+            password_description="Enter your password",
+        )
+        return username, password
 
     def handle(self):
         parser = self._parser
@@ -152,26 +140,32 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
         username = section.get("username", None)
         password = section.get("password", None)
 
-        try:
-            keyring_password = keyring.get_password(keyring_service, username)
-            if keyring_password:
-                password = keyring_password
-            if not username or not password:
-                username, password = self.prompt_credentials()
+        # Initialize keyring handler
+        keyring = KeyringHandler(keyring_service)
+
+        # Check if keyring is supported and try to get password from it
+        if keyring.is_supported():
+            keyctl_password = keyring.get_password(username)
+            if keyctl_password:
+                password = keyctl_password
+        else:
+            self._logger.warning(
+                "Kernel keyring is not supported on this system. "
+                "Credentials will not be stored."
+            )
+
+        # If credentials are missing, prompt for them
+        if not username or not password:
+            username, password = self.prompt_credentials()
+            # Store credentials in kernel keyring if supported
+            if keyring.is_supported():
                 try:
-                    keyring.set_password(keyring_service, username, password)
-                except KeyringLocked as e:
+                    keyring.set_password(username, password)
+                except KeyringOperationError as e:
                     raise RuntimeError(
-                        "Keyring locked. Can not unlock.",
+                        f"Failed to store credentials in kernel keyring for "
+                        f"service {keyring_service}: {e}",
                     ) from e
-                except KeyringError as e:
-                    raise RuntimeError(
-                        "Can not set credentials in default keyring for service {keyring_service}",
-                    ) from e
-        except KeyringLocked as e:
-            raise RuntimeError(
-                "Keyring locked. Can not unlock.",
-            ) from e
 
         return SOAPAuth.MessageUsernamePasswordAuthentication(
             username,

@@ -15,24 +15,24 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-import unittest
-import logging
-from cepces import Base
+from cepces import __title__, __version__
+import cepces.certmonger.operation as CertmongerOperations
+import io
 
 
-class TestBase(unittest.TestCase):
-    """Tests the Base class"""
+def test_get_default_template_call():
+    """Tests the GetDefaultTemplate operation"""
+    out = io.StringIO()
+    operation = CertmongerOperations.GetDefaultTemplate(None, out=out)
+    operation()
 
-    def testDefaultLogger(self):
-        """Test with default logger"""
-        base = Base()
+    assert out.getvalue() == ""
 
-        self.assertIsNotNone(base._logger)
 
-    def testSuppliedLogger(self):
-        """Test with supplied logger"""
-        logger = logging.getLogger("Test")
-        base = Base(logger=logger)
+def test_identify_call():
+    """Tests the Identity operation"""
+    out = io.StringIO()
+    operation = CertmongerOperations.Identify(None, out=out)
+    operation()
 
-        self.assertIsNotNone(base._logger)
-        self.assertIs(base._logger, logger)
+    assert out.getvalue() == "{} {}\n".format(__title__, __version__)

@@ -15,4 +15,24 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from .test_converter import *  # noqa: F403
+import unittest
+import logging
+from cepces import Base
+
+
+class TestBase(unittest.TestCase):
+    """Tests the Base class"""
+
+    def test_default_logger(self):
+        """Test with default logger"""
+        base = Base()
+
+        self.assertIsNotNone(base._logger)
+
+    def test_supplied_logger(self):
+        """Test with supplied logger"""
+        logger = logging.getLogger("Test")
+        base = Base(logger=logger)
+
+        self.assertIsNotNone(base._logger)
+        self.assertIs(base._logger, logger)
