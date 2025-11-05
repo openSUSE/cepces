@@ -22,6 +22,7 @@ Supports pinentry, kdialog, and zenity utilities with automatic fallback.
 import os
 import shutil
 import subprocess
+from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple  # Python 3.9 compatibility
 
 from cepces import Base
@@ -58,43 +59,231 @@ class CredentialsOperationError(CredentialsError):
     """Exception raised when credential prompt operation fails."""
 
 
-class PinentryHandler(Base):
-    """Handler for credential prompting using pinentry utility."""
+class CredentialBackend(Base, ABC):
+    """Abstract base class for credential prompting backends.
+
+    Provides common functionality for checking utility availability,
+    display environment validation, and template methods for credential
+    prompting workflows.
+    """
+
+    def __init__(
+        self,
+        title: str = "Authentication Required",
+        display_config: Optional[Tuple[str, str]] = None,
+    ):
+        """Initialize the credential backend.
+
+        Args:
+            title: The title to display in credential prompts
+            display_config: Optional tuple of (env_var_name,
+                display_value) from configuration
+        """
+        super().__init__()
+        self.title = title
+        self._display_config = display_config
+        self._utility_path = None
+        self._utility_available = self._check_utility_available()
+
+    @abstractmethod
+    def _get_utility_name(self) -> str:
+        """Get the name of the utility used by this backend.
+
+        Returns:
+            The name of the utility (e.g., "pinentry", "kdialog", "zenity")
+        """
+
+    @abstractmethod
+    def _requires_display(self) -> bool:
+        """Check if this backend requires a display environment.
+
+        Returns:
+            True if the backend requires DISPLAY or WAYLAND_DISPLAY
+        """
+
+    @abstractmethod
+    def _prompt_username(self, description: str) -> Optional[str]:
+        """Prompt user for a username.
+
+        Args:
+            description: Description text to display in the dialog
+
+        Returns:
+            The username entered by the user, or None if cancelled
+        """
+
+    @abstractmethod
+    def prompt_password(
+        self,
+        description: str = "Enter your password",
+        prompt: str = "Password:",
+    ) -> Optional[str]:
+        """Prompt user for a password.
+
+        Args:
+            description: Description text to display in the dialog
+            prompt: Prompt text for the password field
+
+        Returns:
+            The password entered by the user, or None if cancelled
+        """
+
+    def _check_display_available(self) -> bool:
+        """Check if display environment is available.
+
+        Returns:
+            True if display is configured or environment variables are set
+        """
+        # Use configured display if available
+        if self._display_config is not None:
+            self._logger.debug(
+                f"Using configured display: "
+                f"{self._display_config[0]}={self._display_config[1]}"
+            )
+            return True
+
+        # Check environment variables
+        if not os.environ.get("DISPLAY") and not os.environ.get(
+            "WAYLAND_DISPLAY"
+        ):
+            utility_name = self._get_utility_name()
+            self._logger.debug(
+                f"{utility_name} found but no DISPLAY or WAYLAND_DISPLAY set. "
+                f"Credential prompting will not be available."
+            )
+            return False
+
+        return True
+
+    def _check_utility_available(self) -> bool:
+        """Check if the utility is available on the system.
+
+        Returns:
+            True if utility is available and requirements are met
+        """
+        utility_name = self._get_utility_name()
+        self._utility_path = shutil.which(utility_name)
+
+        if self._utility_path is None:
+            log_level = "error" if utility_name == "pinentry" else "debug"
+            log_msg = (
+                f"{utility_name} utility not found. "
+                f"Please install {utility_name} package. "
+                if utility_name == "pinentry"
+                else f"{utility_name} utility not found. "
+            )
+            log_msg += (
+                "Interactive credential prompting will not be available."
+                if utility_name == "pinentry"
+                else "Credential prompting will not be available."
+            )
+
+            if log_level == "error":
+                self._logger.error(log_msg)
+            else:
+                self._logger.debug(log_msg)
+            return False
+
+        self._logger.debug(
+            f"{utility_name} utility found at: {self._utility_path}"
+        )
+
+        # Check display requirements
+        if self._requires_display() and not self._check_display_available():
+            return False
+
+        return True
+
+    def is_supported(self) -> bool:
+        """Check if this backend is supported on this system.
+
+        Returns:
+            True if utility is available and requirements are met
+        """
+        return self._utility_available
+
+    def prompt_credentials(
+        self,
+        username_description: str = "Enter your username",
+        password_description: str = "Enter your password",
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """Prompt user for both username and password.
+
+        This is a template method that handles the common workflow.
+
+        Args:
+            username_description: Description for the username prompt
+            password_description: Description for the password prompt
+
+        Returns:
+            Tuple of (username, password), or (None, None) if cancelled
+        """
+        if not self._utility_available:
+            utility_name = self._get_utility_name()
+            self._logger.error(
+                f"Cannot prompt for credentials: "
+                f"{utility_name} utility is not available"
+            )
+            return None, None
+
+        try:
+            # Prompt for username
+            username = self._prompt_username(username_description)
+
+            if not username:
+                self._logger.debug(
+                    "User cancelled username prompt or no username entered"
+                )
+                return None, None
+
+            # Prompt for password
+            password = self.prompt_password(
+                description=password_description, prompt="Password:"
+            )
+
+            if not password:
+                self._logger.debug("No password entered")
+                return None, None
+
+            self._logger.debug(
+                f"Successfully obtained credentials for user '{username}'"
+            )
+            return username, password
+
+        except Exception as e:
+            self._logger.error(f"Failed to prompt for credentials: {e}")
+            return None, None
+
+
+class PinentryBackend(CredentialBackend):
+    """Backend for credential prompting using pinentry utility."""
 
     def __init__(self, title: str = "Authentication Required"):
-        """Initialize the PinentryHandler.
+        """Initialize the PinentryBackend.
 
         Args:
             title: The title to display in the pinentry dialog
         """
-        super().__init__()
-        self.title = title
-        self._pinentry_path = None
-        self._pinentry_available = self._check_pinentry_available()
+        super().__init__(title=title, display_config=None)
+        # Maintain backward compatibility
+        self._pinentry_path = self._utility_path
+        self._pinentry_available = self._utility_available
 
-    def _check_pinentry_available(self) -> bool:
-        """Check if pinentry utility is available.
-
-        Returns:
-            True if pinentry is available, False otherwise
-        """
-        self._pinentry_path = shutil.which("pinentry")
-        if self._pinentry_path is None:
-            self._logger.error(
-                "pinentry utility not found. Please install pinentry package. "
-                "Interactive credential prompting will not be available."
-            )
-            return False
-        self._logger.debug(f"pinentry utility found at: {self._pinentry_path}")
-        return True
-
-    def is_supported(self) -> bool:
-        """Check if pinentry is supported on this system.
+    def _get_utility_name(self) -> str:
+        """Get the name of the utility used by this backend.
 
         Returns:
-            True if pinentry utility is available, False otherwise
+            The name of the utility
         """
-        return self._pinentry_available
+        return "pinentry"
+
+    def _requires_display(self) -> bool:
+        """Check if this backend requires a display environment.
+
+        Returns:
+            False - pinentry doesn't require DISPLAY environment
+        """
+        return False
 
     # Using typing.List and typing.Dict for Python 3.9 compatibility
     # (| and list[]/dict[] require 3.10+)
@@ -151,6 +340,38 @@ class PinentryHandler(Base):
                 f"Failed to run pinentry: {error_msg}"
             ) from e
 
+    def _prompt_username(self, description: str) -> Optional[str]:
+        """Prompt user for a username using pinentry.
+
+        Args:
+            description: Description text to display in the dialog
+
+        Returns:
+            The username entered by the user, or None if cancelled
+        """
+        # Prompt for username (using GETPIN without password masking
+        # would be ideal, but pinentry doesn't have a direct
+        # "get text" command, so we use GETPIN)
+        username_commands = [
+            f"SETTITLE {self.title}",
+            f"SETDESC {description}",
+            "SETPROMPT Username:",
+            "GETPIN",
+        ]
+
+        try:
+            username_responses = self._run_pinentry(username_commands)
+
+            if "error" in username_responses:
+                self._logger.debug("User cancelled username prompt")
+                return None
+
+            return username_responses.get("data")
+
+        except CredentialsError as e:
+            self._logger.error(f"Failed to prompt for username: {e}")
+            return None
+
     # Using typing.Optional for Python 3.9 compatibility
     # (| operator requires 3.10+)
     def prompt_password(
@@ -201,133 +422,77 @@ class PinentryHandler(Base):
             self._logger.error(f"Failed to prompt for password: {e}")
             return None
 
-    # Using typing.Tuple and typing.Optional for Python 3.9 compatibility
-    # (tuple[] and | require 3.10+)
-    def prompt_credentials(
-        self,
-        username_description: str = "Enter your username",
-        password_description: str = "Enter your password",
-    ) -> Tuple[Optional[str], Optional[str]]:
-        """Prompt user for both username and password using pinentry.
 
-        Args:
-            username_description: Description for the username prompt
-            password_description: Description for the password prompt
-
-        Returns:
-            Tuple of (username, password), or (None, None) if cancelled
-        """
-        if not self._pinentry_available:
-            self._logger.error(
-                "Cannot prompt for credentials: "
-                "pinentry utility is not available"
-            )
-            return None, None
-
-        # Prompt for username (using GETPIN without password masking
-        # would be ideal, but pinentry doesn't have a direct
-        # "get text" command, so we use GETPIN)
-        # For better UX, we could call it twice with different descriptions
-        username_commands = [
-            f"SETTITLE {self.title}",
-            f"SETDESC {username_description}",
-            "SETPROMPT Username:",
-            "GETPIN",
-        ]
-
-        try:
-            username_responses = self._run_pinentry(username_commands)
-
-            if "error" in username_responses:
-                self._logger.debug("User cancelled username prompt")
-                return None, None
-
-            username = username_responses.get("data")
-            if not username:
-                self._logger.debug("No username entered")
-                return None, None
-
-            # Now prompt for password
-            password = self.prompt_password(
-                description=password_description, prompt="Password:"
-            )
-
-            if not password:
-                self._logger.debug("No password entered")
-                return None, None
-
-            self._logger.debug(
-                f"Successfully obtained credentials for user '{username}'"
-            )
-            return username, password
-
-        except CredentialsError as e:
-            self._logger.error(f"Failed to prompt for credentials: {e}")
-            return None, None
-
-
-class KdialogHandler(Base):
-    """Handler for credential prompting using kdialog utility."""
+class KdialogBackend(CredentialBackend):
+    """Backend for credential prompting using kdialog utility."""
 
     def __init__(
         self,
         title: str = "Authentication Required",
         display_config: Optional[tuple] = None,
     ):
-        """Initialize the KdialogHandler.
+        """Initialize the KdialogBackend.
 
         Args:
             title: The title to display in the kdialog dialog
             display_config: Optional tuple of (env_var_name,
                 display_value) from configuration
         """
-        super().__init__()
-        self.title = title
-        self._display_config = display_config
-        self._kdialog_path = None
-        self._kdialog_available = self._check_kdialog_available()
+        super().__init__(title=title, display_config=display_config)
+        # Maintain backward compatibility
+        self._kdialog_path = self._utility_path
+        self._kdialog_available = self._utility_available
 
-    def _check_kdialog_available(self) -> bool:
-        """Check if kdialog utility is available.
+    def _get_utility_name(self) -> str:
+        """Get the name of the utility used by this backend.
 
         Returns:
-            True if kdialog is available, False otherwise
+            The name of the utility
         """
-        self._kdialog_path = shutil.which("kdialog")
-        if self._kdialog_path is None:
-            self._logger.debug(
-                "kdialog utility not found. "
-                "KDE credential prompting will not be available."
-            )
-            return False
+        return "kdialog"
 
-        # Check if running in a graphical environment
-        # Use configured display if available, otherwise check environment
-        if self._display_config is None:
-            if not os.environ.get("DISPLAY") and not os.environ.get(
-                "WAYLAND_DISPLAY"
-            ):
-                self._logger.debug(
-                    "kdialog found but no DISPLAY or WAYLAND_DISPLAY set. "
-                    "KDE credential prompting will not be available."
-                )
-                return False
-        else:
-            self._logger.debug(
-                f"Using configured display: "
-                f"{self._display_config[0]}={self._display_config[1]}"
-            )
+    def _requires_display(self) -> bool:
+        """Check if this backend requires a display environment.
 
-        self._logger.debug(f"kdialog utility found at: {self._kdialog_path}")
+        Returns:
+            True - kdialog requires DISPLAY or WAYLAND_DISPLAY
+        """
         return True
 
-    def is_supported(self) -> bool:
-        """Check if kdialog is supported on this system.
+    def _prompt_username(self, description: str) -> Optional[str]:
+        """Prompt user for a username using kdialog.
+
+        Args:
+            description: Description text to display in the dialog
 
         Returns:
-            True if kdialog utility is available, False otherwise
+            The username entered by the user, or None if cancelled
         """
-        return self._kdialog_available
+        try:
+            username_result = subprocess.run(
+                [
+                    self._kdialog_path,
+                    "--title",
+                    self.title,
+                    "--inputbox",
+                    description,
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=get_env_with_display(self._display_config),
+            )
+
+            if username_result.returncode != 0:
+                self._logger.debug("User cancelled username prompt")
+                return None
+
+            username = username_result.stdout.strip()
+            return username if username else None
+
+        except Exception as e:
+            self._logger.error(f"Failed to prompt for username: {e}")
+            return None
 
     def prompt_password(
         self,
@@ -377,36 +542,61 @@ class KdialogHandler(Base):
             self._logger.error(f"Failed to prompt for password: {e}")
             return None
 
-    def prompt_credentials(
+
+class ZenityBackend(CredentialBackend):
+    """Backend for credential prompting using zenity utility."""
+
+    def __init__(
         self,
-        username_description: str = "Enter your username",
-        password_description: str = "Enter your password",
-    ) -> Tuple[Optional[str], Optional[str]]:
-        """Prompt user for both username and password using kdialog.
+        title: str = "Authentication Required",
+        display_config: Optional[tuple] = None,
+    ):
+        """Initialize the ZenityBackend.
 
         Args:
-            username_description: Description for the username prompt
-            password_description: Description for the password prompt
+            title: The title to display in the zenity dialog
+            display_config: Optional tuple of (env_var_name,
+                display_value) from configuration
+        """
+        super().__init__(title=title, display_config=display_config)
+        # Maintain backward compatibility
+        self._zenity_path = self._utility_path
+        self._zenity_available = self._utility_available
+
+    def _get_utility_name(self) -> str:
+        """Get the name of the utility used by this backend.
 
         Returns:
-            Tuple of (username, password), or (None, None) if cancelled
+            The name of the utility
         """
-        if not self._kdialog_available:
-            self._logger.error(
-                "Cannot prompt for credentials: "
-                "kdialog utility is not available"
-            )
-            return None, None
+        return "zenity"
 
+    def _requires_display(self) -> bool:
+        """Check if this backend requires a display environment.
+
+        Returns:
+            True - zenity requires DISPLAY or WAYLAND_DISPLAY
+        """
+        return True
+
+    def _prompt_username(self, description: str) -> Optional[str]:
+        """Prompt user for a username using zenity.
+
+        Args:
+            description: Description text to display in the dialog
+
+        Returns:
+            The username entered by the user, or None if cancelled
+        """
         try:
-            # Prompt for username
             username_result = subprocess.run(
                 [
-                    self._kdialog_path,
+                    self._zenity_path,
+                    "--entry",
                     "--title",
                     self.title,
-                    "--inputbox",
-                    username_description,
+                    "--text",
+                    description,
                 ],
                 capture_output=True,
                 text=True,
@@ -416,94 +606,14 @@ class KdialogHandler(Base):
 
             if username_result.returncode != 0:
                 self._logger.debug("User cancelled username prompt")
-                return None, None
+                return None
 
             username = username_result.stdout.strip()
-            if not username:
-                self._logger.debug("No username entered")
-                return None, None
-
-            # Prompt for password
-            password = self.prompt_password(
-                description=password_description, prompt="Password:"
-            )
-
-            if not password:
-                self._logger.debug("No password entered")
-                return None, None
-
-            self._logger.debug(
-                f"Successfully obtained credentials for user '{username}'"
-            )
-            return username, password
+            return username if username else None
 
         except Exception as e:
-            self._logger.error(f"Failed to prompt for credentials: {e}")
-            return None, None
-
-
-class ZenityHandler(Base):
-    """Handler for credential prompting using zenity utility."""
-
-    def __init__(
-        self,
-        title: str = "Authentication Required",
-        display_config: Optional[tuple] = None,
-    ):
-        """Initialize the ZenityHandler.
-
-        Args:
-            title: The title to display in the zenity dialog
-            display_config: Optional tuple of (env_var_name,
-                display_value) from configuration
-        """
-        super().__init__()
-        self.title = title
-        self._display_config = display_config
-        self._zenity_path = None
-        self._zenity_available = self._check_zenity_available()
-
-    def _check_zenity_available(self) -> bool:
-        """Check if zenity utility is available.
-
-        Returns:
-            True if zenity is available, False otherwise
-        """
-        self._zenity_path = shutil.which("zenity")
-        if self._zenity_path is None:
-            self._logger.debug(
-                "zenity utility not found. "
-                "GNOME credential prompting will not be available."
-            )
-            return False
-
-        # Check if running in a graphical environment
-        # Use configured display if available, otherwise check environment
-        if self._display_config is None:
-            if not os.environ.get("DISPLAY") and not os.environ.get(
-                "WAYLAND_DISPLAY"
-            ):
-                self._logger.debug(
-                    "zenity found but no DISPLAY or WAYLAND_DISPLAY set. "
-                    "GNOME credential prompting will not be available."
-                )
-                return False
-        else:
-            self._logger.debug(
-                f"Using configured display: "
-                f"{self._display_config[0]}={self._display_config[1]}"
-            )
-
-        self._logger.debug(f"zenity utility found at: {self._zenity_path}")
-        return True
-
-    def is_supported(self) -> bool:
-        """Check if zenity is supported on this system.
-
-        Returns:
-            True if zenity utility is available, False otherwise
-        """
-        return self._zenity_available
+            self._logger.error(f"Failed to prompt for username: {e}")
+            return None
 
     def prompt_password(
         self,
@@ -553,71 +663,6 @@ class ZenityHandler(Base):
             self._logger.error(f"Failed to prompt for password: {e}")
             return None
 
-    def prompt_credentials(
-        self,
-        username_description: str = "Enter your username",
-        password_description: str = "Enter your password",
-    ) -> Tuple[Optional[str], Optional[str]]:
-        """Prompt user for both username and password using zenity.
-
-        Args:
-            username_description: Description for the username prompt
-            password_description: Description for the password prompt
-
-        Returns:
-            Tuple of (username, password), or (None, None) if cancelled
-        """
-        if not self._zenity_available:
-            self._logger.error(
-                "Cannot prompt for credentials: "
-                "zenity utility is not available"
-            )
-            return None, None
-
-        try:
-            # Prompt for username
-            username_result = subprocess.run(
-                [
-                    self._zenity_path,
-                    "--entry",
-                    "--title",
-                    self.title,
-                    "--text",
-                    username_description,
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-                env=get_env_with_display(self._display_config),
-            )
-
-            if username_result.returncode != 0:
-                self._logger.debug("User cancelled username prompt")
-                return None, None
-
-            username = username_result.stdout.strip()
-            if not username:
-                self._logger.debug("No username entered")
-                return None, None
-
-            # Prompt for password
-            password = self.prompt_password(
-                description=password_description, prompt="Password:"
-            )
-
-            if not password:
-                self._logger.debug("No password entered")
-                return None, None
-
-            self._logger.debug(
-                f"Successfully obtained credentials for user '{username}'"
-            )
-            return username, password
-
-        except Exception as e:
-            self._logger.error(f"Failed to prompt for credentials: {e}")
-            return None, None
-
 
 class CredentialsHandler(Base):
     """Handler for credential operations with multiple backend support.
@@ -641,11 +686,11 @@ class CredentialsHandler(Base):
         super().__init__()
         self._title = title
         self._display_config = display_config
-        self._pinentry_handler = PinentryHandler(title=title)
-        self._kdialog_handler = KdialogHandler(
+        self._pinentry_handler = PinentryBackend(title=title)
+        self._kdialog_handler = KdialogBackend(
             title=title, display_config=display_config
         )
-        self._zenity_handler = ZenityHandler(
+        self._zenity_handler = ZenityBackend(
             title=title, display_config=display_config
         )
         self._active_handler = self._select_handler()
