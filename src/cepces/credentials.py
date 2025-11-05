@@ -28,25 +28,6 @@ from typing import Dict, List, Optional, Tuple  # Python 3.9 compatibility
 from cepces import Base
 
 
-def get_env_with_display(
-    display_config: Optional[Tuple[str, str]] = None,
-) -> dict:
-    """Get environment dict with display variable set if configured.
-
-    Args:
-        display_config: Optional tuple of (env_var_name,
-            display_value) from configuration
-
-    Returns:
-        Environment dictionary with display settings
-    """
-    env = os.environ.copy()
-    if display_config is not None:
-        env_var, display_value = display_config
-        env[env_var] = display_value
-    return env
-
-
 class CredentialsError(Exception):
     """Base exception for credential operations."""
 
@@ -84,6 +65,18 @@ class CredentialBackend(Base, ABC):
         self._display_config = display_config
         self._utility_path = None
         self._utility_available = self._check_utility_available()
+
+    def _get_env_with_display(self) -> dict:
+        """Get environment dict with display variable set if configured.
+
+        Returns:
+            Environment dictionary with display settings
+        """
+        env = os.environ.copy()
+        if self._display_config is not None:
+            env_var, display_value = self._display_config
+            env[env_var] = display_value
+        return env
 
     @abstractmethod
     def _get_utility_name(self) -> str:
@@ -480,7 +473,7 @@ class KdialogBackend(CredentialBackend):
                 capture_output=True,
                 text=True,
                 check=False,
-                env=get_env_with_display(self._display_config),
+                env=self._get_env_with_display(),
             )
 
             if username_result.returncode != 0:
@@ -527,7 +520,7 @@ class KdialogBackend(CredentialBackend):
                 capture_output=True,
                 text=True,
                 check=False,
-                env=get_env_with_display(self._display_config),
+                env=self._get_env_with_display(),
             )
 
             if result.returncode == 0:
@@ -601,7 +594,7 @@ class ZenityBackend(CredentialBackend):
                 capture_output=True,
                 text=True,
                 check=False,
-                env=get_env_with_display(self._display_config),
+                env=self._get_env_with_display(),
             )
 
             if username_result.returncode != 0:
@@ -648,7 +641,7 @@ class ZenityBackend(CredentialBackend):
                 capture_output=True,
                 text=True,
                 check=False,
-                env=get_env_with_display(self._display_config),
+                env=self._get_env_with_display(),
             )
 
             if result.returncode == 0:
