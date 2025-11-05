@@ -57,6 +57,18 @@ poll_interval=3600
 # Default: 2
 #openssl_seclevel=2
 
+# Display server to use for graphical credential prompts
+# (pinentry/kdialog/zenity).
+# The system will automatically detect whether this is an Xorg or Wayland
+# display based on the format:
+#   - Xorg displays: :0, :1, :0.0 (sets DISPLAY environment variable)
+#   - Wayland displays: wayland-0, wayland-1 (sets WAYLAND_DISPLAY)
+# If not specified, the existing DISPLAY or WAYLAND_DISPLAY environment
+# variables will be used.
+#
+# Default: <not defined>
+#display=:0
+
 [kerberos]
 # Use the specified keytab. If unspecified, the system default is used.
 #

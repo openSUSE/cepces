@@ -25,6 +25,29 @@ from cepces.soap import auth as SOAPAuth
 import gssapi.exceptions
 
 
+def _get_display_config_from_parser(parser):
+    """Get display configuration from ConfigParser.
+
+    Args:
+        parser: ConfigParser instance
+
+    Returns:
+        Tuple of (env_var_name, display_value) or None
+    """
+    # Import here to avoid circular dependency
+    from cepces.config import Configuration
+
+    if "global" not in parser:
+        return None
+
+    display_value = parser["global"].get("display", None)
+    if display_value is None or display_value == "":
+        return None
+
+    env_var = Configuration._detect_display_type(display_value)
+    return (env_var, display_value)
+
+
 def strtobool(value):
     if str(value).lower() in ("t", "true", "y", "yes", "1"):
         return True
@@ -118,7 +141,10 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 
     def prompt_credentials(self) -> tuple[str, str]:
         """Asks interactively for credentials to store in keyring."""
-        credentials_handler = CredentialsHandler(title="Login credentials")
+        display_config = _get_display_config_from_parser(self._parser)
+        credentials_handler = CredentialsHandler(
+            title="Login credentials", display_config=display_config
+        )
         if not credentials_handler.is_supported():
             self._logger.error(
                 "Cannot prompt for credentials: "

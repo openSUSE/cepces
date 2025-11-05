@@ -19,6 +19,7 @@
 from configparser import ConfigParser, ExtendedInterpolation
 from pathlib import Path
 import logging
+import re
 import socket
 from cepces import Base
 from cepces import auth as CoreAuth
@@ -55,6 +56,12 @@ class Configuration(Base):
         "Certificate": SOAPAuth.TransportCertificateAuthentication,
     }
 
+    # Regex patterns for display detection
+    # Xorg displays start with : and numbers (e.g., :0, :1, :0.0)
+    XORG_DISPLAY_PATTERN = re.compile(r"^:[0-9]+(\.[0-9]+)?$")
+    # Wayland displays contain "wayland" in the name
+    WAYLAND_DISPLAY_PATTERN = re.compile(r"wayland", re.IGNORECASE)
+
     def __init__(
         self,
         endpoint,
@@ -63,6 +70,7 @@ class Configuration(Base):
         auth,
         poll_interval,
         openssl_seclevel,
+        display=None,
     ):
         super().__init__()
 
@@ -72,6 +80,7 @@ class Configuration(Base):
         self._auth = auth
         self._poll_interval = poll_interval
         self._openssl_seclevel = openssl_seclevel
+        self._display = display
 
     @property
     def endpoint(self):
@@ -102,6 +111,39 @@ class Configuration(Base):
     def openssl_seclevel(self):
         """Return the openssl security level."""
         return self._openssl_seclevel
+
+    @property
+    def display(self):
+        """Return the display setting.
+
+        Returns:
+            Tuple of (environment_variable_name, display_value) if
+            display is set, otherwise None. The environment variable
+            name will be either 'DISPLAY' or 'WAYLAND_DISPLAY' based
+            on the display value format.
+        """
+        if self._display is None or self._display == "":
+            return None
+
+        env_var = self._detect_display_type(self._display)
+        return (env_var, self._display)
+
+    @staticmethod
+    def _detect_display_type(display_value):
+        """Detect whether a display value is for Xorg or Wayland.
+
+        Args:
+            display_value: The display string to check
+
+        Returns:
+            'DISPLAY' for Xorg displays, 'WAYLAND_DISPLAY' for Wayland displays
+        """
+        if Configuration.XORG_DISPLAY_PATTERN.match(display_value):
+            return "DISPLAY"
+        if Configuration.WAYLAND_DISPLAY_PATTERN.search(display_value):
+            return "WAYLAND_DISPLAY"
+        # Default to DISPLAY for unknown formats
+        return "DISPLAY"
 
     @classmethod
     def load(
@@ -204,6 +246,7 @@ class Configuration(Base):
         cas = section.get("cas", True)
         poll_interval = section.get("poll_interval")
         openssl_seclevel = section.get("openssl_seclevel")
+        display = section.get("display", None)
 
         if cas == "":
             cas = False
@@ -215,4 +258,5 @@ class Configuration(Base):
             authn.handle(),
             poll_interval,
             openssl_seclevel,
+            display,
         )
