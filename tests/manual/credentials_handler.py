@@ -19,7 +19,7 @@ def print_banner():
 def print_menu():
     """Print the main menu options."""
     print("\nAvailable Tests:")
-    print("  1. Check pinentry support")
+    print("  1. Check credential handler support")
     print("  2. Test password prompt (default parameters)")
     print("  3. Test password prompt (custom parameters)")
     print("  4. Test credentials prompt (username + password)")
@@ -30,19 +30,45 @@ def print_menu():
 
 
 def test_support():
-    """Test if pinentry is supported."""
-    print("\n--- Testing pinentry support ---")
+    """Test if credential prompting is supported."""
+    print("\n--- Testing credential handler support ---")
     handler = CredentialsHandler()
     is_supported = handler.is_supported()
 
-    print(f"Pinentry supported: {is_supported}")
+    print(f"Credential prompting supported: {is_supported}")
     if is_supported:
-        print(f"Pinentry path: {handler._pinentry_path}")
+        # Show which backend is active
+        if handler._active_handler == handler._pinentry_handler:
+            print(
+                "Active backend: pinentry "
+                f"(path: {handler._pinentry_handler._pinentry_path})"
+            )
+        elif handler._active_handler == handler._kdialog_handler:
+            print(
+                "Active backend: kdialog "
+                f"(path: {handler._kdialog_handler._kdialog_path})"
+            )
+        elif handler._active_handler == handler._zenity_handler:
+            print(
+                "Active backend: zenity "
+                f"(path: {handler._zenity_handler._zenity_path})"
+            )
+
+        # Show fallback order
+        print("\nFallback order: pinentry → kdialog → zenity")
+        pinentry_avail = handler._pinentry_handler.is_supported()
+        kdialog_avail = handler._kdialog_handler.is_supported()
+        zenity_avail = handler._zenity_handler.is_supported()
+        print(f"  - pinentry available: {pinentry_avail}")
+        print(f"  - kdialog available: {kdialog_avail}")
+        print(f"  - zenity available: {zenity_avail}")
     else:
-        print("Warning: pinentry is not available on this system")
-        print(
-            "Please install pinentry (e.g., 'sudo dnf install pinentry' on Fedora)"
-        )
+        print("Warning: No credential prompting utilities available")
+        print("Please install one of: pinentry, kdialog, or zenity")
+        print("  Fedora: sudo dnf install pinentry")
+        print("  Debian/Ubuntu: sudo apt install pinentry-curses")
+        print("  KDE: sudo dnf install kdialog")
+        print("  GNOME: sudo dnf install zenity")
 
     return is_supported
 
@@ -53,7 +79,7 @@ def test_password_default():
     handler = CredentialsHandler()
 
     if not handler.is_supported():
-        print("Error: pinentry is not available")
+        print("Error: No credential prompting utilities available")
         return
 
     print("Opening password prompt dialog...")
@@ -72,7 +98,7 @@ def test_password_custom():
     handler = CredentialsHandler(title="Custom Test Application")
 
     if not handler.is_supported():
-        print("Error: pinentry is not available")
+        print("Error: No credential prompting utilities available")
         return
 
     print("Opening custom password prompt dialog...")
@@ -94,7 +120,7 @@ def test_credentials_default():
     handler = CredentialsHandler()
 
     if not handler.is_supported():
-        print("Error: pinentry is not available")
+        print("Error: No credential prompting utilities available")
         return
 
     print("Opening credentials prompt dialogs...")
@@ -118,7 +144,7 @@ def test_credentials_custom():
     handler = CredentialsHandler(title="Database Login Test")
 
     if not handler.is_supported():
-        print("Error: pinentry is not available")
+        print("Error: No credential prompting utilities available")
         return
 
     print("Opening custom credentials prompt dialogs...")
@@ -147,7 +173,10 @@ def run_all_tests():
     is_supported = test_support()
 
     if not is_supported:
-        print("\nSkipping remaining tests as pinentry is not available")
+        print(
+            "\nSkipping remaining tests as no credential "
+            "prompting utilities are available"
+        )
         return
 
     input("\nPress Enter to continue to password tests...")
