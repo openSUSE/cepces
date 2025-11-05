@@ -33,7 +33,9 @@ following system utilities:
   * Debian/Ubuntu: ``sudo apt install keyutils``
   * openSUSE: ``sudo zypper install keyutils``
 
-* **pinentry** - Provides secure password prompting functionality. Install with:
+* **pinentry** - Provides secure password prompting functionality (preferred).
+  If pinentry is not available, `cepces` will automatically try to fall back to
+  either ``kdialog`` or ``zenity``. Install pinentry with:
 
   * Fedora/RHEL/CentOS: ``sudo dnf install pinentry``
   * Debian/Ubuntu: ``sudo apt install pinentry-curses`` or ``pinentry-gtk2``
@@ -135,14 +137,14 @@ The certificate should now be submitted to the CA. Verify the progress with:
             key pair storage: type=FILE,location='/etc/pki/tls/private/machine.key'
             certificate: type=FILE,location='/etc/pki/tls/certs/machine.crt'
             CA: cepces
-            issuer: 
-            subject: 
+            issuer:
+            subject:
             expires: unknown
-            pre-save command: 
-            post-save command: 
+            pre-save command:
+            post-save command:
             track: yes
             auto-renew: yes
-    
+
 After a few moments when the CA has successfully processed the request, the
 certificate should be issued and monitored by certmonger:
 
@@ -163,8 +165,8 @@ certificate should be issued and monitored by certmonger:
             key usage: digitalSignature,keyEncipherment
             eku: id-kp-clientAuth,id-kp-serverAuth
             certificate template/profile: Machine
-            pre-save command: 
-            post-save command: 
+            pre-save command:
+            post-save command:
             track: yes
             auto-renew: yes
 
