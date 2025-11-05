@@ -29,6 +29,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 import requests
 from cepces import Base
 from cepces.config import Configuration
+from cepces.http import create_session
 from cepces.xcep.service import Service as XCEPService
 from cepces.wstep.service import Service as WSTEPService
 
@@ -81,12 +82,14 @@ class Service(Base):
         super().__init__()
 
         self._config = config
+        self._session = create_session(config.openssl_ciphers)
 
         if config.endpoint_type == "Policy":
             self._xcep = XCEPService(
                 endpoint=config.endpoint,
                 auth=config.auth,
                 capath=config.cas,
+                openssl_ciphers=config.openssl_ciphers,
             )
 
             # Eagerly load the policy response.
@@ -97,6 +100,7 @@ class Service(Base):
                 endpoint=config.endpoint,
                 auth=config.auth,
                 capath=config.cas,
+                openssl_ciphers=config.openssl_ciphers,
             )
 
     @property
@@ -202,6 +206,7 @@ class Service(Base):
             endpoint=str(endpoint),
             auth=self._config.auth,
             capath=self._config.cas,
+            openssl_ciphers=self._config.openssl_ciphers,
         )
 
         return self._request_ces(csr)
@@ -219,6 +224,7 @@ class Service(Base):
             endpoint=uri,
             auth=self._config.auth,
             capath=self._config.cas,
+            openssl_ciphers=self._config.openssl_ciphers,
         )
 
         response = ces.poll(request_id)
@@ -334,7 +340,7 @@ class Service(Base):
                     uri = aia.access_location.value
 
                     # Try to fetch the certificate.
-                    r = requests.get(uri)
+                    r = self._session.get(uri)
                     r.raise_for_status()
 
                     parent = self._resolve_chain(r.text, cert)

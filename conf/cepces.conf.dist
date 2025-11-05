@@ -48,14 +48,15 @@ endpoint=https://${server}/ADPolicyProvider_CEP_${auth}/service.svc/CEP
 # Time in seconds before re-checking if the certificate has been issued
 poll_interval=3600
 
-# This is the openssl security level. The latest openssl sets the default to
-# level 2, which disables some less secure ciphers. You may encounter an error
-# of '[SSL: DH_KEY_TOO_SMALL] dh key too small' if this level is set to high
-# for your server. If this happens, you can work around this issue by setting
-# openssl_seclevel to 1.
+# This is the OpenSSL cipher string to use for HTTPS connections.
+# If not set, the default system cipher configuration will be used.
 #
-# Default: 2
-#openssl_seclevel=2
+# Only set this option if you cannot use crypto-policies for your use case.
+# Example to use DEFAULT ciphers and enable SHA1:
+#   openssl_ciphers=DEFAULT:@SECLEVEL=1
+#
+# Default: <not set>
+#openssl_ciphers=
 
 # Display server to use for graphical credential prompts
 # (pinentry/kdialog/zenity).
