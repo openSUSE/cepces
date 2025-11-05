@@ -20,8 +20,8 @@
 #
 """This module contains SOAP service related logic."""
 from xml.etree import ElementTree
-import requests
 from cepces import Base
+from cepces.http import create_session
 from cepces.soap import QNAME_FAULT
 from cepces.soap.types import Envelope, Fault
 
@@ -50,7 +50,7 @@ class SOAPFault(Exception):
 class Service(Base):
     """Base class for a SOAP service endpoint."""
 
-    def __init__(self, endpoint, auth=None, capath=True):
+    def __init__(self, endpoint, auth=None, capath=True, openssl_ciphers=None):
         super().__init__()
 
         self._logger.debug(
@@ -61,6 +61,7 @@ class Service(Base):
         self._endpoint = endpoint
         self._auth = auth
         self._capath = capath
+        self._session = create_session(openssl_ciphers)
 
     def send(self, message):
         """Send a message to the remote SOAP service."""
@@ -81,7 +82,7 @@ class Service(Base):
             self._logger.debug(" -data after post-processing: %s", data)
 
         # Post the envelope and raise an error if necessary.
-        req = requests.post(
+        req = self._session.post(
             url=self._endpoint,
             data=data,
             headers=headers,
