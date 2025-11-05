@@ -26,7 +26,9 @@ from cepces.credentials import (
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_initialization_with_pinentry_available(mock_which):
+def test_credentials_handler_initialization_with_pinentry_available(
+    mock_which,
+):
     """Test initialization when pinentry is available"""
     mock_which.return_value = "/usr/bin/pinentry"
 
@@ -34,7 +36,9 @@ def test_credentials_handler_initialization_with_pinentry_available(mock_which):
 
     assert handler.title == "Test Title"
     assert handler._pinentry_available is True
-    mock_which.assert_called_once_with("pinentry")
+    # Now checks all three handlers (pinentry, kdialog, zenity)
+    assert mock_which.call_count == 3
+    mock_which.assert_any_call("pinentry")
 
 
 @patch("cepces.credentials.shutil.which")
@@ -48,7 +52,9 @@ def test_credentials_handler_initialization_with_pinentry_unavailable(
 
     assert handler.title == "Test Title"
     assert handler._pinentry_available is False
-    mock_which.assert_called_once_with("pinentry")
+    # Now checks all three handlers (pinentry, kdialog, zenity)
+    assert mock_which.call_count == 3
+    mock_which.assert_any_call("pinentry")
 
 
 @patch("cepces.credentials.shutil.which")
