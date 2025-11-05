@@ -27,6 +27,25 @@ from typing import Dict, List, Optional, Tuple  # Python 3.9 compatibility
 from cepces import Base
 
 
+def get_env_with_display(
+    display_config: Optional[Tuple[str, str]] = None,
+) -> dict:
+    """Get environment dict with display variable set if configured.
+
+    Args:
+        display_config: Optional tuple of (env_var_name,
+            display_value) from configuration
+
+    Returns:
+        Environment dictionary with display settings
+    """
+    env = os.environ.copy()
+    if display_config is not None:
+        env_var, display_value = display_config
+        env[env_var] = display_value
+    return env
+
+
 class CredentialsError(Exception):
     """Base exception for credential operations."""
 
@@ -250,14 +269,21 @@ class PinentryHandler(Base):
 class KdialogHandler(Base):
     """Handler for credential prompting using kdialog utility."""
 
-    def __init__(self, title: str = "Authentication Required"):
+    def __init__(
+        self,
+        title: str = "Authentication Required",
+        display_config: Optional[tuple] = None,
+    ):
         """Initialize the KdialogHandler.
 
         Args:
             title: The title to display in the kdialog dialog
+            display_config: Optional tuple of (env_var_name,
+                display_value) from configuration
         """
         super().__init__()
         self.title = title
+        self._display_config = display_config
         self._kdialog_path = None
         self._kdialog_available = self._check_kdialog_available()
 
@@ -276,14 +302,21 @@ class KdialogHandler(Base):
             return False
 
         # Check if running in a graphical environment
-        if not os.environ.get("DISPLAY") and not os.environ.get(
-            "WAYLAND_DISPLAY"
-        ):
+        # Use configured display if available, otherwise check environment
+        if self._display_config is None:
+            if not os.environ.get("DISPLAY") and not os.environ.get(
+                "WAYLAND_DISPLAY"
+            ):
+                self._logger.debug(
+                    "kdialog found but no DISPLAY or WAYLAND_DISPLAY set. "
+                    "KDE credential prompting will not be available."
+                )
+                return False
+        else:
             self._logger.debug(
-                "kdialog found but no DISPLAY or WAYLAND_DISPLAY set. "
-                "KDE credential prompting will not be available."
+                f"Using configured display: "
+                f"{self._display_config[0]}={self._display_config[1]}"
             )
-            return False
 
         self._logger.debug(f"kdialog utility found at: {self._kdialog_path}")
         return True
@@ -329,6 +362,7 @@ class KdialogHandler(Base):
                 capture_output=True,
                 text=True,
                 check=False,
+                env=get_env_with_display(self._display_config),
             )
 
             if result.returncode == 0:
@@ -377,6 +411,7 @@ class KdialogHandler(Base):
                 capture_output=True,
                 text=True,
                 check=False,
+                env=get_env_with_display(self._display_config),
             )
 
             if username_result.returncode != 0:
@@ -410,14 +445,21 @@ class KdialogHandler(Base):
 class ZenityHandler(Base):
     """Handler for credential prompting using zenity utility."""
 
-    def __init__(self, title: str = "Authentication Required"):
+    def __init__(
+        self,
+        title: str = "Authentication Required",
+        display_config: Optional[tuple] = None,
+    ):
         """Initialize the ZenityHandler.
 
         Args:
             title: The title to display in the zenity dialog
+            display_config: Optional tuple of (env_var_name,
+                display_value) from configuration
         """
         super().__init__()
         self.title = title
+        self._display_config = display_config
         self._zenity_path = None
         self._zenity_available = self._check_zenity_available()
 
@@ -436,14 +478,21 @@ class ZenityHandler(Base):
             return False
 
         # Check if running in a graphical environment
-        if not os.environ.get("DISPLAY") and not os.environ.get(
-            "WAYLAND_DISPLAY"
-        ):
+        # Use configured display if available, otherwise check environment
+        if self._display_config is None:
+            if not os.environ.get("DISPLAY") and not os.environ.get(
+                "WAYLAND_DISPLAY"
+            ):
+                self._logger.debug(
+                    "zenity found but no DISPLAY or WAYLAND_DISPLAY set. "
+                    "GNOME credential prompting will not be available."
+                )
+                return False
+        else:
             self._logger.debug(
-                "zenity found but no DISPLAY or WAYLAND_DISPLAY set. "
-                "GNOME credential prompting will not be available."
+                f"Using configured display: "
+                f"{self._display_config[0]}={self._display_config[1]}"
             )
-            return False
 
         self._logger.debug(f"zenity utility found at: {self._zenity_path}")
         return True
@@ -489,6 +538,7 @@ class ZenityHandler(Base):
                 capture_output=True,
                 text=True,
                 check=False,
+                env=get_env_with_display(self._display_config),
             )
 
             if result.returncode == 0:
@@ -538,6 +588,7 @@ class ZenityHandler(Base):
                 capture_output=True,
                 text=True,
                 check=False,
+                env=get_env_with_display(self._display_config),
             )
 
             if username_result.returncode != 0:
@@ -575,17 +626,28 @@ class CredentialsHandler(Base):
     tries multiple backends in order: pinentry, kdialog, zenity.
     """
 
-    def __init__(self, title: str = "Authentication Required"):
+    def __init__(
+        self,
+        title: str = "Authentication Required",
+        display_config: Optional[Tuple[str, str]] = None,
+    ):
         """Initialize the CredentialsHandler.
 
         Args:
             title: The title to display in credential prompts
+            display_config: Optional tuple of (env_var_name,
+                display_value) from configuration
         """
         super().__init__()
         self._title = title
+        self._display_config = display_config
         self._pinentry_handler = PinentryHandler(title=title)
-        self._kdialog_handler = KdialogHandler(title=title)
-        self._zenity_handler = ZenityHandler(title=title)
+        self._kdialog_handler = KdialogHandler(
+            title=title, display_config=display_config
+        )
+        self._zenity_handler = ZenityHandler(
+            title=title, display_config=display_config
+        )
         self._active_handler = self._select_handler()
 
     def _select_handler(self) -> Optional[Base]:
