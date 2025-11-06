@@ -15,11 +15,16 @@ Requirements
 ============
 
 This application uses two SOAP endpoints over HTTPS provided by Microsoft
-Active Directory Certificate Services. Currently, only Kerberos authentication
-is supported. Therefore, the client has to be a Windows Domain Member with a
-valid Kerberos keytab.
+Active Directory Certificate Services. The following authentication methods are
+supported:
 
-`cepces` is implemented in Python and requires at least Python 3.4 in order to
+* **Kerberos (GSSAPI)** - Requires the client to be a Windows Domain Member with
+  a valid Kerberos keytab
+* **Username and Password** - Allows authentication using domain credentials
+* **Certificate** - Uses client certificates for authentication
+* **Anonymous** - No authentication (for testing or specific deployments)
+
+`cepces` is implemented in Python and requires at least Python 3.9 in order to
 run, with all the required dependencies.
 
 For credential management and secure password storage, `cepces` requires the
@@ -47,23 +52,19 @@ them, credential storage and interactive password prompting will not be availabl
 Installation
 ============
 
-``cepces`` is currently supported on any system (well, not really) with:
-
-* Python 3.4 or later
-* Python dependencies specified in ``requirements.txt``
-* `certmonger`_
+``cepces`` is currently supported on any system running `certmonger`_. It
+requires Python 3.9 or later.
 
 If available, it is recommended to use a repository for installing the
 application and all dependencies. Please consult the project's wiki for more
 information on what distributions are supported and have repositories provided.
 
-Download and unpack a release tarball and issue these commands from within the
+Download and unpack a release tarball and issue this command from within the
 extracted directory:
 
 .. code-block:: bash
 
-    # pip3 install -r requirements.txt
-    # python3 setup.py install
+    # pip3 install .
 
 Configuration
 =============
