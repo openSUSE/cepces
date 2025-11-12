@@ -86,7 +86,10 @@ class ListingMeta(type):
         # Create a new class.
         klass = type.__new__(cls, name, bases, class_dict)
         members = inspect.getmembers(klass, is_member)
-        klass.__listing__ = sorted(members, key=lambda i: i[1]._index)
+        # Use setattr to add __listing__ attribute dynamically
+        setattr(
+            klass, "__listing__", sorted(members, key=lambda i: i[1]._index)
+        )
 
         return klass
 
