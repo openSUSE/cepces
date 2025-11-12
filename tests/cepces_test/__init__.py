@@ -17,4 +17,4 @@
 #
 from .certmonger import *  # noqa: F403
 from .xcep import *  # noqa: F403
-from .xml import *  # noqa: F403
+from .xml import *  # noqa: F403,F811  # type: ignore[no-redef]
