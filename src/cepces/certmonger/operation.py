@@ -50,9 +50,9 @@ class Operation(Base, metaclass=ABCMeta):
     certmonger operation.
     """
 
-    name = None
-    required = []
-    optional = []
+    name: str | None = None
+    required: list[str] = []
+    optional: list[tuple[str, str | None]] = []
 
     def __init__(self, service, out=sys.stdout, logger=None):
         """Initializes an Operation.
@@ -69,7 +69,7 @@ class Operation(Base, metaclass=ABCMeta):
 
         self._service = service
         self._out = out
-        self._vars = {}
+        self._vars: dict[str, str | None] = {}
 
         # Verify that all required environment variables are present.
         for var in self.__class__.required:
@@ -105,7 +105,9 @@ class Submit(Operation):
     def __call__(self):
         service = self._service
 
-        pem = self._vars["CERTMONGER_CSR"].strip()
+        csr_var = self._vars["CERTMONGER_CSR"]
+        assert csr_var is not None  # Required variable, guaranteed to be set
+        pem = csr_var.strip()
         csr = x509.load_pem_x509_csr(pem.encode(), default_backend())
 
         self._logger.debug("Sending CSR: %s", pem)
@@ -155,6 +157,7 @@ class Poll(Operation):
         service = self._service
 
         cookie = self._vars["CERTMONGER_CA_COOKIE"]
+        assert cookie is not None  # Required variable, guaranteed to be set
         request_id, reference = cookie.split(",", maxsplit=1)
 
         try:
