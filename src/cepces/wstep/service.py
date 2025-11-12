@@ -141,7 +141,7 @@ class Service(SOAPService):
 
         # Improve this handling since we're manually inserting an element here.
         qname = ElementTree.QName(NS_ENROLLMENT, "RequestID")
-        element = ElementTree.Element(qname)
+        element = ElementTree.Element(qname)  # type: ignore[type-var]
         token._element.append(element)
         token.request_id = request_id
 
