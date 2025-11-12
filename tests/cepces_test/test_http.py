@@ -225,7 +225,7 @@ class TestCreateSession:
 
         # Verify the adapter has the context
         adapter = session.get_adapter("https://example.com")
-        assert adapter.ssl_context is mock_ssl_context
+        assert adapter.ssl_context is mock_ssl_context  # type: ignore[attr-defined]
 
     def test_create_session_with_invalid_cipher_string(self):
         """Test create_session raises SSLError for invalid cipher string"""
