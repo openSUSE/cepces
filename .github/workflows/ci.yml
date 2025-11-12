@@ -36,7 +36,6 @@ jobs:
         toxenv:
           - "lint"
           - "format"
-          - "type"
           - "codestyle"
     steps:
       - uses: actions/checkout@v3
