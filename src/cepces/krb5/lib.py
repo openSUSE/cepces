@@ -21,7 +21,7 @@ import ctypes
 
 # Try to load the Kerberos5 library dynamically. Naïvely try to load everything
 # in the list until successful.
-_shlib = None
+_shlib: ctypes.CDLL | None = None
 _libs = [
     "libgssapi_krb5.so",
     "libgssapi_krb5.so.2",
@@ -40,3 +40,6 @@ for lib in _libs:
 # If no library was found, fail.
 if _shlib is None:
     raise RuntimeError("Could not load any Kerberos library.")
+
+# Type narrowing: assert that _shlib is not None after the check
+assert _shlib is not None
