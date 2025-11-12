@@ -53,11 +53,11 @@ class Client(XMLNode):
     def create():
         client = Element(QName(NS_CEP, "client"))  # type: ignore[type-var]
 
-        last_update = Element(QName(NS_CEP, "lastUpdate"))  # type: ignore[type-var]
+        last_update = Element(QName(NS_CEP, "lastUpdate"))  # type: ignore[type-var]  # noqa: E501
         last_update.attrib[ATTR_NIL] = "true"
         client.append(last_update)
 
-        preferred_language = Element(QName(NS_CEP, "preferredLanguage"))  # type: ignore[type-var]
+        preferred_language = Element(QName(NS_CEP, "preferredLanguage"))  # type: ignore[type-var]  # noqa: E501
         preferred_language.attrib[ATTR_NIL] = "true"
         client.append(preferred_language)
 
@@ -93,17 +93,17 @@ class RequestFilter(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_CEP, "requestFilter"))  # type: ignore[type-var]
+        element = Element(QName(NS_CEP, "requestFilter"))  # type: ignore[type-var]  # noqa: E501
 
-        policy_oids = Element(QName(NS_CEP, "policyOIDs"))  # type: ignore[type-var]
+        policy_oids = Element(QName(NS_CEP, "policyOIDs"))  # type: ignore[type-var]  # noqa: E501
         policy_oids.attrib[ATTR_NIL] = "true"
         element.append(policy_oids)
 
-        client_version = Element(QName(NS_CEP, "clientVersion"))  # type: ignore[type-var]
+        client_version = Element(QName(NS_CEP, "clientVersion"))  # type: ignore[type-var]  # noqa: E501
         client_version.attrib[ATTR_NIL] = "true"
         element.append(client_version)
 
-        server_version = Element(QName(NS_CEP, "serverVersion"))  # type: ignore[type-var]
+        server_version = Element(QName(NS_CEP, "serverVersion"))  # type: ignore[type-var]  # noqa: E501
         server_version.attrib[ATTR_NIL] = "true"
         element.append(server_version)
 
@@ -120,7 +120,7 @@ class GetPolicies(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_CEP, "GetPolicies"))  # type: ignore[type-var]
+        element = Element(QName(NS_CEP, "GetPolicies"))  # type: ignore[type-var]  # noqa: E501
         element.append(Client.create())
         element.append(RequestFilter.create())
 

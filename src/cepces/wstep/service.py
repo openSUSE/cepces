@@ -124,7 +124,9 @@ class Service(SOAPService):
                 results.append(
                     Service.Response(
                         request_id=response.request_id,
-                        reference=response.requested_token.token_reference.reference.uri,
+                        reference=(
+                            response.requested_token.token_reference.reference.uri  # noqa: E501
+                        ),
                     ),
                 )
 
@@ -172,7 +174,9 @@ class Service(SOAPService):
                 results.append(
                     Service.Response(
                         request_id=response.request_id,
-                        reference=response.requested_token.token_reference.reference.uri,
+                        reference=(
+                            response.requested_token.token_reference.reference.uri  # noqa: E501
+                        ),
                     ),
                 )
 

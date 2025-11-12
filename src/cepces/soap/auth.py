@@ -42,8 +42,8 @@ class Authentication(Base, metaclass=ABCMeta):
 
     @abstractproperty
     def clientcertificate(self):
-        """Property containing TLS client certificate ínformation for the transport layer
-        (i.e. requests)."""
+        """Property containing TLS client certificate ínformation for the
+        transport layer (i.e. requests)."""
 
     @abstractmethod
     def post_process(self, envelope):
@@ -61,8 +61,8 @@ class AnonymousAuthentication(Authentication):
 
     @property
     def clientcertificate(self):
-        """Property containing TLS client certificate information for the transport layer
-        (i.e. requests)."""
+        """Property containing TLS client certificate information for the
+        transport layer (i.e. requests)."""
         return None
 
     def post_process(self, envelope):
@@ -149,7 +149,8 @@ class TransportGSSAPIAuthentication(Authentication):
             creds=creds,
             delegate=self._config["delegate"],
             mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"),
-            channel_bindings="tls-server-end-point",  # type stub missing parameter
+            # type stub missing parameter
+            channel_bindings="tls-server-end-point",
         )
 
     @property
@@ -185,7 +186,7 @@ class MessageUsernamePasswordAuthentication(Authentication):
         # m.update(self._password.encode("utf-8"))
         # self._password = base64.b64encode(m.digest()).decode("utf-8")
 
-        self._nonce = base64.b64encode(self._nonce).decode("utf-8")  # type: ignore[assignment]
+        self._nonce = base64.b64encode(self._nonce).decode("utf-8")  # type: ignore[assignment]  # noqa: E501
 
     @property
     def transport(self):
@@ -201,7 +202,8 @@ class MessageUsernamePasswordAuthentication(Authentication):
         envelope.header.security.element.append(UsernameToken.create())
         envelope.header.security.usernametoken.username = self._username
         envelope.header.security.usernametoken.password = self._password
-        # envelope.header.security.usernametoken.password = self._password_digest
+        # envelope.header.security.usernametoken.password = ...
+        # ... self._password_digest
         envelope.header.security.usernametoken.nonce = self._nonce
         envelope.header.security.usernametoken.created = self._created
 

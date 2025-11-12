@@ -35,7 +35,8 @@ class Result(IntEnum):
 
 
 class MissingEnvironmentVariable(RuntimeError):
-    """This error is raised when an expected environment variable is missing."""
+    """This error is raised when an expected environment variable is
+    missing."""
 
     def __init__(self, variable):
         """Initializes the error.
