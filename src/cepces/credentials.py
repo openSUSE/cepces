@@ -23,7 +23,6 @@ import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple  # Python 3.9 compatibility
 
 from cepces import Base
 
@@ -51,7 +50,7 @@ class CredentialBackend(Base, ABC):
     def __init__(
         self,
         title: str = "Authentication Required",
-        display_config: Optional[Tuple[str, str]] = None,
+        display_config: tuple[str, str] | None = None,
     ):
         """Initialize the credential backend.
 
@@ -95,7 +94,7 @@ class CredentialBackend(Base, ABC):
         """
 
     @abstractmethod
-    def _prompt_username(self, description: str) -> Optional[str]:
+    def _prompt_username(self, description: str) -> str | None:
         """Prompt user for a username.
 
         Args:
@@ -110,7 +109,7 @@ class CredentialBackend(Base, ABC):
         self,
         description: str = "Enter your password",
         prompt: str = "Password:",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Prompt user for a password.
 
         Args:
@@ -199,7 +198,7 @@ class CredentialBackend(Base, ABC):
         self,
         username_description: str = "Enter your username",
         password_description: str = "Enter your password",
-    ) -> Tuple[Optional[str], Optional[str]]:
+    ) -> tuple[str | None, str | None]:
         """Prompt user for both username and password.
 
         This is a template method that handles the common workflow.
@@ -278,9 +277,7 @@ class PinentryBackend(CredentialBackend):
         """
         return False
 
-    # Using typing.List and typing.Dict for Python 3.9 compatibility
-    # (| and list[]/dict[] require 3.10+)
-    def _run_pinentry(self, commands: List[str]) -> Dict[str, str]:
+    def _run_pinentry(self, commands: list[str]) -> dict[str, str]:
         """Run pinentry with the given commands.
 
         Args:
@@ -333,7 +330,7 @@ class PinentryBackend(CredentialBackend):
                 f"Failed to run pinentry: {error_msg}"
             ) from e
 
-    def _prompt_username(self, description: str) -> Optional[str]:
+    def _prompt_username(self, description: str) -> str | None:
         """Prompt user for a username using pinentry.
 
         Args:
@@ -365,13 +362,11 @@ class PinentryBackend(CredentialBackend):
             self._logger.error(f"Failed to prompt for username: {e}")
             return None
 
-    # Using typing.Optional for Python 3.9 compatibility
-    # (| operator requires 3.10+)
     def prompt_password(
         self,
         description: str = "Enter your password",
         prompt: str = "Password:",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Prompt user for a password using pinentry.
 
         Args:
@@ -422,7 +417,7 @@ class KdialogBackend(CredentialBackend):
     def __init__(
         self,
         title: str = "Authentication Required",
-        display_config: Optional[tuple] = None,
+        display_config: tuple | None = None,
     ):
         """Initialize the KdialogBackend.
 
@@ -452,7 +447,7 @@ class KdialogBackend(CredentialBackend):
         """
         return True
 
-    def _prompt_username(self, description: str) -> Optional[str]:
+    def _prompt_username(self, description: str) -> str | None:
         """Prompt user for a username using kdialog.
 
         Args:
@@ -491,7 +486,7 @@ class KdialogBackend(CredentialBackend):
         self,
         description: str = "Enter your password",
         prompt: str = "Password:",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Prompt user for a password using kdialog.
 
         Args:
@@ -542,7 +537,7 @@ class ZenityBackend(CredentialBackend):
     def __init__(
         self,
         title: str = "Authentication Required",
-        display_config: Optional[tuple] = None,
+        display_config: tuple | None = None,
     ):
         """Initialize the ZenityBackend.
 
@@ -572,7 +567,7 @@ class ZenityBackend(CredentialBackend):
         """
         return True
 
-    def _prompt_username(self, description: str) -> Optional[str]:
+    def _prompt_username(self, description: str) -> str | None:
         """Prompt user for a username using zenity.
 
         Args:
@@ -612,7 +607,7 @@ class ZenityBackend(CredentialBackend):
         self,
         description: str = "Enter your password",
         prompt: str = "Password:",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Prompt user for a password using zenity.
 
         Args:
@@ -667,7 +662,7 @@ class CredentialsHandler(Base):
     def __init__(
         self,
         title: str = "Authentication Required",
-        display_config: Optional[Tuple[str, str]] = None,
+        display_config: tuple[str, str] | None = None,
     ):
         """Initialize the CredentialsHandler.
 
@@ -688,7 +683,7 @@ class CredentialsHandler(Base):
         )
         self._active_handler = self._select_handler()
 
-    def _select_handler(self) -> Optional[Base]:
+    def _select_handler(self) -> Base | None:
         """Select the first available credential handler.
 
         Tries handlers in this order:
@@ -751,7 +746,7 @@ class CredentialsHandler(Base):
         """
         return self._pinentry_handler._pinentry_available
 
-    def _run_pinentry(self, commands: List[str]) -> Dict[str, str]:
+    def _run_pinentry(self, commands: list[str]) -> dict[str, str]:
         """Run pinentry with the given commands.
 
         This method is maintained for backward compatibility with tests.
@@ -779,7 +774,7 @@ class CredentialsHandler(Base):
         self,
         description: str = "Enter your password",
         prompt: str = "Password:",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Prompt user for a password.
 
         Args:
@@ -801,7 +796,7 @@ class CredentialsHandler(Base):
         self,
         username_description: str = "Enter your username",
         password_description: str = "Enter your password",
-    ) -> Tuple[Optional[str], Optional[str]]:
+    ) -> tuple[str | None, str | None]:
         """Prompt user for both username and password.
 
         Args:
