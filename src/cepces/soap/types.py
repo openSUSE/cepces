@@ -34,9 +34,9 @@ class FaultSubcode(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, "Subcode"))
+        element = Element(QName(NS_SOAP, "Subcode"))  # type: ignore[type-var]
 
-        value = Element(QName(NS_SOAP, "Value"))
+        value = Element(QName(NS_SOAP, "Value"))  # type: ignore[type-var]
         element.append(value)
 
         return element
@@ -51,9 +51,9 @@ class FaultCode(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, "Code"))
+        element = Element(QName(NS_SOAP, "Code"))  # type: ignore[type-var]
 
-        value = Element(QName(NS_SOAP, "Value"))
+        value = Element(QName(NS_SOAP, "Value"))  # type: ignore[type-var]
         element.append(value)
 
         element.append(FaultSubcode.create())
@@ -68,9 +68,9 @@ class FaultReason(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, "Reason"))
+        element = Element(QName(NS_SOAP, "Reason"))  # type: ignore[type-var]
 
-        value = Element(QName(NS_SOAP, "Text"))
+        value = Element(QName(NS_SOAP, "Text"))  # type: ignore[type-var]
         element.append(value)
 
         return element
@@ -85,7 +85,7 @@ class Fault(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_SOAP, "Fault"))
+        element = Element(QName(NS_SOAP, "Fault"))  # type: ignore[type-var]
         element.append(FaultCode.create())
         element.append(FaultReason.create())
 
@@ -106,22 +106,22 @@ class UsernameToken(XMLNode):
 
     @staticmethod
     def create():
-        usernametoken = Element(QName(NS_WSSE, "UsernameToken"))
+        usernametoken = Element(QName(NS_WSSE, "UsernameToken"))  # type: ignore[type-var]
 
-        username = Element(QName(NS_WSSE, "Username"))
+        username = Element(QName(NS_WSSE, "Username"))  # type: ignore[type-var]
         usernametoken.append(username)
 
-        password = Element(QName(NS_WSSE, "Password"))
-        password.attrib[QName(NS_WSSE, "Type")] = (
+        password = Element(QName(NS_WSSE, "Password"))  # type: ignore[type-var]
+        password.attrib[QName(NS_WSSE, "Type")] = (  # type: ignore[index]
             "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText"
         )
         # password.attrib[QName(NS_WSSE, 'Type' )] = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest'
         usernametoken.append(password)
 
-        nonce = Element(QName(NS_WSSE, "Nonce"))
+        nonce = Element(QName(NS_WSSE, "Nonce"))  # type: ignore[type-var]
         usernametoken.append(nonce)
 
-        created = Element(QName(NS_WSU, "Created"))
+        created = Element(QName(NS_WSU, "Created"))  # type: ignore[type-var]
         usernametoken.append(created)
 
         return usernametoken
@@ -136,8 +136,8 @@ class Security(XMLNode):
 
     @staticmethod
     def create():
-        security = Element(QName(NS_WSSE, "Security"))
-        security.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"
+        security = Element(QName(NS_WSSE, "Security"))  # type: ignore[type-var]
+        security.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"  # type: ignore[index]
 
         return security
 
@@ -174,20 +174,20 @@ class Header(XMLNode):
 
     @staticmethod
     def create():
-        header = Element(QName(NS_SOAP, "Header"))
+        header = Element(QName(NS_SOAP, "Header"))  # type: ignore[type-var]
 
-        action = Element(QName(NS_ADDRESSING, "Action"))
-        action.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"
-        action.attrib[QName(NS_XSI, "nil")] = "true"
+        action = Element(QName(NS_ADDRESSING, "Action"))  # type: ignore[type-var]
+        action.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"  # type: ignore[index]
+        action.attrib[QName(NS_XSI, "nil")] = "true"  # type: ignore[index]
         header.append(action)
 
-        message_id = Element(QName(NS_ADDRESSING, "MessageID"))
-        message_id.attrib[QName(NS_XSI, "nil")] = "true"
+        message_id = Element(QName(NS_ADDRESSING, "MessageID"))  # type: ignore[type-var]
+        message_id.attrib[QName(NS_XSI, "nil")] = "true"  # type: ignore[index]
         header.append(message_id)
 
-        to = Element(QName(NS_ADDRESSING, "To"))
-        to.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"
-        to.attrib[QName(NS_XSI, "nil")] = "true"
+        to = Element(QName(NS_ADDRESSING, "To"))  # type: ignore[type-var]
+        to.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"  # type: ignore[index]
+        to.attrib[QName(NS_XSI, "nil")] = "true"  # type: ignore[index]
         header.append(to)
 
         return header
@@ -200,7 +200,7 @@ class Body(XMLNode):
 
     @staticmethod
     def create():
-        body = Element(QName(NS_SOAP, "Body"))
+        body = Element(QName(NS_SOAP, "Body"))  # type: ignore[type-var]
 
         return body
 
@@ -214,7 +214,7 @@ class Envelope(XMLNode):
 
     @staticmethod
     def create():
-        envelope = Element(QName(NS_SOAP, "Envelope"))
+        envelope = Element(QName(NS_SOAP, "Envelope"))  # type: ignore[type-var]
         envelope.append(Header.create())
         envelope.append(Body.create())
 
