@@ -51,8 +51,11 @@ max-complexity = 15
 
 [tool.mypy]
 mypy_path = "src/:stubs/:tests/"
+# Required for correct module name resolution across multiple package bases.
 explicit_package_bases = true
 strict = true
+# Exclude stubs from type checking (they often have incomplete annotations)
+# but mypy still uses them for type information when checking other code
 exclude = "stubs/"
 
 # Disable some strict checks that would require extensive refactoring
@@ -61,38 +64,48 @@ disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = "pytest"
+# Third-party library without type stubs in older versions
+# Ignore missing imports to allow pytest usage without type information
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "cepces_test"
-# Ignore redefinition of "converter" which appears in both xcep and xml submodules
+# Test modules import "converter" from both xcep and xml submodules
+# This causes false positive redefinition errors - disable no-redef check
 disable_error_code = ["no-redef"]
 
 [[tool.mypy.overrides]]
 module = "requests_gssapi.*"
-# Type stubs are incomplete, ignore all strict checks
+# Custom stubs in stubs/requests_gssapi/ have incomplete type annotations
+# Many parameters and return types use 'Incomplete' from _typeshed
+# Disable strict checks to avoid 8 no-untyped-def errors in stubs
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = false
 
 [[tool.mypy.overrides]]
 module = "gssapi.exceptions"
-# Allow implicit re-exports for external library
+# External library doesn't explicitly re-export GSSError in __all__
+# Enable implicit_reexport to allow usage of gssapi.exceptions.GSSError
+# Without this: "Module does not explicitly export attribute GSSError" error
 implicit_reexport = true
 
 [[tool.mypy.overrides]]
 module = "cepces.xml.binding"
-# Allow implicit re-exports (ATTR_NIL, etc.)
+# Module re-exports common binding utilities (ATTR_NIL, etc.) for convenience
+# Enable implicit_reexport to allow these to be imported from this module
 implicit_reexport = true
 
 [[tool.mypy.overrides]]
 module = "cepces.xcep.converter"
-# Allow implicit re-exports (IntegerConverter, etc.)
+# Module re-exports converter classes (IntegerConverter, etc.) for convenience
+# Enable implicit_reexport to allow these to be imported from this module
 implicit_reexport = true
 
 [[tool.mypy.overrides]]
 module = "manual.*"
-# Ignore type checking in manual tests
+# Manual test scripts are not part of the main codebase
+# Skip all type checking for these exploratory/debugging scripts
 ignore_errors = true
 
 [tool.pytest.ini_options]
