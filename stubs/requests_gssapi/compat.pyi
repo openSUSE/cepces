@@ -17,8 +17,8 @@ class HTTPKerberosAuth(HTTPSPNEGOAuth):
         service: str = "HTTP",
         delegate: bool = False,
         force_preemptive: bool = False,
-        principal: Incomplete | None = None,
-        hostname_override: Incomplete | None = None,
+        principal=None,
+        hostname_override=None,
         sanitize_mutual_error_response: bool = True,
     ) -> None: ...
     creds: Incomplete

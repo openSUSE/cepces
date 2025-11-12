@@ -145,11 +145,10 @@ class TransportGSSAPIAuthentication(Authentication):
             base=gssapi_cred.creds, name=gss_name, usage="initiate"
         )
 
-        self._transport = HTTPSPNEGOAuth(  # type: ignore[call-arg]
+        self._transport = HTTPSPNEGOAuth(
             creds=creds,
             delegate=self._config["delegate"],
             mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"),
-            # type stub missing parameter
             channel_bindings="tls-server-end-point",
         )
 

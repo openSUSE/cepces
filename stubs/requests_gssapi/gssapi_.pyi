@@ -34,15 +34,17 @@ class HTTPSPNEGOAuth(AuthBase):
     creds: Incomplete
     mech: Incomplete
     sanitize_mutual_error_response: Incomplete
+    channel_bindings: Incomplete
     def __init__(
         self,
         mutual_authentication=...,
         target_name: str = "HTTP",
         delegate: bool = False,
         opportunistic_auth: bool = False,
-        creds: Incomplete | None = None,
+        creds=None,
         mech=...,
         sanitize_mutual_error_response: bool = True,
+        channel_bindings=None,
     ) -> None: ...
     def generate_request_header(
         self, response, host, is_preemptive: bool = False
