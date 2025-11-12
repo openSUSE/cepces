@@ -90,10 +90,14 @@ class PrincipalName(Base):
         # components.
         buffer = ctypes.c_char_p()
         kfuncs.unparse_name(context.handle, principal.handle, buffer)
+        if buffer.value is None:
+            raise ValueError("Failed to unparse principal name")
         name = buffer.value.decode("utf-8")
         kfuncs.free_unparsed_name(context.handle, buffer)
 
         match = re.match(PRINCIPAL_EX, name)
+        if match is None:
+            raise ValueError(f"Invalid principal format: {name}")
 
         self._primary = match.group("primary")
         self._instance = match.group("instance")
