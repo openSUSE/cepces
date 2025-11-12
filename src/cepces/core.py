@@ -83,6 +83,7 @@ class Service(Base):
 
         self._config = config
         self._session = create_session(config.openssl_ciphers)
+        self._xcep: XCEPService | None
 
         if config.endpoint_type == "Policy":
             self._xcep = XCEPService(
