@@ -55,6 +55,11 @@ check_untyped_defs = true
 module = "pytest"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "cepces_test"
+# Ignore redefinition of "converter" which appears in both xcep and xml submodules
+disable_error_code = ["no-redef"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
