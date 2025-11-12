@@ -13,6 +13,7 @@ local/
 # Configuration files
 *.conf
 
+.tox/
 .vscode/
 .venv/
 build/
