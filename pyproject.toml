@@ -49,7 +49,12 @@ target-version = ['py310']
 [tool.mypy]
 mypy_path = "src/:stubs/:tests/"
 explicit_package_bases = true
-check_untyped_defs = true
+strict = true
+exclude = "stubs/"
+
+# Disable some strict checks that would require extensive refactoring
+disallow_untyped_defs = false
+disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = "pytest"
@@ -59,6 +64,33 @@ ignore_missing_imports = true
 module = "cepces_test"
 # Ignore redefinition of "converter" which appears in both xcep and xml submodules
 disable_error_code = ["no-redef"]
+
+[[tool.mypy.overrides]]
+module = "requests_gssapi.*"
+# Type stubs are incomplete, ignore all strict checks
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "gssapi.exceptions"
+# Allow implicit re-exports for external library
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = "cepces.xml.binding"
+# Allow implicit re-exports (ATTR_NIL, etc.)
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = "cepces.xcep.converter"
+# Allow implicit re-exports (IntegerConverter, etc.)
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = "manual.*"
+# Ignore type checking in manual tests
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
