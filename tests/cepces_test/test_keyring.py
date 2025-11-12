@@ -96,7 +96,8 @@ def test_keyctl_handler_is_supported_keyctl_unavailable(mock_which):
 def test_keyctl_handler_is_supported_keyring_not_accessible(
     mock_run, mock_which
 ):
-    """Test is_supported when keyctl is available but keyring is not accessible"""
+    """Test is_supported when keyctl is available but keyring is not
+    accessible"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.side_effect = subprocess.CalledProcessError(
         1, "keyctl", stderr="Required key not available"

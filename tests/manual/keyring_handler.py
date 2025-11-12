@@ -42,7 +42,8 @@ def test_support():
     else:
         print("Warning: kernel keyring is not available on this system")
         print(
-            "Please install keyutils (e.g., 'sudo dnf install keyutils' on Fedora)"
+            "Please install keyutils "
+            "(e.g., 'sudo dnf install keyutils' on Fedora)"
         )
 
     return is_supported
@@ -131,7 +132,8 @@ def test_delete_password():
         print(f"✓ Successfully deleted password for user '{username}'")
     else:
         print(
-            f"✗ Failed to delete password (may not exist) for user '{username}'"
+            f"✗ Failed to delete password (may not exist) for user "
+            f"'{username}'"
         )
 
 
@@ -213,7 +215,8 @@ def test_full_workflow():
         print("✓ Retrieved password matches original")
     else:
         print(
-            f"✗ Password mismatch! Expected: {test_password}, Got: {retrieved_password}"
+            f"✗ Password mismatch! Expected: {test_password}, "
+            f"Got: {retrieved_password}"
         )
 
     # Step 4: Update password

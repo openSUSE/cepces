@@ -18,7 +18,7 @@
 """WSTEP Types."""
 from xml.etree.ElementTree import Element, QName
 from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY, NS_ENROLLMENT
-from cepces.wstep import TOKEN_TYPE, VALUE_TYPE, ENCODING_TYPE
+from cepces.wstep import TOKEN_TYPE, VALUE_TYPE
 from cepces.wstep import ISSUE_REQUEST_TYPE
 from cepces.xml.binding import XMLAttribute
 from cepces.xml.binding import XMLElement, XMLElementList
@@ -32,7 +32,10 @@ class SecurityTokenRequest(XMLNode):
 
     # <xs:element ref='wst:TokenType' minOccurs='0' />
     token_type = XMLValue(
-        "TokenType", converter=StringConverter, namespace=NS_WST, required=False
+        "TokenType",
+        converter=StringConverter,
+        namespace=NS_WST,
+        required=False,
     )
 
     request_type = XMLValue(
@@ -40,7 +43,9 @@ class SecurityTokenRequest(XMLNode):
     )
 
     request_id = XMLValue(
-        "RequestID", converter=UnsignedIntegerConverter, namespace=NS_ENROLLMENT
+        "RequestID",
+        converter=UnsignedIntegerConverter,
+        namespace=NS_ENROLLMENT,
     )
 
     token = XMLValue(
@@ -51,19 +56,18 @@ class SecurityTokenRequest(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_WST, "RequestSecurityToken"))  # type: ignore[type-var]
+        element = Element(QName(NS_WST, "RequestSecurityToken"))  # type: ignore[type-var]  # noqa: E501
 
-        token_type = Element(QName(NS_WST, "TokenType"))  # type: ignore[type-var]
+        token_type = Element(QName(NS_WST, "TokenType"))  # type: ignore[type-var]  # noqa: E501
         token_type.text = TOKEN_TYPE
         element.append(token_type)
 
-        request_type = Element(QName(NS_WST, "RequestType"))  # type: ignore[type-var]
+        request_type = Element(QName(NS_WST, "RequestType"))  # type: ignore[type-var]  # noqa: E501
         request_type.text = ISSUE_REQUEST_TYPE
         element.append(request_type)
 
-        token = Element(QName(NS_WST_SECEXT, "BinarySecurityToken"))  # type: ignore[type-var]
-        token.set(QName("ValueType"), VALUE_TYPE)  # type: ignore[arg-type]
-        token.set(QName("EncodingType"), ENCODING_TYPE)  # type: ignore[arg-type]
+        token = Element(QName(NS_WST_SECEXT, "BinarySecurityToken"))  # type: ignore[type-var]  # noqa: E501
+        token.set(QName("ValueType"), VALUE_TYPE)  # type: ignore[arg-type]  # noqa: E501
         token.set(QName(NS_WST_UTILITY, "Id"), "")  # type: ignore[arg-type]
         element.append(token)
 
@@ -118,11 +122,16 @@ class SecurityTokenResponse(XMLNode):
 
     # <xs:element ref='wst:TokenType' minOccurs='0' />
     token_type = XMLValue(
-        "TokenType", converter=StringConverter, namespace=NS_WST, required=False
+        "TokenType",
+        converter=StringConverter,
+        namespace=NS_WST,
+        required=False,
     )
 
     disposition_message = XMLValue(
-        "DispositionMessage", converter=StringConverter, namespace=NS_ENROLLMENT
+        "DispositionMessage",
+        converter=StringConverter,
+        namespace=NS_ENROLLMENT,
     )
 
     token = XMLValue(
@@ -136,7 +145,9 @@ class SecurityTokenResponse(XMLNode):
     )
 
     request_id = XMLValue(
-        "RequestID", converter=UnsignedIntegerConverter, namespace=NS_ENROLLMENT
+        "RequestID",
+        converter=UnsignedIntegerConverter,
+        namespace=NS_ENROLLMENT,
     )
 
     @staticmethod

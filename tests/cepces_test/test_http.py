@@ -85,7 +85,9 @@ class TestSSLAdapter:
         # Reset mock to ignore calls from __init__
         mock_super_init.reset_mock()
 
-        adapter.init_poolmanager(connections=10, maxsize=20, custom_arg="value")
+        adapter.init_poolmanager(
+            connections=10, maxsize=20, custom_arg="value"
+        )
 
         mock_super_init.assert_called_once()
         call_kwargs = mock_super_init.call_args[1]
@@ -225,7 +227,7 @@ class TestCreateSession:
 
         # Verify the adapter has the context
         adapter = session.get_adapter("https://example.com")
-        assert adapter.ssl_context is mock_ssl_context  # type: ignore[attr-defined]
+        assert adapter.ssl_context is mock_ssl_context  # type: ignore[attr-defined]  # noqa: E501
 
     def test_create_session_with_invalid_cipher_string(self):
         """Test create_session raises SSLError for invalid cipher string"""

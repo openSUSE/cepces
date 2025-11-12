@@ -291,7 +291,8 @@ class KeyringHandler(Base):
 
         Returns:
             Dictionary containing key metadata if found, None otherwise.
-            The dictionary contains: key_id, key_type, uid, gid, perms, description
+            The dictionary contains: key_id, key_type, uid, gid,
+            perms, description
         """
         if not username:
             self._logger.debug("No username provided for key dump")
@@ -328,13 +329,15 @@ class KeyringHandler(Base):
 
             # Parse the describe output format:
             # KEY_ID: PERMISSIONS  UID  GID TYPE: DESCRIPTION
-            # Example: 123456: alswrv-----v------------  1000  1000 user: test:desc
+            # Example:
+            # 123456: alswrv-----v------------  1000  1000 user: test:desc
             output = result.stdout.strip()
 
             # Split on first colon to separate key_id from the rest
             if ": " not in output:
                 self._logger.warning(
-                    f"Unexpected describe output format for user '{username}': {output}"
+                    "Unexpected describe output format for user "
+                    f"'{username}': {output}"
                 )
                 return None
 
@@ -365,12 +368,14 @@ class KeyringHandler(Base):
                     "description": description,
                 }
                 self._logger.debug(
-                    f"Successfully dumped key information for user '{username}'"
+                    "Successfully dumped key information for user "
+                    f"'{username}'"
                 )
                 return key_info
 
             self._logger.warning(
-                f"Unexpected describe output format for user '{username}': {output}"
+                "Unexpected describe output format for user "
+                f"'{username}': {output}"
             )
             return None
         except subprocess.CalledProcessError as e:
