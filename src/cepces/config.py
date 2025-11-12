@@ -159,7 +159,7 @@ class Configuration(Base):
 
         logger.debug("Initializing application configuration.")
         config = ConfigParser(interpolation=ExtendedInterpolation())
-        config.optionxform = str  # Make options case sensitive.
+        config.optionxform = str  # type: ignore[method-assign,assignment]  # Make options case sensitive
 
         # Add some defaults.
         hostname = socket.gethostname().lower()
@@ -248,7 +248,7 @@ class Configuration(Base):
         # Store the global configuration options.
         endpoint = section.get("endpoint")
         endpoint_type = section.get("type")
-        authn = Configuration.AUTH_HANDLER_MAP[section["auth"]](parser)
+        authn = Configuration.AUTH_HANDLER_MAP[section["auth"]](parser)  # type: ignore[abstract]
         cas = section.get("cas", True)
         poll_interval = section.get("poll_interval")
         openssl_ciphers = section.get("openssl_ciphers")
