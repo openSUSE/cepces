@@ -59,6 +59,12 @@ class AnonymousAuthentication(Authentication):
         (i.e. requests)."""
         return None
 
+    @property
+    def clientcertificate(self):
+        """Property containing TLS client certificate information for the transport layer
+        (i.e. requests)."""
+        return None
+
     def post_process(self, envelope):
         # Nothing to be done here.
         return envelope
