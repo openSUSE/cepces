@@ -51,6 +51,10 @@ mypy_path = "src/:stubs/:tests/"
 explicit_package_bases = true
 check_untyped_defs = true
 
+[[tool.mypy.overrides]]
+module = "pytest"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
