@@ -18,7 +18,7 @@
 """Module for HTTP/HTTPS session configuration with SSL support."""
 
 import ssl
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -29,8 +29,11 @@ class SSLAdapter(HTTPAdapter):
     """Custom HTTPAdapter that allows setting OpenSSL security level."""
 
     def __init__(
-        self, ssl_context: Optional[ssl.SSLContext] = None, *args, **kwargs
-    ):
+        self,
+        ssl_context: Optional[ssl.SSLContext] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         """Initialize the adapter with a custom SSL context.
 
         Args:
