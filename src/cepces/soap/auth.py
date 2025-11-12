@@ -123,8 +123,8 @@ class TransportGSSAPIAuthentication(Authentication):
             # b"ccache": "MEMORY:cepces",
         }
 
-        gssapi_cred = gssapi.raw.acquire_cred_from(
-            store=store,
+        gssapi_cred = gssapi.raw.acquire_cred_from(  # type: ignore[call-arg]
+            store=store,  # type stub missing 'store' parameter
             name=gss_name,
             mechs=[krb5_mech],
             usage="initiate",
@@ -139,11 +139,11 @@ class TransportGSSAPIAuthentication(Authentication):
             base=gssapi_cred.creds, name=gss_name, usage="initiate"
         )
 
-        self._transport = HTTPSPNEGOAuth(
+        self._transport = HTTPSPNEGOAuth(  # type: ignore[call-arg]
             creds=creds,
             delegate=self._config["delegate"],
             mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"),
-            channel_bindings="tls-server-end-point",
+            channel_bindings="tls-server-end-point",  # type stub missing parameter
         )
 
     @property
@@ -179,7 +179,7 @@ class MessageUsernamePasswordAuthentication(Authentication):
         # m.update(self._password.encode("utf-8"))
         # self._password = base64.b64encode(m.digest()).decode("utf-8")
 
-        self._nonce = base64.b64encode(self._nonce).decode("utf-8")
+        self._nonce = base64.b64encode(self._nonce).decode("utf-8")  # type: ignore[assignment]
 
     @property
     def transport(self):
