@@ -224,11 +224,12 @@ class SignedIntegerConverter(Converter):
     """
 
     @staticmethod
-    def from_string(value):
+    def from_string(value, value_type=str):
         """Converts the input value to an integer, checking that it is within
         the allowed range.
 
         :param value: the value to convert, or None
+        :param value_type: ignored for compatibility with base class
         :raise TypeError: if the input is not an integer
         :raise ValueError: if the input cannot be parsed as an integer, or if
                            the input is outside the allowed range.
@@ -237,10 +238,11 @@ class SignedIntegerConverter(Converter):
         return RangedIntegerConverter.from_string(value, -(2**31), 2**31 - 1)
 
     @staticmethod
-    def to_string(value):
+    def to_string(value, value_type=str):
         """Converts the an integer to a string
 
         :param value: the integer to convert, or None
+        :param value_type: ignored for compatibility with base class
         :raise TypeError: if the input is not an integer
         :raise ValueError: if the input cannot be parsed as an integer, or if
                            the input is outside the allowed range.
@@ -256,11 +258,12 @@ class UnsignedIntegerConverter(Converter):
     """
 
     @staticmethod
-    def from_string(value):
+    def from_string(value, value_type=str):
         """Converts the input value to an integer, checking that it is within
         the allowed range.
 
         :param value: the value to convert, or None
+        :param value_type: ignored for compatibility with base class
         :raise TypeError: if the input is not an integer
         :raise ValueError: if the input cannot be parsed as an integer, or if
                            the input is outside the allowed range.
@@ -269,10 +272,11 @@ class UnsignedIntegerConverter(Converter):
         return RangedIntegerConverter.from_string(value, 0, 2**32 - 1)
 
     @staticmethod
-    def to_string(value):
+    def to_string(value, value_type=str):
         """Converts the an integer to a string
 
         :param value: the integer to convert, or None
+        :param value_type: ignored for compatibility with base class
         :raise TypeError: if the input is not an integer
         :raise ValueError: if the input cannot be parsed as an integer, or if
                            the input is outside the allowed range.
@@ -315,7 +319,13 @@ class DateTimeConverter(Converter):
             return timedelta(0)
 
     @staticmethod
-    def from_string(value):
+    def from_string(value, value_type=str):
+        """Parse a datetime string and convert it to a datetime object.
+
+        :param value: the datetime string to parse
+        :param value_type: ignored for compatibility with base class
+        :return: datetime object, or None if value is None
+        """
         match = re.search(
             r"^"
             r"(?P<year>\d{4})-"
@@ -332,6 +342,9 @@ class DateTimeConverter(Converter):
             r"$",
             value,
         )
+
+        if match is None:
+            raise ValueError(f"Invalid datetime format: {value}")
 
         if match.group("tz") == "Z":
             timezone = DateTimeConverter.FixedOffset(0, "UTC")
@@ -362,7 +375,13 @@ class DateTimeConverter(Converter):
         )
 
     @staticmethod
-    def to_string(value):
+    def to_string(value, value_type=str):
+        """Convert a datetime object to a string.
+
+        :param value: the datetime object to convert
+        :param value_type: ignored for compatibility with base class
+        :return: datetime string, or None if value is None
+        """
         # Allow None value.
         if value is None:
             return value
@@ -380,11 +399,15 @@ class DateTimeConverter(Converter):
         if value.tzinfo is None:
             timezone = "Z"
         else:
-            offset = int(value.utcoffset().total_seconds() / 60)
-            timezone = "{0:0=+3d}:{1:0=2d}".format(
-                offset / 60,
-                abs(offset % 60),
-            )
+            utc_offset = value.utcoffset()
+            if utc_offset is None:
+                timezone = "Z"
+            else:
+                offset = int(utc_offset.total_seconds() / 60)
+                timezone = "{0:0=+3d}:{1:0=2d}".format(
+                    offset // 60,
+                    abs(offset % 60),
+                )
 
         result = "{0:0=2d}-{1:0=2d}-{2:0=2d}T{3:0=2d}:{4:0=2d}:{5:0=2d}{6:s}"
 
@@ -430,5 +453,8 @@ class CertificateConverter:
             "-----END CERTIFICATE-----",
             "".join(value.splitlines()),
         )
+
+        if match is None:
+            raise ValueError(f"Invalid certificate format: {value}")
 
         return Converter.to_string(match.group(1), str)
