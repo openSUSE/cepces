@@ -139,7 +139,7 @@ class GSSAPIAuthenticationHandler(AuthenticationHandler):
 class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
     """Handler for Username and Password based authentication."""
 
-    def prompt_credentials(self) -> tuple[str, str]:
+    def prompt_credentials(self) -> tuple[str | None, str | None]:
         """Asks interactively for credentials to store in keyring."""
         display_config = _get_display_config_from_parser(self._parser)
         credentials_handler = CredentialsHandler(
@@ -191,7 +191,7 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
         if not username or not password:
             username, password = self.prompt_credentials()
             # Store credentials in kernel keyring if supported
-            if keyring.is_supported():
+            if keyring.is_supported() and username and password:
                 try:
                     keyring.set_password(username, password)
                 except KeyringOperationError as e:
