@@ -51,20 +51,20 @@ class SecurityTokenRequest(XMLNode):
 
     @staticmethod
     def create():
-        element = Element(QName(NS_WST, "RequestSecurityToken"))
+        element = Element(QName(NS_WST, "RequestSecurityToken"))  # type: ignore[type-var]
 
-        token_type = Element(QName(NS_WST, "TokenType"))
+        token_type = Element(QName(NS_WST, "TokenType"))  # type: ignore[type-var]
         token_type.text = TOKEN_TYPE
         element.append(token_type)
 
-        request_type = Element(QName(NS_WST, "RequestType"))
+        request_type = Element(QName(NS_WST, "RequestType"))  # type: ignore[type-var]
         request_type.text = ISSUE_REQUEST_TYPE
         element.append(request_type)
 
-        token = Element(QName(NS_WST_SECEXT, "BinarySecurityToken"))
-        token.set(QName("ValueType"), VALUE_TYPE)
-        token.set(QName("EncodingType"), ENCODING_TYPE)
-        token.set(QName(NS_WST_UTILITY, "Id"), "")
+        token = Element(QName(NS_WST_SECEXT, "BinarySecurityToken"))  # type: ignore[type-var]
+        token.set(QName("ValueType"), VALUE_TYPE)  # type: ignore[arg-type]
+        token.set(QName("EncodingType"), ENCODING_TYPE)  # type: ignore[arg-type]
+        token.set(QName(NS_WST_UTILITY, "Id"), "")  # type: ignore[arg-type]
         element.append(token)
 
         return element
