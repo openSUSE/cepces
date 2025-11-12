@@ -20,6 +20,7 @@ get_error_message: Incomplete
 krb5_init_context: Incomplete
 init_context: Incomplete
 krb5_kt_default_name: Incomplete
+kt_default_name: Incomplete
 krb5_parse_name: Incomplete
 parse_name: Incomplete
 krb5_sname_to_principal: Incomplete
