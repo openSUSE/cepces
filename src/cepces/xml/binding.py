@@ -18,6 +18,7 @@
 # pylint: disable=protected-access,too-few-public-methods,too-many-arguments
 # pylint: disable=too-many-ancestors
 """Module containing XML bindings."""
+from typing import Any
 from collections.abc import MutableSequence
 from xml.etree import ElementTree
 import inspect
@@ -259,7 +260,7 @@ class XMLElement(XMLDescriptor):
 class XMLElementList(XMLElement):
     """XML Element List"""
 
-    class List(MutableSequence):
+    class List(MutableSequence[Any]):
         """Internal list."""
 
         def __init__(self, parent, element, binder, qname):
@@ -432,7 +433,7 @@ class XMLValue(XMLElement):
 class XMLValueList(XMLElement):
     """XML Value List"""
 
-    class List(MutableSequence):
+    class List(MutableSequence[Any]):
         """Internal list"""
 
         def __init__(self, parent, element, converter, qname):
