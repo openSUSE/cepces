@@ -22,6 +22,8 @@ import functools
 from cepces.krb5 import types as ktypes
 from cepces.krb5.lib import _shlib
 
+assert _shlib is not None  # Guaranteed by RuntimeError in lib.py
+
 
 class Error(RuntimeError):
     """Generic error class, representing a runtime error from Kerberos."""
