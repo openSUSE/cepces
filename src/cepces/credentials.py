@@ -62,10 +62,10 @@ class CredentialBackend(Base, ABC):
         super().__init__()
         self.title = title
         self._display_config = display_config
-        self._utility_path = None
+        self._utility_path: str | None = None
         self._utility_available = self._check_utility_available()
 
-    def _get_env_with_display(self) -> dict:
+    def _get_env_with_display(self) -> dict[str, str]:
         """Get environment dict with display variable set if configured.
 
         Returns:
@@ -258,7 +258,7 @@ class PinentryBackend(CredentialBackend):
         """
         super().__init__(title=title, display_config=None)
         # Maintain backward compatibility
-        self._pinentry_path = self._utility_path
+        self._pinentry_path: str | None = self._utility_path
         self._pinentry_available = self._utility_available
 
     def _get_utility_name(self) -> str:
@@ -277,7 +277,7 @@ class PinentryBackend(CredentialBackend):
         """
         return False
 
-    def _run_pinentry(self, commands: list[str]) -> dict[str, str]:
+    def _run_pinentry(self, commands: list[str]) -> dict[str, str | bool]:
         """Run pinentry with the given commands.
 
         Args:
@@ -294,6 +294,10 @@ class PinentryBackend(CredentialBackend):
                 "pinentry utility not found. Please install pinentry package."
             )
 
+        assert (
+            self._pinentry_path is not None
+        )  # Guaranteed by _pinentry_available check
+
         try:
             # Join commands with newlines and add BYE at the end
             input_data = "\n".join(commands + ["BYE"]) + "\n"
@@ -307,7 +311,7 @@ class PinentryBackend(CredentialBackend):
             )
 
             # Parse the output
-            responses = {}
+            responses: dict[str, str | bool] = {}
             for line in result.stdout.splitlines():
                 if line.startswith("D "):
                     # Data response - contains the actual value
@@ -356,7 +360,10 @@ class PinentryBackend(CredentialBackend):
                 self._logger.debug("User cancelled username prompt")
                 return None
 
-            return username_responses.get("data")
+            data = username_responses.get("data")
+            if data is not None:
+                assert isinstance(data, str)  # "data" key always contains str
+            return data
 
         except CredentialsError as e:
             self._logger.error(f"Failed to prompt for username: {e}")
@@ -401,7 +408,9 @@ class PinentryBackend(CredentialBackend):
 
             if "data" in responses:
                 self._logger.debug("Successfully obtained password from user")
-                return responses["data"]
+                data = responses["data"]
+                assert isinstance(data, str)  # "data" key always contains str
+                return data
 
             self._logger.debug("No password data returned from pinentry")
             return None
@@ -417,7 +426,7 @@ class KdialogBackend(CredentialBackend):
     def __init__(
         self,
         title: str = "Authentication Required",
-        display_config: tuple | None = None,
+        display_config: tuple[str, str] | None = None,
     ):
         """Initialize the KdialogBackend.
 
@@ -428,7 +437,7 @@ class KdialogBackend(CredentialBackend):
         """
         super().__init__(title=title, display_config=display_config)
         # Maintain backward compatibility
-        self._kdialog_path = self._utility_path
+        self._kdialog_path: str | None = self._utility_path
         self._kdialog_available = self._utility_available
 
     def _get_utility_name(self) -> str:
@@ -456,6 +465,7 @@ class KdialogBackend(CredentialBackend):
         Returns:
             The username entered by the user, or None if cancelled
         """
+        assert self._kdialog_path is not None  # Should be checked by caller
         try:
             username_result = subprocess.run(
                 [
@@ -503,6 +513,10 @@ class KdialogBackend(CredentialBackend):
             )
             return None
 
+        assert (
+            self._kdialog_path is not None
+        )  # Guaranteed by _kdialog_available check
+
         try:
             result = subprocess.run(
                 [
@@ -537,7 +551,7 @@ class ZenityBackend(CredentialBackend):
     def __init__(
         self,
         title: str = "Authentication Required",
-        display_config: tuple | None = None,
+        display_config: tuple[str, str] | None = None,
     ):
         """Initialize the ZenityBackend.
 
@@ -548,7 +562,7 @@ class ZenityBackend(CredentialBackend):
         """
         super().__init__(title=title, display_config=display_config)
         # Maintain backward compatibility
-        self._zenity_path = self._utility_path
+        self._zenity_path: str | None = self._utility_path
         self._zenity_available = self._utility_available
 
     def _get_utility_name(self) -> str:
@@ -576,6 +590,7 @@ class ZenityBackend(CredentialBackend):
         Returns:
             The username entered by the user, or None if cancelled
         """
+        assert self._zenity_path is not None  # Should be checked by caller
         try:
             username_result = subprocess.run(
                 [
@@ -622,6 +637,10 @@ class ZenityBackend(CredentialBackend):
                 "Cannot prompt for password: zenity not available"
             )
             return None
+
+        assert (
+            self._zenity_path is not None
+        )  # Guaranteed by _zenity_available check
 
         try:
             result = subprocess.run(
@@ -683,7 +702,7 @@ class CredentialsHandler(Base):
         )
         self._active_handler = self._select_handler()
 
-    def _select_handler(self) -> Base | None:
+    def _select_handler(self) -> CredentialBackend | None:
         """Select the first available credential handler.
 
         Tries handlers in this order:
@@ -746,7 +765,7 @@ class CredentialsHandler(Base):
         """
         return self._pinentry_handler._pinentry_available
 
-    def _run_pinentry(self, commands: list[str]) -> dict[str, str]:
+    def _run_pinentry(self, commands: list[str]) -> dict[str, str | bool]:
         """Run pinentry with the given commands.
 
         This method is maintained for backward compatibility with tests.
@@ -755,7 +774,8 @@ class CredentialsHandler(Base):
             commands: List of pinentry commands to execute
 
         Returns:
-            Dictionary with parsed responses from pinentry
+            Dictionary with parsed responses from pinentry.
+            Keys: "data" (str), "ok" (bool), "error" (str)
 
         Raises:
             CredentialsOperationError: If pinentry execution fails

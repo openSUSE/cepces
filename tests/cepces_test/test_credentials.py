@@ -136,7 +136,9 @@ def test_credentials_handler_run_pinentry_error_response(mock_run, mock_which):
     responses = handler._run_pinentry(["GETPIN"])
 
     assert "error" in responses
-    assert "Operation cancelled" in responses["error"]
+    error = responses["error"]
+    assert isinstance(error, str)  # "error" key always contains str
+    assert "Operation cancelled" in error
 
 
 @patch("cepces.credentials.shutil.which")
