@@ -16,6 +16,6 @@
 - Run `tox -e lint` to check with ruff linter
 - Run `tox -e format` to check code formatting with black
 - Run `tox -e type` to run mypy type checking
-- Run `tox -e codestyle` to check PEP 8 compliance with pycodestyle
+- Run `tox -e codestyle` to check PEP 8 compliance with flake8
 - Fix all linting errors and warnings before considering a task complete
 - Alternatively, run `tox -e lint,format,type,codestyle` to run all checks at once
