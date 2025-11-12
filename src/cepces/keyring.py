@@ -49,7 +49,7 @@ class KeyringHandler(Base):
         """
         super().__init__()
         self.service_name = service_name
-        self._keyctl_path = None
+        self._keyctl_path: str | None = None
         self._keyctl_available = self._check_keyctl_available()
 
     def _check_keyctl_available(self) -> bool:
@@ -77,6 +77,10 @@ class KeyringHandler(Base):
         """
         if not self._keyctl_available:
             return False
+
+        assert (
+            self._keyctl_path is not None
+        )  # Guaranteed by _keyctl_available check
 
         try:
             subprocess.run(
@@ -118,6 +122,10 @@ class KeyringHandler(Base):
                 "Cannot retrieve password: keyctl utility is not available"
             )
             return None
+
+        assert (
+            self._keyctl_path is not None
+        )  # Guaranteed by _keyctl_available check
 
         key_description = self._get_key_description(username)
         try:
@@ -183,6 +191,10 @@ class KeyringHandler(Base):
                 "keyctl utility not found. Please install keyutils package."
             )
 
+        assert (
+            self._keyctl_path is not None
+        )  # Guaranteed by _keyctl_available check
+
         key_description = self._get_key_description(username)
         try:
             # Add/update the key in the user keyring (@u)
@@ -232,6 +244,10 @@ class KeyringHandler(Base):
                 "Cannot delete password: keyctl utility is not available"
             )
             return False
+
+        assert (
+            self._keyctl_path is not None
+        )  # Guaranteed by _keyctl_available check
 
         key_description = self._get_key_description(username)
         try:
@@ -286,6 +302,10 @@ class KeyringHandler(Base):
                 "Cannot dump key: keyctl utility is not available"
             )
             return None
+
+        assert (
+            self._keyctl_path is not None
+        )  # Guaranteed by _keyctl_available check
 
         key_description = self._get_key_description(username)
         try:
