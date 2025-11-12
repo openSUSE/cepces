@@ -24,7 +24,7 @@ supported:
 * **Certificate** - Uses client certificates for authentication
 * **Anonymous** - No authentication (for testing or specific deployments)
 
-`cepces` is implemented in Python and requires at least Python 3.9 in order to
+`cepces` is implemented in Python and requires at least Python 3.10 in order to
 run, with all the required dependencies.
 
 For credential management and secure password storage, `cepces` requires the
@@ -53,7 +53,7 @@ Installation
 ============
 
 ``cepces`` is currently supported on any system running `certmonger`_. It
-requires Python 3.9 or later.
+requires Python 3.10 or later.
 
 If available, it is recommended to use a repository for installing the
 application and all dependencies. Please consult the project's wiki for more

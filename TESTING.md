@@ -141,4 +141,4 @@ def test_with_mock(mock_function):
 
 ## CI/CD
 
-Tests are automatically run on GitHub Actions for multiple Python versions (3.9-3.14).
+Tests are automatically run on GitHub Actions for multiple Python versions (3.10-3.14).

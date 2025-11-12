@@ -18,7 +18,6 @@
 """Module for handling kernel keyring operations via keyctl utility."""
 import shutil
 import subprocess
-from typing import Dict, Optional  # Python 3.9 compatibility
 
 from cepces import Base
 
@@ -101,8 +100,7 @@ class KeyringHandler(Base):
         """
         return f"{self.service_name}:{username}"
 
-    # Using typing.Optional for Python 3.9 compatibility (| operator requires 3.10+)
-    def get_password(self, username: str) -> Optional[str]:
+    def get_password(self, username: str) -> str | None:
         """Retrieve password from kernel keyring.
 
         Args:
@@ -269,8 +267,7 @@ class KeyringHandler(Base):
             )
             return False
 
-    # Using typing.Dict and typing.Optional for Python 3.9 compatibility (dict[] and | require 3.10+)
-    def dump_key(self, username: str) -> Optional[Dict[str, str]]:
+    def dump_key(self, username: str) -> dict[str, str] | None:
         """Dump key information from kernel keyring for debugging.
 
         Args:
