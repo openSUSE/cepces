@@ -1,12 +1,17 @@
 # Windows Server setup for Certificate Auto Enrollment
 
-Prerequisites: You need an AD DC and a CA Domain Member (Windows Server 2025)
+**Prerequisites:** You need an Active Directory Domain Controller (AD DC) and
+a Certificate Authority (CA) Domain Member (Windows Server 2025).
 
 ## On the enrolled AD DC
 
 ### Create a user for the CEP/CES service
 
-*(See https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#create-a-domain-user-account-to-act-as-the-service-account)*
+Create a domain user account to act as the service account for the Certificate
+Enrollment Web Service. See Microsoft's documentation on [creating a domain
+user account for the service][service-account].
+
+[service-account]: https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#create-a-domain-user-account-to-act-as-the-service-account
 
 ```
 $addc = Get-ADDomainController
@@ -24,9 +29,11 @@ $ces_secpasswd = ConvertTo-SecureString -String "P@sSwOrd1" -AsPlainText -Force
 New-ADUser -Name $ces_username -GivenName $ces_username -Surname Service -DisplayName "CES Service" -UserPrincipalName $ces_upn -AccountPassword $ces_secpasswd -ChangePasswordAtLogon:$false -PasswordNeverExpires $true -Enabled $true
 ```
 
-Set the SPN for the host running the CA:
+Set the Service Principal Name (SPN) for the host running the CA. See
+Microsoft's documentation on [setting a service principal name for the service
+account][set-spn] for more details.
 
-*(See https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#set-a-service-principal-name-for-the-service-account)*
+[set-spn]: https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#set-a-service-principal-name-for-the-service-account
 
 ```
 $ca_hostname = "<REPLACE ME>"
@@ -37,7 +44,12 @@ setspn -s http/$ca_fqdn $ces_username
 
 ### Configure the Certificate Enrollment Web Service user account for constrained delegation (AD DC)
 
-*(See https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#configure-the-certificate-enrollment-web-service-user-account-for-constrained-delegation)*
+Configure constrained delegation to allow the service account to authenticate
+on behalf of users. See Microsoft's documentation on [configuring the
+Certificate Enrollment Web Service user account for constrained
+delegation][constrained-delegation] for more details.
+
+[constrained-delegation]: https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#configure-the-certificate-enrollment-web-service-user-account-for-constrained-delegation
 
 ```
 Get-ADUser -Identity $ces_username | Set-ADAccountControl -TrustedToAuthForDelegation $True
@@ -55,7 +67,11 @@ Add-WindowsFeature -Name @('ADCS-Enroll-Web-Pol','ADCS-Enroll-Web-Svc','ADCS-Web
 
 ### Add CES domain user to the local IIS_IUSRS group
 
-*(See https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#add-the-service-account-to-the-local-iis_iusers-group)*
+Add the service account to the local IIS_IUSRS group to grant necessary
+permissions for IIS. See Microsoft's documentation on [adding the service
+account to the local IIS_IUSERS group][add-iis-users] for more details.
+
+[add-iis-users]: https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#add-the-service-account-to-the-local-iis_iusers-group
 
 ```
 $addom = Get-ADDomain -Current LocalComputer
@@ -93,7 +109,7 @@ Install-AdcsCertificationAuthority @params
 
 ### The CES service account needs have read permission on the CA
 
-These are manual steps:
+**These are manual steps:**
 
 1. Open the "Certification Authority" Console
 2. Right Click on the CA -> Properties
@@ -104,9 +120,13 @@ These are manual steps:
 
 ## Request a Server Certificate for the Webserver from CA
 
-Follow the instructions at:
+Request and configure an SSL/TLS certificate for the IIS web server using the
+Enterprise CA. This is required for secure HTTPS communication with the
+Certificate Enrollment services. See the archived TechNet Wiki guide on
+[configuring SSL/TLS on a web site in the domain with an Enterprise
+CA][ssl-config] for detailed step-by-step instructions.
 
-https://social.technet.microsoft.com/wiki/contents/articles/12485.configure-ssltls-on-a-web-site-in-the-domain-with-an-enterprise-ca.aspx
+[ssl-config]: https://learn.microsoft.com/en-us/archive/technet-wiki/12485.configure-ssltls-on-a-web-site-in-the-domain-with-an-enterprise-ca
 
 ## Restart IIS service
 
@@ -118,7 +138,11 @@ iisreset /restart
 
 #### Get the SSL Certificate Thumbprint of the Web Server
 
-*(See https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#select-a-server-certificate)*
+Retrieve the SSL certificate thumbprint needed for configuring the enrollment
+services. See Microsoft's documentation on [selecting a server
+certificate][select-cert] for more details.
+
+[select-cert]: https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/configure-certificate-enrollment-web-service#select-a-server-certificate
 
 ```
 Import-Module WebAdministration
@@ -132,7 +156,8 @@ $certs = Get-ChildItem IIS:SSLBindings | Foreach-Object {
 }
 ```
 
-If there are more than 2 certificates, use the Thumb linked with Port 443 in $certs. Use it as "SSLCertThumbprint"
+If there are more than 2 certificates, use the Thumb linked with Port 443 in
+`$certs`. Use it as `SSLCertThumbprint` in the next step.
 
 ```
 $params = @{
@@ -225,6 +250,11 @@ Get-GPRegistryValue -Name "Default Domain Policy" -Key "HKEY_LOCAL_MACHINE\SOFTW
 
 ### Create Test Computer Certificate Template
 
-Needs to be done manually, see
+**This step needs to be done manually using the Certification Authority
+utility.** Certificate templates define how certificate requests should be
+generated and what properties they should have. See the [Certificate Templates
+section of the Certificate Auto Enrollment Policy guide][cert-templates] for
+detailed instructions on creating and configuring a test computer certificate
+template.
 
-https://dmulder.github.io/group-policy-book/certautoenroll.html#certificate-templates
+[cert-templates]: https://dmulder.github.io/group-policy-book/certautoenroll.html#certificate-templates
