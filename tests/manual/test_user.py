@@ -25,7 +25,7 @@ from cepces.user import UserEnrollment, ApprovalPendingException, load_config
 
 class TestUser(unittest.TestCase):
     """
-    Tests the User cert workflows
+    Tests the user cert workflows
     - needs a reachable CEP/CES server and valid kerberos credential cache
     """
 
@@ -34,8 +34,8 @@ class TestUser(unittest.TestCase):
     test_template_name_manual_approve = "UserManualApprove"
 
     def _init(self):
-        g_overrides = {}
-        k_overrides = {
+        g_overrides: dict[str, str] = {}
+        k_overrides: dict[str, str] = {
             "ccache": "False",
             "principals": "",
         }

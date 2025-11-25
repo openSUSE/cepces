@@ -24,7 +24,14 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import (
+    ed25519,
+    ed448,
+    rsa,
+    dsa,
+    ec,
+    types,
+)
 from cepces.config import Configuration
 from cepces.core import Service
 
@@ -52,18 +59,33 @@ class UserEnrollment:
     def request(self, key_file, cert_file, profile, keysize, passphrase):
         if os.path.exists(key_file):
             with open(key_file, "rb") as f:
-                key = serialization.load_pem_private_key(
+                tmp_key = serialization.load_pem_private_key(
                     f.read(),
                     password=passphrase.encode() if passphrase else None,
                     backend=default_backend(),
                 )
+                if isinstance(
+                    tmp_key,
+                    (
+                        ed25519.Ed25519PrivateKey,
+                        ed448.Ed448PrivateKey,
+                        rsa.RSAPrivateKey,
+                        dsa.DSAPrivateKey,
+                        ec.EllipticCurvePrivateKey,
+                    ),
+                ):
+                    key: types.CertificateIssuerPrivateKeyTypes = tmp_key
+                else:
+                    raise Exception("Unsupported key type")
         else:
             print(str(key_file) + " does not exist, generating a new key...")
             key = rsa.generate_private_key(
                 public_exponent=65537,
                 key_size=int(keysize),
             )
-            enc = serialization.NoEncryption()
+            enc: serialization.KeySerializationEncryption = (
+                serialization.NoEncryption()
+            )
             if passphrase:
                 enc = serialization.BestAvailableEncryption(
                     passphrase.encode()
@@ -93,10 +115,9 @@ class UserEnrollment:
             ),
             critical=False,
         )
-        csr = csr.sign(key, hashes.SHA256())
 
         result = self.service.request(
-            csr,
+            csr.sign(key, hashes.SHA256()),
             renew=None,
         )
 
