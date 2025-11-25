@@ -17,7 +17,6 @@
 #
 """Module containing user cert enroll logic."""
 import os
-import requests
 from pyasn1.codec.der.encoder import encode
 from pyasn1.type import char
 from cryptography import x509
@@ -66,7 +65,9 @@ class UserEnrollment:
             )
             enc = serialization.NoEncryption()
             if passphrase:
-                enc = serialization.BestAvailableEncryption(passphrase.encode())
+                enc = serialization.BestAvailableEncryption(
+                    passphrase.encode()
+                )
             with open(
                 os.open(key_file, os.O_CREAT | os.O_WRONLY, 0o400), "wb"
             ) as f:
@@ -139,7 +140,8 @@ def load_config(parser):
         or not renew_days
     ):
         raise RuntimeError(
-            "One or more required config options are missing (key_file,cert_file,profile,renew_days)"
+            "One or more required config options are missing "
+            "(key_file,cert_file,profile,renew_days)"
         )
 
     return key_file, cert_file, req_file, profile, renew_days, key_size
