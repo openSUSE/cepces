@@ -18,7 +18,7 @@
 """WSTEP Types."""
 from xml.etree.ElementTree import Element, QName
 from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY, NS_ENROLLMENT
-from cepces.wstep import TOKEN_TYPE, VALUE_TYPE
+from cepces.wstep import TOKEN_TYPE, VALUE_TYPE, ENCODING_TYPE
 from cepces.wstep import ISSUE_REQUEST_TYPE
 from cepces.xml.binding import XMLAttribute
 from cepces.xml.binding import XMLElement, XMLElementList
@@ -68,6 +68,7 @@ class SecurityTokenRequest(XMLNode):
 
         token = Element(QName(NS_WST_SECEXT, "BinarySecurityToken"))  # type: ignore[type-var]  # noqa: E501
         token.set(QName("ValueType"), VALUE_TYPE)  # type: ignore[arg-type]  # noqa: E501
+        token.set(QName("EncodingType"), ENCODING_TYPE)  # type: ignore[arg-type]  # noqa: E501
         token.set(QName(NS_WST_UTILITY, "Id"), "")  # type: ignore[arg-type]
         element.append(token)
 
