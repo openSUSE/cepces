@@ -47,10 +47,6 @@ class UserEnrollment:
         config = Configuration.load(
             global_overrides=global_overrides, krb5_overrides=krb5_overrides
         )
-        if config.openssl_seclevel and config.openssl_seclevel.isnumeric():
-            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = (
-                "ALL:@SECLEVEL=%s" % config.openssl_seclevel
-            )
 
         return Service(config)
 
