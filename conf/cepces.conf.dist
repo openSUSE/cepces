@@ -16,7 +16,7 @@ type=Policy
 #
 # * Anonymous
 #             Anonymous authentication (i.e. no authentication at all.) This
-#             is discouraged and untested. It is only included for completness
+#             is discouraged and untested. It is only included for completeness
 #             as defined in the MS-XCEP specification.
 # * Kerberos
 #             Transport level authentication. This is the default where the
