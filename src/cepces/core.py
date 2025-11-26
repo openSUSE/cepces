@@ -35,7 +35,7 @@ from cepces.wstep.service import Service as WSTEPService
 
 
 class PartialChainError(RuntimeError):
-    """Error raised when a complete certificate chain cannot be retreived."""
+    """Error raised when a complete certificate chain cannot be retrieved."""
 
     def __init__(self, msg, result):
         super().__init__(msg)
@@ -159,15 +159,15 @@ class Service(Base):
     def certificate_chain(self, index=0):
         """Get the complete certification authority chain.
 
-        This retreives the certificate from the issuing endpoint service, and
-        then uses the AIA information to retreive the rest of the chain.
+        This retrieves the certificate from the issuing endpoint service, and
+        then uses the AIA information to retrieve the rest of the chain.
 
         This is only implemented for Policy endpoints. Returns None otherwise,
         or if no CAs are available (e.g., when the server returns
         xsi:nil="true" for cAs).
 
         :raise PartialChainError: if no AIA is found, or the complete chain
-                                  cannot be retreived. The exception contains
+                                  cannot be retrieved. The exception contains
                                   the partial result.
         """
         if self._xcep is None:
@@ -178,7 +178,7 @@ class Service(Base):
             return None
 
         # Get the first certificate. Since is (or at least always should) be
-        # securely retreived over a secure channel, only verify subsequent
+        # securely retrieved over a secure channel, only verify subsequent
         # certificates.
         data = cas[index].certificate
 
@@ -305,7 +305,7 @@ class Service(Base):
         :param data: PEM encoded certificate to resolve.
         :param child: Optional child to validate.
         :raise PartialChainError: if no AIA is found, or the complete chain
-                                  cannot be retreived. The exception contains
+                                  cannot be retrieved. The exception contains
                                   the partial result.
         """
         result = []
