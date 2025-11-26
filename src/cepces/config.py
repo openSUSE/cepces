@@ -21,6 +21,7 @@ from pathlib import Path
 import logging
 import re
 import socket
+import os
 from cepces import Base
 from cepces import auth as CoreAuth
 from cepces.soap import auth as SOAPAuth
@@ -151,6 +152,51 @@ class Configuration(Base):
             return "WAYLAND_DISPLAY"
         # Default to DISPLAY for unknown formats
         return "DISPLAY"
+
+    def get_user_config(self):
+        """Get user certificate configuration.
+
+        Returns:
+            UserConfig instance with user certificate settings.
+
+        Raises:
+            RuntimeError: If user section is missing or invalid.
+        """
+        return self._load_user_config(self._parser)
+
+    @staticmethod
+    def _load_user_config(parser):
+        """Load user certificate configuration from parser."""
+        if "user" not in parser:
+            return None
+
+        section = parser["user"]
+
+        key_file = os.path.expanduser(section.get("key_file", "~/key.pem"))
+        cert_file = os.path.expanduser(section.get("cert_file", "~/cert.pem"))
+        req_file = os.path.expanduser(section.get("req_file", "~/cert.req"))
+        profile = section.get("profile", "")
+        renew_days_str = section.get("renew_days", "30")
+        key_size_str = section.get("key_size", "4096")
+
+        try:
+            renew_days = int(renew_days_str)
+        except (ValueError, TypeError):
+            raise RuntimeError(f"Invalid renew_days value: {renew_days_str}")
+
+        try:
+            key_size = int(key_size_str)
+        except (ValueError, TypeError):
+            raise RuntimeError(f"Invalid key_size value: {key_size_str}")
+
+        # Validate required fields
+        if not all([key_file, cert_file, req_file, profile]):
+            raise RuntimeError(
+                "One or more required config options are missing in [user] section: "
+                "key_file, cert_file, req_file, profile"
+            )
+
+        return key_file, cert_file, req_file, profile, renew_days, key_size
 
     @classmethod
     def load(

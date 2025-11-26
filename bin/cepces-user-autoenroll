@@ -31,10 +31,10 @@ import sys
 import time
 from cryptography import x509
 from datetime import datetime, timezone
-from cepces.user import UserEnrollment, ApprovalPendingException, load_config
+from cepces.user import UserEnrollment, ApprovalPendingException
 
 
-def sleepOrExit(interval):
+def sleep_or_exit(interval):
     if interval < 1:
         sys.exit(0)
     else:
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "principals": "",
     }
     user_enrollment = UserEnrollment(g_overrides, k_overrides)
-    key_file, cert_file, req_file, profile, renew_days, key_size = load_config(user_enrollment.service._config.parser)
+    key_file, cert_file, req_file, profile, renew_days, key_size = user_enrollment.service._config.get_user_config()
     poll_interval = int(user_enrollment.service._config.poll_interval)
 
     while True:
@@ -60,8 +60,8 @@ if __name__ == "__main__":
                 print(f"Found pending request file {req_file}, checking approval...")
                 with open(req_file, "r") as f:
                     lines = f.readlines()
-                    request_id = lines[0]
-                    reference = lines[1]
+                    request_id = lines[0].strip()
+                    reference = lines[1].strip()
                 user_enrollment.poll(cert_file, request_id, reference)
                 os.unlink(req_file)
 
@@ -78,22 +78,27 @@ if __name__ == "__main__":
                         user_enrollment.request(key_file, cert_file, profile, key_size, None)
                     else:
                         print(f"Expires in {remaining_days}d (> {renew_days}d), nothing to do.")
-                        sleepOrExit(poll_interval)
+                        sleep_or_exit(poll_interval)
                         continue
 
             else:
                 print(f"Cert file {cert_file} not found, try requesting one...")
                 user_enrollment.request(key_file, cert_file, profile, key_size, None)
 
-            sleepOrExit(poll_interval)
+            sleep_or_exit(poll_interval)
 
         except ApprovalPendingException as e:
             # output the "cookie" that can be used to later poll the status
-            print(f"Certificate approval pending, trying to poll in {poll_interval}s.", e.request_id, e.reference)
-            with open(req_file, "w") as f:
-                f.write(str(e.request_id)+"\n"+e.reference)
-            sleepOrExit(poll_interval)
+            print(f"Certificate approval pending (ID: {e.request_id}), trying to poll in {poll_interval}s.")
+            # Create request file with secure permissions (0600 = user read/write only)
+            try:
+                fd = os.open(req_file, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o600)
+                with open(fd, "w") as f:
+                    f.write(str(e.request_id)+"\n"+e.reference)
+            except OSError as write_error:
+                print(f"Error: Failed to write request file: {write_error}", file=sys.stderr)
+            sleep_or_exit(poll_interval)
 
         except Exception as e:
-            print("Error:", e, f"(trying again in {poll_interval}s)")
-            sleepOrExit(poll_interval)
+            print("Error:", e, f"(trying again in {poll_interval}s)", file=sys.stderr)
+            sleep_or_exit(poll_interval)

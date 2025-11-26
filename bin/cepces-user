@@ -102,12 +102,12 @@ if __name__ == "__main__":
             list_templates(user_enrollment.service.templates)
 
         elif args.action == "request":
-            if args.keyfile == None or args.certfile == None or args.profile == None:
+            if args.keyfile is None or args.certfile is None or args.profile is None:
                 raise Exception("--keyfile, --certfile, --profile is required")
             user_enrollment.request(args.keyfile, args.certfile, args.profile, args.keysize, args.passphrase)
 
         elif args.action == "poll":
-            if args.certfile == None or args.request_id == None or args.reference == None:
+            if args.certfile is None or args.request_id is None or args.reference is None:
                 raise Exception("--certfile, --request-id, --reference is required")
             user_enrollment.poll(args.certfile, args.request_id, args.reference)
 
