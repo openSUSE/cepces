@@ -192,7 +192,8 @@ class Configuration(Base):
         # Validate required fields
         if not all([key_file, cert_file, req_file, profile]):
             raise RuntimeError(
-                "One or more required config options are missing in [user] section: "
+                "One or more required config options "
+                "are missing in [user] section: "
                 "key_file, cert_file, req_file, profile"
             )
 
