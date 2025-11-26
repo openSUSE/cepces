@@ -23,7 +23,7 @@ This is a submission helper for user certificates.
 
 It requires that you have a valid kerberos ticket in your credential cache (check with `klist`).
 This is normally automatically created during login with a domain account by SSSD.
-You can manually aquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
+You can manually acquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
 """
 
 import sys
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     parser.add_argument("--request-id", "-i",
         help="The request ID to poll for")
     parser.add_argument("--reference", "-r",
-        help="The request refrence to poll for")
+        help="The request reference to poll for")
     args = parser.parse_args()
 
     g_overrides = {}

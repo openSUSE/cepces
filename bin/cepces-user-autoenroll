@@ -23,7 +23,7 @@ This is a submission helper for automatic user certificate enrollment.
 
 It requires that you have a valid kerberos ticket in your credential cache (check with `klist`).
 This is normally automatically created during login with a domain account by SSSD.
-You can manually aquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
+You can manually acquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
 """
 
 import os
