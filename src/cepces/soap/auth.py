@@ -124,7 +124,7 @@ class TransportGSSAPIAuthentication(Authentication):
             keytab = get_default_keytab_name()
 
         store = {
-            b"client_keytab": keytab,
+            b"client_keytab": keytab.encode("utf-8"),
             # This doesn't work, we need to set KRB5CCNAME
             # b"ccache": "MEMORY:cepces",
         }
