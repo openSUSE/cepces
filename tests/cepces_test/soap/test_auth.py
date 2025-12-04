@@ -197,10 +197,6 @@ class TestTransportGSSAPIAuthentication:
                 init_ccache=False
             )
 
-    @pytest.mark.xfail(
-        reason="keytab path must be encoded to bytes before passing to store",
-        strict=True,
-    )
     @patch("cepces.soap.auth.Context")
     @patch("cepces.soap.auth.Principal")
     @patch("cepces.soap.auth.get_default_keytab_name")
