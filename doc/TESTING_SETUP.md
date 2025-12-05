@@ -266,7 +266,7 @@ utility.** To test both direct enrollment and enrollment with approval, create
 a copy of the default "User" template. Name it "UserManualApprove" and in the
 "Issuance Requirements" tab, enable the option "Approval of certificate
 authority required". In the "Security" tab, make sure that your users have
-the "Register" permission and do not forget to enable the newly created template.
+the "Enroll" permission and do not forget to enable the newly created template.
 
 An IIS restart (`iisreset`) is needed in order to make the new template available
 via CEP/CES.
