@@ -21,6 +21,7 @@ from cepces import Base
 from cepces.credentials import CredentialsHandler
 from cepces.keyring import KeyringHandler, KeyringOperationError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
+from cepces.krb5 import functions as krb5_functions
 from cepces.soap import auth as SOAPAuth
 import gssapi.exceptions
 
@@ -123,6 +124,13 @@ class GSSAPIAuthenticationHandler(AuthenticationHandler):
                 # Log the error and continue trying other principals
                 self._logger.warning(
                     "GSSError for principal %s: %s", principal, e
+                )
+                continue
+            except krb5_functions.Error as e:
+                # Log krb5 errors (e.g., no default realm configured) and
+                # continue trying other principals
+                self._logger.warning(
+                    "Kerberos error for principal %s: %s", principal, e
                 )
                 continue
 
