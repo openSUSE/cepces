@@ -16,8 +16,11 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 import pytest
+from xml.etree import ElementTree
 from cepces.xml.binding import ListingMeta
 from cepces.xml.binding import XMLDescriptor
+from cepces.xml.binding import XMLNode
+from cepces.xml.binding import XMLElementList
 
 
 class MockXMLDescriptor(XMLDescriptor):
@@ -93,3 +96,44 @@ def test_listing_meta_ordered_listing(mock_class):
     assert listing[0][1] == dummy.__dict__[listing[0][0]]
     assert listing[1][1] == dummy.__dict__[listing[1][0]]
     assert listing[2][1] == dummy.__dict__[listing[2][0]]
+
+
+class ChildNode(XMLNode):
+    """A simple child node for testing XMLElementList."""
+
+    @staticmethod
+    def create():
+        return ElementTree.Element("child")
+
+
+class ParentNode(XMLNode):
+    """A parent node with an XMLElementList that may be missing."""
+
+    children = XMLElementList(
+        "children",
+        child_name="child",
+        binder=ChildNode,
+        nillable=True,
+    )
+
+    @staticmethod
+    def create():
+        return ElementTree.Element("parent")
+
+
+@pytest.mark.xfail(reason="XMLElementList returns empty list instead of None")
+def test_xml_element_list_missing_element_returns_none():
+    """XMLElementList should return None when the element doesn't exist.
+
+    This reproduces a bug where accessing .cas on a GetPoliciesResponse
+    when no CAs element exists causes an IndexError because the code
+    tries to create an XMLElementList.List with element=None.
+    """
+    # Create a parent element without the 'children' sub-element
+    parent_element = ElementTree.Element("parent")
+    parent_node = ParentNode(parent_element)
+
+    # Accessing children should return None, not raise an error
+    result = parent_node.children
+
+    assert result is None
