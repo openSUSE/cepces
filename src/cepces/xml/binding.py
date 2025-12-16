@@ -354,7 +354,10 @@ class XMLElementList(XMLElement):
     def __get__(self, instance, _owner=None):
         binder = super().__get__(instance, _owner)
 
-        if binder is self:
+        if binder is None:
+            # Element doesn't exist, return None
+            return None
+        elif binder is self:
             return binder
         elif not isinstance(binder, XMLElementList.List):
             binder = XMLElementList.List(

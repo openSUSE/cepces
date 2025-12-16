@@ -121,7 +121,6 @@ class ParentNode(XMLNode):
         return ElementTree.Element("parent")
 
 
-@pytest.mark.xfail(reason="XMLElementList returns empty list instead of None")
 def test_xml_element_list_missing_element_returns_none():
     """XMLElementList should return None when the element doesn't exist.
 
