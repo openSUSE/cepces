@@ -267,7 +267,8 @@ a copy of the default "User" template (Certificate Templates -> right click -> M
 Right click on User -> Duplicate). Name it "UserManualApprove" and in the
 "Issuance Requirements" tab, enable the option "CA Certificate Manager Approval".
 In the "Security" tab, make sure that your users have the "Enroll"
-permission and do not forget to enable the newly created template.
+permission and do not forget to enable the newly created template
+(Certificate Templates -> right click -> New -> Certificate Template to issue).
 
 An IIS restart (`iisreset`) is needed in order to make the new template available
 via CEP/CES.
