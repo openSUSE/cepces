@@ -129,7 +129,6 @@ all supported operations and usage examples, see `doc/CERTMONGER.md`_.
 .. _certmonger: https://pagure.io/certmonger
 .. _doc/CERTMONGER.md: doc/CERTMONGER.md
 
-
 Requesting a User Certificate
 -----------------------------
 
