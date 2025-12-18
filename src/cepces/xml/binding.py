@@ -363,7 +363,15 @@ class XMLElementList(XMLElement):
             return None
         elif binder is self:
             return binder
-        elif not isinstance(binder, XMLElementList.List):
+
+        # Check if nillable.
+        if self._nillable:
+            if hasattr(binder, "attrib") and ATTR_NIL in binder.attrib:
+                if binder.get(ATTR_NIL) == "true":
+                    # Since nil=true, return None.
+                    return None
+
+        if not isinstance(binder, XMLElementList.List):
             binder = XMLElementList.List(
                 parent=self,
                 element=binder,

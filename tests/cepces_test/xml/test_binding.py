@@ -141,7 +141,6 @@ def test_xml_element_list_missing_element_returns_none():
 NS_XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
 
-@pytest.mark.xfail(reason="XMLElementList doesn't handle xsi:nil='true'")
 def test_xml_element_list_nil_element_returns_none():
     """XMLElementList should return None when the element has xsi:nil='true'.
 
