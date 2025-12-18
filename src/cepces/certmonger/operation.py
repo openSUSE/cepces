@@ -124,6 +124,10 @@ class Submit(Operation):
 
         self._logger.debug("Result is: %s", result)
 
+        if result is None:
+            self._logger.error("Result is None, maybe you add an issue finding list of endpoint")
+            return CertmongerResult.CONNECTERROR
+
         # If we have a certificate, return it. Otherwise, ask certmonger to
         # wait a bit.
         if result.token:
