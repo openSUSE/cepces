@@ -20,7 +20,7 @@ from cryptography import x509
 from configparser import ConfigParser
 from cepces.config import Configuration
 from cepces.core import Service
-from cepces.user import UserEnrollment, ApprovalPendingException, load_config
+from cepces.user import UserEnrollment, ApprovalPendingException
 
 
 class TestUser(unittest.TestCase):
@@ -56,7 +56,7 @@ class TestUser(unittest.TestCase):
 
         # test loading config
         key_file, cert_file, req_file, profile, renew_days, key_size = (
-            load_config(user_enrollment.service._config.parser)
+            user_enrollment.service._config.get_user_config()
         )
 
         # test cert template list
