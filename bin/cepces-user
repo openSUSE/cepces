@@ -27,7 +27,6 @@ You can manually acquire a kerberos ticket via `kinit username@DOMAIN.TLD`.
 """
 
 import sys
-import traceback
 import argparse
 from cepces.user import UserEnrollment, ApprovalPendingException
 
@@ -118,6 +117,6 @@ if __name__ == "__main__":
         print("Reference:", e.reference)
         sys.exit(2)
 
-    except Exception:
-        eprint(traceback.format_exc())
+    except Exception as e:
+        eprint(type(e).__name__, ':', e)
         sys.exit(1)
