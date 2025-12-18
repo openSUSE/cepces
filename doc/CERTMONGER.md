@@ -256,3 +256,8 @@ See the main documentation for configuration options including:
 - Authentication method (Kerberos, Certificate, etc.)
 - Kerberos keytab and principal settings
 - Poll interval for deferred requests
+
+## Troubleshooting
+
+For debugging cepces issues, including how to enable debug logging and run
+operations from the command line, see [DEBUGGING.md](DEBUGGING.md).
