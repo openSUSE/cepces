@@ -39,14 +39,7 @@ class TestUser(unittest.TestCase):
             "ccache": "False",
             "principals": "",
         }
-        return UserEnrollment(g_overrides, k_overrides)
-
-    def _check_cert(self, cert_file):
-        with open(cert_file, "rb") as f:
-            x509.load_pem_x509_certificate(f.read())
-
-    def testRequest(self):
-        user_enrollment = self._init()
+        user_enrollment = UserEnrollment(g_overrides, k_overrides)
 
         self.assertIsInstance(user_enrollment.service, Service)
         self.assertIsInstance(user_enrollment.service._config, Configuration)
@@ -54,17 +47,26 @@ class TestUser(unittest.TestCase):
             user_enrollment.service._config.parser, ConfigParser
         )
 
-        # test loading config
-        key_file, cert_file, req_file, profile, renew_days, key_size = (
-            user_enrollment.service._config.get_user_config()
-        )
+        return user_enrollment
 
-        # test cert template list
+    def _check_cert(self, cert_file):
+        with open(cert_file, "rb") as f:
+            x509.load_pem_x509_certificate(f.read())
+
+    def testListTemplates(self):
+        user_enrollment = self._init()
+
         template_list = user_enrollment.service.templates
         self.assertIn(self.test_template_name_auto_approve, template_list)
         self.assertIn(self.test_template_name_manual_approve, template_list)
 
-        # test auto approved cert
+    def testRequestAutoApprove(self):
+        user_enrollment = self._init()
+
+        key_file, cert_file, req_file, profile, renew_days, key_size = (
+            user_enrollment.service._config.get_user_config()
+        )
+
         user_enrollment.request(
             key_file,
             cert_file,
@@ -74,7 +76,13 @@ class TestUser(unittest.TestCase):
         )
         self._check_cert(cert_file)
 
-        # test manual approved cert
+    def testRequestManualApprove(self):
+        user_enrollment = self._init()
+
+        key_file, cert_file, req_file, profile, renew_days, key_size = (
+            user_enrollment.service._config.get_user_config()
+        )
+
         with self.assertRaises(ApprovalPendingException):
             user_enrollment.request(
                 key_file,
