@@ -136,3 +136,32 @@ def test_xml_element_list_missing_element_returns_none():
     result = parent_node.children
 
     assert result is None
+
+
+NS_XSI = "http://www.w3.org/2001/XMLSchema-instance"
+
+
+@pytest.mark.xfail(reason="XMLElementList doesn't handle xsi:nil='true'")
+def test_xml_element_list_nil_element_returns_none():
+    """XMLElementList should return None when the element has xsi:nil='true'.
+
+    This reproduces the bug from certmonger where accessing .cas on a
+    GetPoliciesResponse with '<cAs xsi:nil="true" />' causes an IndexError
+    because the code creates an empty list instead of returning None.
+
+    Example XML that triggers this:
+    <GetPoliciesResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <cAs xsi:nil="true" />
+    </GetPoliciesResponse>
+    """
+    # Create a parent element with a nil 'children' sub-element
+    parent_element = ElementTree.Element("parent")
+    children_element = ElementTree.SubElement(parent_element, "children")
+    children_element.set(f"{{{NS_XSI}}}nil", "true")
+
+    parent_node = ParentNode(parent_element)
+
+    # Accessing children should return None when xsi:nil="true"
+    result = parent_node.children
+
+    assert result is None
