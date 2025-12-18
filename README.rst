@@ -99,7 +99,7 @@ containing all CA certificates in the chain.
 Usage
 =====
 
-`certmonger` should have a CA already configured after the packages were
+`certmonger`_ should have a CA already configured after the packages were
 installed:
 
 .. code-block:: bash
@@ -114,62 +114,8 @@ installed:
 Use this CA configuration as with any other. Please consult the official
 `certmonger`_ documentation for instructions.
 
-Example: Requesting a Machine Certificate
------------------------------------------
+For detailed information on how cepces integrates with certmonger, including
+all supported operations and usage examples, see `doc/CERTMONGER.md`_.
 
-If the current workstation is entitled to enroll "Workstation certificates" from
-a CA (with the identifier ``Machine``), use the following command to issue and
-track a new certificate:
-
-.. code-block:: bash
-
-    # getcert request -c cepces -T Machine -I MachineCertificate -k /etc/pki/tls/private/machine.key -f /etc/pki/tls/certs/machine.crt
-    New signing request "MachineCertificate" added.
-
-The certificate should now be submitted to the CA. Verify the progress with:
-
-.. code-block:: bash
-
-    # getcert list
-    Number of certificates and requests being tracked: 1.
-    Request ID 'MachineCertificate':
-            status: SUBMITTING
-            stuck: no
-            key pair storage: type=FILE,location='/etc/pki/tls/private/machine.key'
-            certificate: type=FILE,location='/etc/pki/tls/certs/machine.crt'
-            CA: cepces
-            issuer:
-            subject:
-            expires: unknown
-            pre-save command:
-            post-save command:
-            track: yes
-            auto-renew: yes
-
-After a few moments when the CA has successfully processed the request, the
-certificate should be issued and monitored by certmonger:
-
-.. code-block:: bash
-
-    # getcert list
-    Number of certificates and requests being tracked: 1.
-    Request ID 'MachineCertificate':
-            status: MONITORING
-            stuck: no
-            key pair storage: type=FILE,location='/etc/pki/tls/private/machine.key'
-            certificate: type=FILE,location='/etc/pki/tls/certs/machine.crt'
-            CA: cepces
-            issuer: CN=<My CA>
-            subject: CN=<my hostname>
-            expires: 2017-08-15 17:37:02 UTC
-            dns: <my hostname>
-            key usage: digitalSignature,keyEncipherment
-            eku: id-kp-clientAuth,id-kp-serverAuth
-            certificate template/profile: Machine
-            pre-save command:
-            post-save command:
-            track: yes
-            auto-renew: yes
-
-
-.. _certmonger: https://fedorahosted.org/certmonger/
+.. _certmonger: https://pagure.io/certmonger
+.. _doc/CERTMONGER.md: doc/CERTMONGER.md
