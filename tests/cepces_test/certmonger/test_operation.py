@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-import pytest
 from unittest.mock import Mock, patch
 from xml.etree import ElementTree
 from cepces import __title__, __version__
@@ -508,19 +507,15 @@ def test_get_policies_with_nil_policies_returns_none():
     assert templates is None
 
 
-@pytest.mark.xfail(
-    reason="Submit operation doesn't handle None result from service.request",
-    raises=AttributeError,
-)
 def test_submit_operation_with_no_endpoints():
     """Tests that Submit handles None result when no endpoints are available.
 
     When the AD CS server returns a policy response with no enrollment
     endpoints available (e.g., misconfigured server or user lacks
     permissions), service.request() returns None. The Submit operation
-    should handle this gracefully instead of raising AttributeError.
+    should handle this gracefully and return UNDERCONFIGURED.
 
-    This reproduces the issue from GitHub PR #71.
+    This test was originally a reproducer for GitHub PR #71.
     """
     import os
 
@@ -559,8 +554,8 @@ J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
         out = io.StringIO()
         operation = CertmongerOperations.Submit(mock_service, out=out)
 
-        # This should return UNDERCONFIGURED, but currently raises
-        # AttributeError: 'NoneType' object has no attribute 'token'
+        # With the fix, this now returns UNDERCONFIGURED instead of
+        # raising AttributeError
         result = operation()
 
         assert result == CertmongerResult.UNDERCONFIGURED

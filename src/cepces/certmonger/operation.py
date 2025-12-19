@@ -122,6 +122,13 @@ class Submit(Operation):
 
             return CertmongerResult.REJECTED
 
+        if result is None:
+            self._logger.error(
+                "No result received. This may indicate no enrollment "
+                "endpoints are available (check CA configuration)."
+            )
+            return CertmongerResult.UNDERCONFIGURED
+
         self._logger.debug("Result is: %s", result)
 
         # If we have a certificate, return it. Otherwise, ask certmonger to
