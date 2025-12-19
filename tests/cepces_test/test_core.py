@@ -18,7 +18,6 @@
 import unittest
 import logging
 from xml.etree import ElementTree
-import pytest
 from unittest.mock import Mock, patch
 from cepces import Base
 from cepces.core import Service
@@ -47,19 +46,12 @@ class TestBase(unittest.TestCase):
         self.assertIs(base._logger, logger)
 
 
-@pytest.mark.xfail(
-    reason="Service.templates doesn't check for None policies",
-    raises=TypeError,
-)
 def test_service_templates_with_nil_policies():
     """Tests that Service.templates handles nil policies gracefully.
 
     When the AD CS server returns a GetPoliciesResponse with
     '<ns0:policies xsi:nil="true" />', accessing Service.templates
     should return None instead of raising TypeError.
-
-    BUG: Currently, Service.templates tries to iterate over None,
-    causing: TypeError: 'NoneType' object is not iterable
     """
     # Parse the XML response with nil policies
     element = ElementTree.fromstring(GET_POLICIES_NIL_POLICIES_XML)
@@ -92,19 +84,12 @@ def test_service_templates_with_nil_policies():
         assert templates is None
 
 
-@pytest.mark.xfail(
-    reason="Service.endpoints doesn't check for None CAs",
-    raises=TypeError,
-)
 def test_service_endpoints_with_nil_cas():
     """Tests that Service.endpoints handles nil CAs gracefully.
 
     When the AD CS server returns a GetPoliciesResponse with
     '<ns0:cAs xsi:nil="true" />', accessing Service.endpoints
     should return None instead of raising TypeError.
-
-    BUG: Currently, Service.endpoints tries to iterate over None,
-    causing: TypeError: 'NoneType' object is not iterable
     """
     # Parse the XML response with nil CAs
     element = ElementTree.fromstring(GET_POLICIES_NIL_POLICIES_XML)
