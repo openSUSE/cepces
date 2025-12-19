@@ -107,14 +107,19 @@ class Service(Base):
     def templates(self):
         """Retrieve a list of available templates.
 
-        Returns None if no policy endpoint is used.
+        Returns None if no policy endpoint is used or if no policies are
+        available (e.g., when the server returns xsi:nil="true" for policies).
         """
         if self._xcep is None:
             return None
 
+        policies = self._policies.response.policies
+        if policies is None:
+            return None
+
         templates = []
 
-        for policy in self._policies.response.policies:
+        for policy in policies:
             templates.append(policy.attributes.common_name)
 
         return templates
@@ -123,15 +128,20 @@ class Service(Base):
     def endpoints(self):
         """Retrieves a list of WSTEP suitable endpoints.
 
-        Returns None if no policy endpoint is used.
+        Returns None if no policy endpoint is used or if no CAs are available
+        (e.g., when the server returns xsi:nil="true" for cAs).
         """
         if self._xcep is None:
+            return None
+
+        cas = self._policies.cas
+        if cas is None:
             return None
 
         config = self._config
         endpoints = []
 
-        for ca in self._policies.cas:
+        for ca in cas:
             for uri in [x for x in ca.uris if x.id in Configuration.AUTH_MAP]:
                 if isinstance(config.auth, Configuration.AUTH_MAP[uri.id]):
                     endpoints.append(
@@ -151,7 +161,9 @@ class Service(Base):
         This retreives the certificate from the issuing endpoint service, and
         then uses the AIA information to retreive the rest of the chain.
 
-        This is only implemented for Policy endpoints. Returns None otherwise.
+        This is only implemented for Policy endpoints. Returns None otherwise,
+        or if no CAs are available (e.g., when the server returns
+        xsi:nil="true" for cAs).
 
         :raise PartialChainError: if no AIA is found, or the complete chain
                                   cannot be retreived. The exception contains
@@ -160,10 +172,14 @@ class Service(Base):
         if self._xcep is None:
             return None
 
+        cas = self._policies.cas
+        if cas is None:
+            return None
+
         # Get the first certificate. Since is (or at least always should) be
         # securely retreived over a secure channel, only verify subsequent
         # certificates.
-        data = self._policies.cas[index].certificate
+        data = cas[index].certificate
 
         return reversed(self._resolve_chain(data))
 
