@@ -559,3 +559,62 @@ J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
         result = operation()
 
         assert result == CertmongerResult.UNDERCONFIGURED
+
+
+def test_operations_needs_service_attribute():
+    """Tests that operations correctly declare whether they need a service.
+
+    Operations that don't access the service (authentication) should have
+    needs_service = False so they can run during RPM installation without
+    a keytab configured.
+    """
+    # Operations that DON'T need the service (can run without authentication)
+    assert CertmongerOperations.Identify.needs_service is False
+    assert (
+        CertmongerOperations.GetNewRequestRequirements.needs_service is False
+    )
+    assert (
+        CertmongerOperations.GetRenewRequestRequirements.needs_service is False
+    )
+    assert CertmongerOperations.GetDefaultTemplate.needs_service is False
+
+    # Operations that DO need the service (require authentication)
+    assert CertmongerOperations.Submit.needs_service is True
+    assert CertmongerOperations.Poll.needs_service is True
+    assert CertmongerOperations.GetSupportedTemplates.needs_service is True
+    assert CertmongerOperations.FetchRoots.needs_service is True
+
+
+def test_operations_without_service_work_with_none():
+    """Tests that operations with needs_service=False work with service=None.
+
+    This simulates the behavior during RPM installation when getcert add-ca
+    is called but no keytab is configured.
+    """
+    # Identify should work without a service
+    out1 = io.StringIO()
+    op_identify = CertmongerOperations.Identify(None, out=out1)
+    result1 = op_identify()
+    assert result1 == CertmongerResult.DEFAULT
+    assert __title__ in out1.getvalue()
+
+    # GetNewRequestRequirements should work without a service
+    out2 = io.StringIO()
+    op_new_req = CertmongerOperations.GetNewRequestRequirements(None, out=out2)
+    result2 = op_new_req()
+    assert result2 == CertmongerResult.DEFAULT
+    assert "CERTMONGER_CA_PROFILE" in out2.getvalue()
+
+    # GetRenewRequestRequirements should work without a service
+    out3 = io.StringIO()
+    op_renew = CertmongerOperations.GetRenewRequestRequirements(None, out=out3)
+    result3 = op_renew()
+    assert result3 == CertmongerResult.DEFAULT
+    assert "CERTMONGER_CA_PROFILE" in out3.getvalue()
+
+    # GetDefaultTemplate should work without a service
+    out4 = io.StringIO()
+    op_default = CertmongerOperations.GetDefaultTemplate(None, out=out4)
+    result4 = op_default()
+    assert result4 == CertmongerResult.DEFAULT
+    assert out4.getvalue() == ""

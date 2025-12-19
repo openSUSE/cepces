@@ -59,13 +59,22 @@ def main(global_overrides, krb5_overrides):
         result = Result.UNSUPPORTED
     else:
         try:
-            # Load the configuration and instantiate a service.
-            config = Configuration.load(global_overrides=global_overrides,
-                                        krb5_overrides=krb5_overrides)
-            service = Service(config)
+            operation_class = operations[operation]
+
+            # Check if the operation needs a service (i.e., uses authentication).
+            # Operations that don't access self._service can run without config.
+            needs_service = getattr(operation_class, 'needs_service', True)
+
+            if needs_service:
+                # Load the configuration and instantiate a service.
+                config = Configuration.load(global_overrides=global_overrides,
+                                            krb5_overrides=krb5_overrides)
+                service = Service(config)
+            else:
+                service = None
 
             # Call the operation.
-            operation = operations[operation](service)
+            operation = operation_class(service)
             result = operation()
         except Exception:
             logger.error(traceback.format_exc())

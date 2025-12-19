@@ -40,19 +40,23 @@ class Operation(Base, metaclass=ABCMeta):
     an action, whereas others are optional. This base class helps ensure
     everything required is present, or fails otherwise.
 
-    Two class variables are used to define this behaviour:
+    Class variables:
 
+    * `name`: The certmonger operation name (e.g., 'IDENTIFY', 'SUBMIT').
     * `required`: A list containing all required environment variables.
     * `optional`: A list containing tuples of all optional environment
-                    variables and their defaults (e.g., '("VAR", None)').
-
-    An extra class variable, `name`, is used to distinguish the mapped
-    certmonger operation.
+                  variables and their defaults (e.g., '("VAR", None)').
+    * `needs_service`: Whether this operation requires an authenticated
+                       service connection. Operations that only output static
+                       information (like IDENTIFY) can set this to False to
+                       allow running without authentication during package
+                       installation.
     """
 
     name: str | None = None
     required: list[str] = []
     optional: list[tuple[str, str | None]] = []
+    needs_service: bool = True
 
     def __init__(self, service, out=sys.stdout, logger=None):
         """Initializes an Operation.
@@ -201,6 +205,7 @@ class Identify(Operation):
     """Outputs version information for this helper."""
 
     name = "IDENTIFY"
+    needs_service = False
 
     def __call__(self):
         print("{} {}".format(__title__, __version__), file=self._out)
@@ -212,6 +217,7 @@ class GetNewRequestRequirements(Operation):
     """Outputs a list of required environment variables for submission."""
 
     name = "GET-NEW-REQUEST-REQUIREMENTS"
+    needs_service = False
 
     def __call__(self):
         # Output a list of required environment variables.
@@ -224,6 +230,7 @@ class GetRenewRequestRequirements(Operation):
     """Outputs a list of required environment variables for renewal."""
 
     name = "GET-RENEW-REQUEST-REQUIREMENTS"
+    needs_service = False
 
     def __call__(self):
         # Output a list of required environment variables.
@@ -255,6 +262,7 @@ class GetDefaultTemplate(Operation):
     """
 
     name = "GET-DEFAULT-TEMPLATE"
+    needs_service = False
 
     def __call__(self):
         return CertmongerResult.DEFAULT
