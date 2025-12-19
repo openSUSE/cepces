@@ -174,3 +174,36 @@ def test_fetch_roots_from_xml_response():
 
     # Verify the return code
     assert result == CertmongerResult.DEFAULT
+
+
+# XML response with xsi:nil="true" for cAs (no CAs configured)
+GET_POLICIES_RESPONSE_NIL_CAS_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{F803BF1A-EB36-42A4-973C-AF4555EB8782}</ns0:policyID><ns0:policyFriendlyName>My PKI</ns0:policyFriendlyName><ns0:nextUpdateHours>1</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies xsi:nil="true" /></ns0:response><ns0:cAs xsi:nil="true" /><ns0:oIDs xsi:nil="true" /></ns0:GetPoliciesResponse>'  # noqa: E501
+
+
+def test_fetch_roots_from_xml_response_with_nil_cas():
+    """Tests parsing XML response where cAs has xsi:nil='true'.
+
+    This reproduces the bug where accessing .cas on a GetPoliciesResponse
+    with '<cAs xsi:nil="true" />' would cause an IndexError because the
+    XMLElementList returned an empty list instead of None.
+    """
+    # Parse the XML response
+    element = ElementTree.fromstring(GET_POLICIES_RESPONSE_NIL_CAS_XML)
+    policies_response = GetPoliciesResponse(element)
+
+    # Verify that cas returns None (not an empty list) when xsi:nil="true"
+    assert policies_response.cas is None
+
+    # Mock the service to return None for certificate_chain (simulating no CAs)
+    mock_service = Mock()
+    mock_service.certificate_chain = None
+
+    out = io.StringIO()
+    operation = CertmongerOperations.FetchRoots(mock_service, out=out)
+    result = operation()
+
+    # Output should be empty (just newline from print)
+    assert out.getvalue() == "\n"
+
+    # Verify the return code
+    assert result == CertmongerResult.DEFAULT
