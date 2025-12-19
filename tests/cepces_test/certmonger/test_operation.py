@@ -469,3 +469,39 @@ def test_submit_operation_with_issued_certificate():
     # Verify the output contains a PEM certificate
     assert "-----BEGIN CERTIFICATE-----" in output
     assert "-----END CERTIFICATE-----" in output
+
+
+# GetPoliciesResponse with nil policies and CAs (no enrollment available)
+# From a misconfigured AD CS server - causes TypeError when iterating
+GET_POLICIES_NIL_POLICIES_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{F803BF1A-EB36-42A4-973C-AF4555EB8782}</ns0:policyID><ns0:policyFriendlyName>My PKI</ns0:policyFriendlyName><ns0:nextUpdateHours>1</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies xsi:nil="true" /></ns0:response><ns0:cAs xsi:nil="true" /><ns0:oIDs xsi:nil="true" /></ns0:GetPoliciesResponse>'  # noqa: E501
+
+
+def test_get_policies_with_nil_policies_returns_none():
+    """Tests that nil policies are handled gracefully in XML parsing.
+
+    When the AD CS server returns a GetPoliciesResponse with
+    '<ns0:policies xsi:nil="true" />', the XMLElementList correctly
+    returns None instead of an empty list.
+
+    This test verifies that the nil policies response is parsed correctly
+    and can be safely checked for None before iteration.
+    """
+    # Parse the XML response with nil policies
+    element = ElementTree.fromstring(GET_POLICIES_NIL_POLICIES_XML)
+    policies_response = GetPoliciesResponse(element)
+
+    # Verify that response exists but policies is None
+    assert policies_response.response is not None
+    assert policies_response.response.policies is None
+
+    # Verify that CAs is also None
+    assert policies_response.cas is None
+
+    # Demonstrate safe iteration pattern:
+    policies = policies_response.response.policies
+    if policies is None:
+        templates = None
+    else:
+        templates = [p.attributes.common_name for p in policies]
+
+    assert templates is None
