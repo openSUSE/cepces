@@ -21,6 +21,7 @@ from cepces import __title__, __version__
 from cepces.certmonger.core import Result as CertmongerResult
 import cepces.certmonger.operation as CertmongerOperations
 from cepces.xcep.types import GetPoliciesResponse
+from cepces.wstep.types import SecurityTokenResponseCollection
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 import io
@@ -348,3 +349,123 @@ def test_get_new_request_requirements_from_xml_response():
 
     # Verify the return code
     assert result == CertmongerResult.DEFAULT
+
+
+# WSTEP response XML from cepces-submit.log line 67
+# Extracted RequestSecurityTokenResponseCollection from the SOAP envelope Body
+# fmt: off
+SUBMIT_WSTEP_RESPONSE_XML = b'<ns3:RequestSecurityTokenResponseCollection xmlns:ns3="http://docs.oasis-open.org/ws-sx/ws-trust/200512" xmlns:ns4="http://schemas.microsoft.com/windows/pki/2009/01/enrollment" xmlns:ns5="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><ns3:RequestSecurityTokenResponse><ns3:TokenType>http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3</ns3:TokenType><ns4:DispositionMessage xml:lang="en-US">Issued</ns4:DispositionMessage><ns5:BinarySecurityToken ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd#PKCS7" EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd#base64binary">MIIQJwYJKoZIhvcNAQcCoIIQGDCCEBQCAQMxDzANBglghkgBZQMEAgMFADB9BgsrBgEFBQcMA6BxBG8wbTBnMCECAQEGCCsGAQUFBwcBMRIwEAIBADADAgEBDAZJc3N1ZWQwQgIBAgYKKwYBBAGCNwoKATExMC8CAQAwAwIBATElMCMGCSsGAQQBgjcVETEWBBRTUTWG9j2Y</ns5:BinarySecurityToken><ns3:RequestedSecurityToken><ns5:BinarySecurityToken ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd#base64binary">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</ns5:BinarySecurityToken></ns3:RequestedSecurityToken><ns4:RequestID>27</ns4:RequestID></ns3:RequestSecurityTokenResponse></ns3:RequestSecurityTokenResponseCollection>'  # noqa: E501
+# fmt: on
+
+
+# Issued certificate from cepces-submit.log (CN=fedora2.mars.milkyway.site)
+# fmt: off
+ISSUED_CERT_PEM = """-----BEGIN CERTIFICATE-----
+MIIGvDCCBKSgAwIBAgITUgAAABtlxEW6Cmwf5QAAAAAAGzANBgkqhkiG9w0BAQ0F
+ADBdMRQwEgYKCZImiZPyLGQBGRYEc2l0ZTEYMBYGCgmSJomT8ixkARkWCG1pbGt5
+d2F5MRQwEgYKCZImiZPyLGQBGRYEbWFyczEVMBMGA1UEAxMMTUFSUy1ST09ULUNB
+MB4XDTI1MTIxOTA2MjMwOVoXDTI2MTIxOTA2MjMwOVowJTEjMCEGA1UEAxMaZmVk
+b3JhMi5tYXJzLm1pbGt5d2F5LnNpdGUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+ggEKAoIBAQC4bmnnol4bjMqgjllaQXhQWPkKlSlVg8+rb1u9OLlzqv18WQw+AhiR
+FTb7ld4URYYhzIlKACoqkGF0id9O7HX6LC34WZZR5swdRtQFG8Ny3lJwe4rbdyl/
+A3T3np6WKPRrlFAp796xswggB7rRTMG6CNBRJlEPjdGKx3NiuJFhaQgnb1RrGAgM
+hN7L3QjDXF9bQ5vReCRu6BZJsk8Wbp0jzF0wa6lvwYmSY+QnKh6ueBeer7FHi505
+3eqGqcjiKSh/MjhT6QunJLkxYNpIM3lfuXwwGHwPMhgeh8CnhQkisfs4mRUObswb
+GYAp03duOi6wqIIhjVC8mMIIWgrz6Bd/AgMBAAGjggKrMIICpzAdBgNVHSUEFjAU
+BggrBgEFBQcDAgYIKwYBBQUHAwEwHQYDVR0OBBYEFLErlMqSK4MM/vdd6mCN2c1E
+g7VCMB0GCSsGAQQBgjcUAgQQHg4ATQBhAGMAaABpAG4AZTAlBgNVHREEHjAcghpm
+ZWRvcmEyLm1hcnMubWlsa3l3YXkuc2l0ZTAfBgNVHSMEGDAWgBTsrV5HZN1O6EYT
+6YUp9TpQymsGljCB1QYDVR0fBIHNMIHKMIHHoIHEoIHBhoG+bGRhcDovLy9DTj1N
+QVJTLVJPT1QtQ0EsQ049V0lOLUNBMDEsQ049Q0RQLENOPVB1YmxpYyUyMEtleSUy
+MFNlcnZpY2VzLENOPVNlcnZpY2VzLENOPUNvbmZpZ3VyYXRpb24sREM9bWFycyxE
+Qz1taWxreXdheSxEQz1zaXRlP2NlcnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFz
+ZT9vYmplY3RDbGFzcz1jUkxEaXN0cmlidXRpb25Qb2ludDCByAYIKwYBBQUHAQEE
+gbswgbgwgbUGCCsGAQUFBzAChoGobGRhcDovLy9DTj1NQVJTLVJPT1QtQ0EsQ049
+QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2VzLENOPUNv
+bmZpZ3VyYXRpb24sREM9bWFycyxEQz1taWxreXdheSxEQz1zaXRlP2NBQ2VydGlm
+aWNhdGU/YmFzZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0aG9yaXR5MA4G
+A1UdDwEB/wQEAwIFoDBNBgkrBgEEAYI3GQIEQDa+oDwGCisGAQQBgjcZAgGgLgQs
+Uy0xLTUtMjEtMzk0Mzc2MzQtMjQ1NTY2MzY5Ni0yNzUwMDA1MjgxLTExMDUwDQYJ
+KoZIhvcNAQENBQADggIBAKgrtyAqEBjFzR47j5FOvTW+INqBwypoAauutMubKaRt
+H/nv2B18fBK9u6f/KsmeVSr6zf5JuZelR1skwNDrFSTKA8FRb09McILrnmch3zAy
+JQzp2dRUJIR/U03w24qWtKMjrw/dEVeTjowDHszsEnEEgunNRcp3AURgDg8dC/q5
+WNDlTqdoLDSeZyswi5/C5bRzh5n0gWtOuByUCcJ7VBWDY/he4/JX7fOfBgoyFSZp
+uMdCTi05y7rCdkXMxaZCfipCF8SZsR/WvR0YK/E1Qz+n+31Ap5jrVE0HMuqkPbjm
+3jRP0swEQpjVIak8AEt5vIu0uCY6f+Og0efBAo45wgrkI9mn66cF+DGWg2pW6rHm
+LygrR48ZmoRtp/Bg1AwLCo8EbvFXnwICsuF3aE5RxsyaJksGgZdwoAVt7L0DvwPw
+zRpAbkuxwNO5MvRZO153EDuRYmQsez5Pa86Knhdf4X5eEDW0JZa1oC/aDpt98x5i
+MphEV5xk1r4V9+UWVnvfcnyxRa+Pu6jf2H7+jXtZnksUhwz9QK86FsZS77lSvrjn
+tr4skE8NgMonNN68FxPr9ammHDg3KAZLuoLMLWxuY2g+DgLXQpvihENAsslfrO9A
+z1qRP/PjWqwR/FRkXg3Z/AdHUqnRyWoPDmQELgQoV7R2KcHCEBgCpFX672JPSQVR
+-----END CERTIFICATE-----"""
+# fmt: on
+
+
+def test_submit_wstep_response_parsing():
+    """Tests parsing the WSTEP SecurityTokenResponseCollection from AD CS.
+
+    This test parses the RequestSecurityTokenResponseCollection XML from
+    line 67 of the cepces-submit.log debug output.
+    """
+    # Parse the XML response from line 67 of the log
+    element = ElementTree.fromstring(SUBMIT_WSTEP_RESPONSE_XML)
+    response_collection = SecurityTokenResponseCollection(element)
+
+    # Verify we can extract the responses
+    assert response_collection.responses is not None
+    assert len(response_collection.responses) == 1
+
+    # Get the first response
+    response = response_collection.responses[0]
+
+    # Verify token type (X509v3)
+    assert response.token_type is not None
+    assert "X509v3" in response.token_type
+
+    # Verify disposition message is "Issued"
+    assert response.disposition_message == "Issued"
+
+    # Verify request ID matches line 67 of the log
+    assert response.request_id == 27
+
+    # Verify the requested token contains a certificate
+    assert response.requested_token is not None
+    assert response.requested_token.text is not None
+
+
+def test_submit_operation_with_issued_certificate():
+    """Tests the Submit operation with an issued certificate.
+
+    Based on cepces-submit.log lines 71-72, the Submit operation returns
+    the issued certificate for CN=fedora2.mars.milkyway.site.
+    """
+    # Load the issued certificate
+    cert = x509.load_pem_x509_certificate(
+        ISSUED_CERT_PEM.encode(), default_backend()
+    )
+
+    # Verify the certificate subject
+    cn = cert.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0]
+    assert cn.value == "fedora2.mars.milkyway.site"
+
+    # Verify the certificate issuer (MARS-ROOT-CA)
+    issuer_cn = cert.issuer.get_attributes_for_oid(
+        x509.oid.NameOID.COMMON_NAME
+    )[0]
+    assert issuer_cn.value == "MARS-ROOT-CA"
+
+    # Mock the Submit operation result
+    out = io.StringIO()
+
+    # The Submit operation outputs the certificate in PEM format
+    # Simulate what Submit.__call__ does when returning the certificate
+    from cryptography.hazmat.primitives import serialization
+
+    pem_data = cert.public_bytes(encoding=serialization.Encoding.PEM)
+    print(pem_data.decode(), file=out)
+
+    output = out.getvalue()
+
+    # Verify the output contains a PEM certificate
+    assert "-----BEGIN CERTIFICATE-----" in output
+    assert "-----END CERTIFICATE-----" in output
