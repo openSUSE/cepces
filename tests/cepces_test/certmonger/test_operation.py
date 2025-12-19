@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
-from unittest.mock import Mock
+import pytest
+from unittest.mock import Mock, patch
 from xml.etree import ElementTree
 from cepces import __title__, __version__
 from cepces.certmonger.core import Result as CertmongerResult
@@ -505,3 +506,61 @@ def test_get_policies_with_nil_policies_returns_none():
         templates = [p.attributes.common_name for p in policies]
 
     assert templates is None
+
+
+@pytest.mark.xfail(
+    reason="Submit operation doesn't handle None result from service.request",
+    raises=AttributeError,
+)
+def test_submit_operation_with_no_endpoints():
+    """Tests that Submit handles None result when no endpoints are available.
+
+    When the AD CS server returns a policy response with no enrollment
+    endpoints available (e.g., misconfigured server or user lacks
+    permissions), service.request() returns None. The Submit operation
+    should handle this gracefully instead of raising AttributeError.
+
+    This reproduces the issue from GitHub PR #71.
+    """
+    import os
+
+    # Set up the required environment variable for Submit
+    with patch.dict(
+        os.environ,
+        {
+            "CERTMONGER_CSR": """-----BEGIN CERTIFICATE REQUEST-----
+MIIDgTCCAmkCAQAwEjEQMA4GA1UEAxMHZmVkb3JhMjCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBALhuaeeiXhuMyqCOWVpBeFBY+QqVKVWDz6tvW704uXOq
+/XxZDD4CGJEVNvuV3hRFhiHMiUoAKiqQYXSJ307sdfosLfhZllHmzB1G1AUbw3Le
+UnB7itt3KX8DdPeenpYo9GuUUCnv3rGzCCAHutFMwboI0FEmUQ+N0YrHc2K4kWFp
+CCdvVGsYCAyE3svdCMNcX1tDm9F4JG7oFkmyTxZunSPMXTBrqW/BiZJj5CcqHq54
+F56vsUeLnTnd6oapyOIpKH8yOFPpC6ckuTFg2kgzeV+5fDAYfA8yGB6HwKeFCSKx
++ziZFQ5uzBsZgCnTd246LrCogiGNULyYwghaCvPoF38CAwEAAaCCASgwKwYJKoZI
+hvcNAQkUMR4eHAAyADAAMgA1ADEAMgAxADkAMAA2ADMAMwAwADkwgfgGCSqGSIb3
+DQEJDjGB6jCB5zCBgwYDVR0RBHwweoIHZmVkb3JhMqAvBgorBgEEAYI3FAIDoCEM
+H2hvc3QvZmVkb3JhMkBNQVJTLk1JTEtZV0FZLlNJVEWgPgYGKwYBBQICoDQwMqAU
+GxJNQVJTLk1JTEtZV0FZLlNJVEWhGjAYoAMCAQGhETAPGwRob3N0GwdmZWRvcmEy
+MBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFEqI
+6jUIxqWQa0dElUmEzCgLpAX2MB0GCSsGAQQBgjcUAgQQHg4ATQBhAGMAaABpAG4A
+ZTANBgkqhkiG9w0BAQsFAAOCAQEAUKbuBaz9KtrbJ2TQ8UvMdRaNR7X1O6diZPcu
+UsNrw5W6eJX2LBdTcjxWCrB9oF6qwzNiGH2Kt79JkQoMSqAm0AoLJ1hBGN+e8ano
+ljR8NrQkLVnbsQMGKWrCjB7r5ycT42iH32foxwb1FaA5/mM05PQZ/syVFLyfjJLr
+IfGoQKCCi4nqcho+Ukfxa7i3ESoWuynVnqJzKOXnxie5/VHbNVVCJ372Kk3FbT3Z
+oMTDsPOVy3/SVhjVVl8eWs/ch6mJpnRlkkriOC1aQo/P606hCb+7+l9cc/31ENJj
+J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
+-----END CERTIFICATE REQUEST-----
+"""
+        },
+    ):
+        # Create mock service that returns None (no endpoints available)
+        mock_service = Mock()
+        mock_service.request.return_value = None
+
+        out = io.StringIO()
+        operation = CertmongerOperations.Submit(mock_service, out=out)
+
+        # This should return UNDERCONFIGURED, but currently raises
+        # AttributeError: 'NoneType' object has no attribute 'token'
+        result = operation()
+
+        assert result == CertmongerResult.UNDERCONFIGURED
