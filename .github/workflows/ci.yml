@@ -5,10 +5,12 @@ on:
     branches:
       - master
       - 'v[0-9]+.[0-9]+'
+      - 'v[0-9]+-[0-9]+'
   pull_request:
     branches:
       - master
       - 'v[0-9]+.[0-9]+'
+      - 'v[0-9]+-[0-9]+'
 
 jobs:
   build:
@@ -51,7 +53,7 @@ jobs:
 
   distcheck:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/heads/v')
+    if: startsWith(github.ref, 'refs/heads/v') || startsWith(github.base_ref, 'v')
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
