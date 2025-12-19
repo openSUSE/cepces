@@ -92,16 +92,24 @@ class TransportGSSAPIAuthentication(Authentication):
 
         context = Context()
 
-        # Create a valid principal using default realm if none is specified
-        principal = Principal(
-            context,
-            name=self._config["name"],
-            service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
-        )
-        self._config["principal"] = "%s@%s" % (
-            principal.primary,
-            principal.realm,
-        )
+        # If no "name" was specified, krb5 will use the default principal
+        # of the given credential cache (KRB5CCNAME).
+        # This is important for usage with init_ccache=False.
+        self._config["principal"] = None
+        if (
+            self._config["name"] is not None
+            and self._config["name"].strip() != ""
+        ):
+            # Create a valid principal using default realm if none is specified
+            principal = Principal(
+                context,
+                name=self._config["name"],
+                service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
+            )
+            self._config["principal"] = "%s@%s" % (
+                principal.primary,
+                principal.realm,
+            )
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
@@ -139,10 +147,22 @@ class TransportGSSAPIAuthentication(Authentication):
         return gssapi_cred
 
     def _init_transport(self, gssapi_cred=None):
-        gss_name = gssapi.Name(self._config["principal"], gssapi.NameType.user)
+        # If no "principal" was specified, krb5 will use the default principal
+        # of the given credential cache (KRB5CCNAME).
+        # This is important for usage with init_ccache=False.
+        gss_name = None
+        if (
+            self._config["principal"] is not None
+            and self._config["principal"].strip() != ""
+        ):
+            gss_name = gssapi.Name(
+                self._config["principal"], gssapi.NameType.user
+            )
 
         creds = gssapi.Credentials(
-            base=gssapi_cred.creds, name=gss_name, usage="initiate"
+            base=gssapi_cred.creds if gssapi_cred is not None else None,
+            name=gss_name,
+            usage="initiate",
         )
 
         self._transport = HTTPSPNEGOAuth(

@@ -70,6 +70,36 @@ poll_interval=3600
 # Default: <not defined>
 #display=:0
 
+[user]
+# Key file path for the user cert auto rollout and monitoring script.
+#
+# Default: ~/key.pem
+key_file=~/key.pem
+
+# Cert file path for the user cert auto rollout and monitoring script.
+#
+# Default: ~/cert.pem
+cert_file=~/cert.pem
+
+# Cert request cookie file path with infos necessary for polling the cert after approval.
+#
+# Default: ~/cert.req
+req_file=~/cert.req
+
+# Profile (certificate template) name to use for the user cert auto rollout.
+# Ask your CA admin what to choose or have a look at `cepces-user list-templates`.
+profile=User
+
+# Time in days before expiration when to request a new certificate.
+#
+# Default: 30
+renew_days=30
+
+# RSA key size (will be generated if key_file does not exists)
+#
+# Default: 4096
+key_size=4096
+
 [kerberos]
 # Use the specified keytab. If unspecified, the system default is used.
 #
