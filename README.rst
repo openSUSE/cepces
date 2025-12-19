@@ -117,5 +117,9 @@ Use this CA configuration as with any other. Please consult the official
 For detailed information on how cepces integrates with certmonger, including
 all supported operations and usage examples, see `doc/CERTMONGER.md`_.
 
+For references to the Microsoft protocol specifications (MS-XCEP, MS-WSTEP)
+implemented by cepces, see `doc/PROTOCOLS.md`_.
+
 .. _certmonger: https://pagure.io/certmonger
 .. _doc/CERTMONGER.md: doc/CERTMONGER.md
+.. _doc/PROTOCOLS.md: doc/PROTOCOLS.md
