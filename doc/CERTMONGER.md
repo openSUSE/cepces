@@ -192,6 +192,20 @@ getcert add-ca -c cepces -e '/usr/libexec/certmonger/cepces-submit \
     --principals=HOST/myhost.example.com@EXAMPLE.COM'
 ```
 
+### Adding the CA During Package Installation
+
+When adding the CA during RPM package installation (e.g., in a `%post` scriptlet),
+Kerberos credentials may not be available yet. Use the `--install` flag to handle
+authentication errors gracefully:
+
+```bash
+getcert add-ca -c cepces -e "/usr/libexec/certmonger/cepces-submit --install"
+```
+
+With `--install`, operations that require authentication (like `FETCH-ROOTS` and
+`GET-SUPPORTED-TEMPLATES`) will return empty results instead of failing. Certmonger
+will query the CA again later when actual certificate requests are made.
+
 ### Requesting a Certificate
 
 ```bash
@@ -256,6 +270,20 @@ See the main documentation for configuration options including:
 - Authentication method (Kerberos, Certificate, etc.)
 - Kerberos keytab and principal settings
 - Poll interval for deferred requests
+
+## Command Line Options
+
+The `cepces-submit` helper accepts the following command line options:
+
+| Option | Description |
+|--------|-------------|
+| `--server=HOST` | Hostname of the issuing certification authority |
+| `--auth=METHOD` | Authentication method: `Anonymous`, `Kerberos`, `UsernamePassword`, or `Certificate` (default: `Kerberos`) |
+| `--keytab=PATH` | Path to the Kerberos keytab file |
+| `--principals=LIST` | Comma-separated list of Kerberos principals to try |
+| `--poll_interval=SECS` | Time in seconds before re-checking if the certificate has been issued |
+| `--openssl-ciphers=STRING` | OpenSSL cipher string for HTTPS connections |
+| `--install` | Installation mode: handle authentication errors gracefully (for use in RPM scriptlets) |
 
 ## Troubleshooting
 

@@ -31,7 +31,7 @@ from cepces.core import Service
 from cepces.log import init_logging
 
 
-def main(global_overrides, krb5_overrides):
+def main(global_overrides, krb5_overrides, install_mode=False):
     """Main function."""
     # Initialize logging.
     init_logging()
@@ -65,13 +65,22 @@ def main(global_overrides, krb5_overrides):
             # Operations that don't access self._service can run without config.
             needs_service = getattr(operation_class, 'needs_service', True)
 
+            service = None
             if needs_service:
-                # Load the configuration and instantiate a service.
-                config = Configuration.load(global_overrides=global_overrides,
-                                            krb5_overrides=krb5_overrides)
-                service = Service(config)
-            else:
-                service = None
+                try:
+                    # Load the configuration and instantiate a service.
+                    config = Configuration.load(
+                        global_overrides=global_overrides,
+                        krb5_overrides=krb5_overrides)
+                    service = Service(config)
+                except RuntimeError as e:
+                    # In install mode, authentication failures are expected
+                    # (no keytab configured yet). Operations will receive
+                    # service=None and return empty results gracefully.
+                    if install_mode:
+                        logger.debug("Install mode: %s", e)
+                    else:
+                        raise
 
             # Call the operation.
             operation = operation_class(service)
@@ -98,6 +107,8 @@ if __name__ == '__main__':
     parser.add_argument('--principals',
         help='A list of principals to try when requesting a ticket')
     parser.add_argument('--openssl-ciphers', help='The OpenSSL cipher string')
+    parser.add_argument('--install', action='store_true',
+        help='Installation mode: handle authentication errors gracefully')
     args = parser.parse_args()
     g_overrides = {}
     if args.server is not None:
@@ -116,4 +127,4 @@ if __name__ == '__main__':
     if args.principals is not None:
         k_overrides['principals'] = args.principals
 
-    main(g_overrides, k_overrides)
+    main(g_overrides, k_overrides, install_mode=args.install)
