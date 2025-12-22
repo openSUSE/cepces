@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cepces"
-version = "0.3.15"
+version = "0.3.16"
 requires-python = ">=3.9"
 dependencies = [
     "cryptography >= 1.2",
