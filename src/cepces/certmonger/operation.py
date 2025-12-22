@@ -242,6 +242,12 @@ class GetSupportedTemplates(Operation):
     name = "GET-SUPPORTED-TEMPLATES"
 
     def __call__(self):
+        # When called with --install flag during package installation,
+        # authentication may fail and self._service will be None.
+        # Return an empty list; certmonger will query again later.
+        if self._service is None:
+            return CertmongerResult.DEFAULT
+
         templates = self._service.templates
 
         if templates:
@@ -271,6 +277,12 @@ class FetchRoots(Operation):
     name = "FETCH-ROOTS"
 
     def __call__(self):
+        # When called with --install flag during package installation,
+        # authentication may fail and self._service will be None.
+        # Return an empty list; certmonger will query again later.
+        if self._service is None:
+            return CertmongerResult.DEFAULT
+
         oid_cn = x509.oid.NameOID.COMMON_NAME
 
         # Retrieve the certificate chain as far as possible.
