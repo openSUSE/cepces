@@ -1,4 +1,4 @@
-policy_module(cepces, 0.3.15)
+policy_module(cepces, 0.3.16)
 
 require {
     type certmonger_t;
