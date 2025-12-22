@@ -579,6 +579,8 @@ def test_operations_needs_service_attribute():
     assert CertmongerOperations.GetDefaultTemplate.needs_service is False
 
     # Operations that DO need the service (require authentication)
+    # Note: GetSupportedTemplates and FetchRoots need service but handle
+    # service=None gracefully when --install flag is used.
     assert CertmongerOperations.Submit.needs_service is True
     assert CertmongerOperations.Poll.needs_service is True
     assert CertmongerOperations.GetSupportedTemplates.needs_service is True
@@ -586,10 +588,12 @@ def test_operations_needs_service_attribute():
 
 
 def test_operations_without_service_work_with_none():
-    """Tests that operations with needs_service=False work with service=None.
+    """Tests that operations work with service=None.
 
     This simulates the behavior during RPM installation when getcert add-ca
-    is called but no keytab is configured.
+    is called with --install flag but no keytab is configured. Operations
+    with needs_service=False never attempt auth, while operations like
+    GetSupportedTemplates and FetchRoots handle service=None gracefully.
     """
     # Identify should work without a service
     out1 = io.StringIO()
@@ -618,3 +622,17 @@ def test_operations_without_service_work_with_none():
     result4 = op_default()
     assert result4 == CertmongerResult.DEFAULT
     assert out4.getvalue() == ""
+
+    # GetSupportedTemplates should work without a service (returns empty)
+    out5 = io.StringIO()
+    op_templates = CertmongerOperations.GetSupportedTemplates(None, out=out5)
+    result5 = op_templates()
+    assert result5 == CertmongerResult.DEFAULT
+    assert out5.getvalue() == ""
+
+    # FetchRoots should work without a service (returns empty)
+    out6 = io.StringIO()
+    op_roots = CertmongerOperations.FetchRoots(None, out=out6)
+    result6 = op_roots()
+    assert result6 == CertmongerResult.DEFAULT
+    assert out6.getvalue() == ""
