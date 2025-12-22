@@ -99,12 +99,15 @@ class RequestFilter(XMLNode):
         policy_oids.attrib[ATTR_NIL] = "true"
         element.append(policy_oids)
 
+        # 6: Current schema (Windows 10/11, Server 2019/2022/2025)
+        # Full detail: template properties, issuance requirements, key usage, renewal policies, and advanced flags.
         client_version = Element(QName(NS_CEP, "clientVersion"))  # type: ignore[type-var]  # noqa: E501
-        client_version.attrib[ATTR_NIL] = "true"
+        client_version.text = "6"
         element.append(client_version)
 
+        # 0: No specific server schema version required
         server_version = Element(QName(NS_CEP, "serverVersion"))  # type: ignore[type-var]  # noqa: E501
-        server_version.attrib[ATTR_NIL] = "true"
+        server_version.text = "0"
         element.append(server_version)
 
         return element
