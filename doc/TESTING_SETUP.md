@@ -193,6 +193,17 @@ Install-AdcsEnrollmentWebService @params -Force
 Install-AdcsWebEnrollment -Credential $admin_creds -Force
 ```
 
+### Enable Kernel-mode Authentication for Kerberos
+
+In order to make Kerberos auth work for CES, you need to set
+the following option in the IIS Manager:
+
+- Left sidebar &lt;SERVERNAME&gt; -> "Sites" -> "Default Web Site"
+  -> "&lt;SERVERNAME&gt;-CA-1_CES_Kerberos"
+- Main panel: "Authentication" -> "Windows Authentication"
+  -> Right sidebar "Advanced Settings..."
+- Enable "Kernel-mode authentication" check box -> "OK"
+
 ## On the Active Directory domain controller
 
 ### Set GPO for Auto Enrollment
@@ -258,3 +269,45 @@ detailed instructions on creating and configuring a test computer certificate
 template.
 
 [cert-templates]: https://dmulder.github.io/group-policy-book/certautoenroll.html#certificate-templates
+
+### Create Test User Certificate Template
+
+**This step needs to be done manually using the Certification Authority
+utility.** To test both direct enrollment and enrollment with approval,
+create a copy of the default "User" template:
+- Certificate Templates -> right click -> Manage
+- Right click on User -> Duplicate
+- Name it "UserManualApprove"
+  - in the "Issuance Requirements" tab, enable the
+    option "CA Certificate Manager Approval"
+  - in the "Security" tab, make sure that your users
+    (e.g. "Domain Users") have the "Enroll" permission
+
+Do not forget to enable the newly created template
+(Certificate Templates -> right click -> New -> Certificate Template to issue).
+
+An IIS restart (`iisreset`) is needed in order to make the new template available
+via CEP/CES.
+
+## Create a Enrollment Test User in Active Directory
+
+```
+$params = @{
+    Name              = "jdoe"
+    DisplayName       = "John Doe"
+    UserPrincipalName = "jdoe@example.com"
+    EmailAddress      = "john.doe@example.com"
+    Enabled           = $true
+    AccountPassword   = ("Hello!12345" | ConvertTo-SecureString -AsPlainText -Force)
+}
+New-AdUser @params
+```
+
+## Execute User Cert Test
+
+On your Linux client, make sure you have a valid Kerberos ticket via `klist`.
+You get this automatically when logging in with a domain account using SSSD.
+Otherwise, your can manually aquire a ticket via `kinit jdoe@EXAMPLE.COM`.
+
+Now, you can use the `bin/cepces-user`and `bin/cepces-user-autoenroll` scripts
+and execute the "online tests" via `python3 -m unittest discover tests/manual`.

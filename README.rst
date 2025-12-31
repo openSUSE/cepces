@@ -2,8 +2,9 @@
 CEP/CES Certificate Enrollment
 ==============================
 
-``cepces`` is an application for enrolling certificates through CEP and CES. It
-requires `certmonger`_ to operate.
+``cepces`` is an application for enrolling certificates through CEP and CES.
+For machine certificates, it requires `certmonger`_ to operate. For user
+certifcates, it operates standalone.
 
 Only simple deployments using Microsoft Active Directory Certificate Services
 have been tested.
@@ -15,8 +16,10 @@ Requirements
 ============
 
 This application uses two SOAP endpoints over HTTPS provided by Microsoft
-Active Directory Certificate Services. The following authentication methods are
-supported:
+Active Directory Certificate Services. Your server needs to have the CEP/CES
+SOAP API installed and configured.
+
+The following authentication methods are supported:
 
 * **Kerberos (GSSAPI)** - Requires the client to be a Windows Domain Member with
   a valid Kerberos keytab
@@ -52,8 +55,11 @@ them, credential storage and interactive password prompting will not be availabl
 Installation
 ============
 
-``cepces`` is currently supported on any system running `certmonger`_. It
-requires Python 3.10 or later.
+``cepces`` is currently supported on any system with:
+
+* Python 3.10 or later
+* Python dependencies specified in ``pyproject.toml``
+* `certmonger`_ (only for machine certifcates)
 
 If available, it is recommended to use a repository for installing the
 application and all dependencies. Please consult the project's wiki for more
@@ -64,7 +70,7 @@ extracted directory:
 
 .. code-block:: bash
 
-    # pip3 install .
+    # pip3 install .[user-submit]
 
 Configuration
 =============
@@ -99,6 +105,9 @@ containing all CA certificates in the chain.
 Usage
 =====
 
+Requesting a Machine Certificate
+--------------------------------
+
 `certmonger`_ should have a CA already configured after the packages were
 installed:
 
@@ -123,3 +132,63 @@ implemented by cepces, see `doc/PROTOCOLS.md`_.
 .. _certmonger: https://pagure.io/certmonger
 .. _doc/CERTMONGER.md: doc/CERTMONGER.md
 .. _doc/PROTOCOLS.md: doc/PROTOCOLS.md
+
+Requesting a User Certificate
+-----------------------------
+
+First, make sure that you have installed cepces with the user-submit
+optional dependencies (pyasn1).
+
+Then, make sure that you have a valid kerberos ticket for the user for who
+you want to request a certificate by executing :code:`klist`.
+
+You normally get a kerberos ticket automatically when logging in with a
+domain account using `SSSD`_. You can get a kerberos ticket manually
+by executing :code:`kinit userename@DOMAIN.TLD`.
+
+Now, you can use the :code:`cepces-user` script as shown in the following examples.
+
+.. code-block:: bash
+
+    $ bin/cepces-user list-templates
+    User
+    User with Approval
+    .....
+
+    $ bin/cepces-user request -k key.pem -f cert.pem --profile "User"
+    Certificate written to: cert.pem
+
+    $ bin/cepces-user request -k key.pem -f cert.pem --profile "User with Approval"
+    Certificate approval pending. Poll later with the following info.
+    Request ID: 111
+    Reference: https://SERVERNAME/DOMAIN-DC-CA_CES_Kerberos/service.svc/CES
+
+    ... later that day ...
+    $ bin/cepces-user poll -f cert.pem -i 111 -r https://SERVERNAME/DOMAIN-DC-CA_CES_Kerberos/service.svc/CES
+    Certificate written to: cert.pem
+
+
+.. _SSSD: https://github.com/SSSD/sssd
+
+User Certificate Auto Enrollment
+--------------------------------
+
+As known from Windows, with this script, you can automatically enroll and renew
+user certifcates. The prerequisites are the same as mentioned in the above example,
+plus you need to provide valid values in the ``[user]`` section in ``cepces.conf``
+(cert template name and file paths, where to place the user cert/key).
+
+To make this magic happen, add the :code:`cepces-user-autoenroll` script
+into the autostart for your users by creating ``/etc/xdg/autostart/cepces-user-autoenroll.desktop``:
+
+.. code-block::
+
+    [Desktop Entry]
+    Name=cepces auto enrollment
+    Exec=cepces-user-autoenroll
+    Type=Application
+    Comment=Certificate auto enrollment
+    Categories=Application;Office
+    Terminal=false
+    X-GNOME-Autostart-Delay=2
+    X-MATE-Autostart-Delay=2
