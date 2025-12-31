@@ -32,3 +32,13 @@ Provides an overview of how the certificate enrollment protocols work together.
 The underlying web services trust specification used by MS-WSTEP.
 
 - **Specification**: [WS-Trust 1.3](http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html)
+
+### WS-Security
+
+Web Services Security specification that defines:
+- `BinarySecurityToken` element with `ValueType` and `EncodingType` attributes
+- Security and Utility namespaces (wsse, wsu)
+- X.509 Token Profile for certificate tokens
+- Username Token Profile for password authentication
+
+- **Specification**: [WS-Security 1.0](https://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0.pdf)
