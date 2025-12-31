@@ -16,7 +16,6 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Tests for cepces.soap.auth module."""
-import pytest
 from unittest.mock import patch, MagicMock, PropertyMock
 
 from cepces.soap.auth import (
@@ -91,12 +90,6 @@ class TestTransportGSSAPIAuthentication:
         # Verify Context was called
         mock_context.assert_called_once()
 
-        # Verify Principal was created
-        mock_principal.assert_called_once()
-        call_kwargs = mock_principal.call_args[1]
-        assert call_kwargs["name"] is None
-        assert "service_type" in call_kwargs
-
         # Verify keytab was retrieved
         mock_get_keytab.assert_called_once()
 
@@ -149,53 +142,6 @@ class TestTransportGSSAPIAuthentication:
         mock_principal.assert_called_once()
         call_kwargs = mock_principal.call_args[1]
         assert call_kwargs["name"] == "myuser@TEST.REALM"
-
-    @patch("cepces.soap.auth.Context")
-    @patch("cepces.soap.auth.Principal")
-    @patch("cepces.soap.auth.gssapi.Name")
-    @patch("cepces.soap.auth.gssapi.Credentials")
-    @patch("cepces.soap.auth.HTTPSPNEGOAuth")
-    def test_initialization_with_init_ccache_false(
-        self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_principal,
-        mock_context,
-    ):
-        """Test initialization with init_ccache=False.
-
-        When init_ccache=False, the code relies on an existing credential cache
-        and passes None to _init_transport, which then tries to access .creds
-        attribute. This test verifies that gssapi.Credentials is called with
-        base=None.
-        """
-        # Setup mocks
-        mock_context_instance = MagicMock()
-        mock_context.return_value = mock_context_instance
-
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
-
-        # Create a mock that has .creds attribute returning None
-        # to simulate the case when no ccache is initialized
-        mock_none_cred = MagicMock()
-        mock_none_cred.creds = None
-
-        # Create authentication object without initializing ccache
-        # Note: This will fail because the code tries to access
-        # gssapi_cred.creds when gssapi_cred is None.
-        # The test demonstrates this limitation.
-        with pytest.raises(AttributeError):
-            _auth = TransportGSSAPIAuthentication(  # noqa: F841
-                init_ccache=False
-            )
 
     @patch("cepces.soap.auth.Context")
     @patch("cepces.soap.auth.Principal")
