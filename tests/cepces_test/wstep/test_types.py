@@ -21,7 +21,9 @@ from cepces.wstep.types import SecurityTokenRequest
 from cepces.wstep.types import Reference
 from cepces.wstep.types import SecurityTokenReference
 from cepces.wstep.types import RequestedToken
-from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY
+from cepces.wstep.types import SecurityTokenResponse
+from cepces.wstep.types import SecurityTokenResponseCollection
+from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY, NS_ENROLLMENT
 from cepces.wstep import (
     TOKEN_TYPE,
     VALUE_TYPE,
@@ -156,3 +158,74 @@ class TestRequestedToken:
     def test_create_returns_none(self):
         """RequestedToken.create() should return None."""
         assert RequestedToken.create() is None
+
+
+class TestSecurityTokenResponse:
+    """Tests for SecurityTokenResponse XMLNode."""
+
+    def test_create_returns_none(self):
+        """SecurityTokenResponse.create() should return None."""
+        assert SecurityTokenResponse.create() is None
+
+    def test_disposition_message_parsing(self):
+        """SecurityTokenResponse should parse DispositionMessage."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">12345</RequestID>
+        </RequestSecurityTokenResponse>"""
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        assert response.disposition_message == "Issued"
+
+    def test_request_id_parsing(self):
+        """SecurityTokenResponse should parse RequestID as unsigned integer."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">12345</RequestID>
+        </RequestSecurityTokenResponse>"""
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        assert response.request_id == 12345
+
+    def test_token_type_optional(self):
+        """SecurityTokenResponse TokenType element is optional."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">12345</RequestID>
+        </RequestSecurityTokenResponse>"""
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        assert response.token_type is None
+
+
+class TestSecurityTokenResponseCollection:
+    """Tests for SecurityTokenResponseCollection XMLNode."""
+
+    def test_create_returns_none(self):
+        """SecurityTokenResponseCollection.create() should return None."""
+        assert SecurityTokenResponseCollection.create() is None
+
+    def test_responses_list_parsing(self):
+        """SecurityTokenResponseCollection should parse list of responses."""
+        xml = f"""<RequestSecurityTokenResponseCollection xmlns="{NS_WST}">
+        <RequestSecurityTokenResponse>
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">1</RequestID>
+        </RequestSecurityTokenResponse>
+        <RequestSecurityTokenResponse>
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Wait</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">2</RequestID>
+        </RequestSecurityTokenResponse>
+        </RequestSecurityTokenResponseCollection>"""
+        element = ElementTree.fromstring(xml)
+        collection = SecurityTokenResponseCollection(element)
+
+        assert collection.responses is not None
+        assert len(collection.responses) == 2
+        assert collection.responses[0].disposition_message == "Issued"
+        assert collection.responses[0].request_id == 1
+        assert collection.responses[1].disposition_message == "Wait"
+        assert collection.responses[1].request_id == 2
