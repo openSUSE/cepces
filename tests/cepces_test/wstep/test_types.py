@@ -15,7 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+from xml.etree import ElementTree
+
 from cepces.wstep.types import SecurityTokenRequest
+from cepces.wstep.types import Reference
+from cepces.wstep.types import SecurityTokenReference
+from cepces.wstep.types import RequestedToken
 from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY
 from cepces.wstep import (
     TOKEN_TYPE,
@@ -98,3 +103,56 @@ class TestSecurityTokenRequestCreate:
 
         wsu_id = token.get(f"{{{NS_WST_UTILITY}}}Id")
         assert wsu_id is not None, "wsu:Id attribute is missing"
+
+
+class TestReference:
+    """Tests for Reference XMLNode."""
+
+    def test_create_returns_none(self):
+        """Reference.create() should return None."""
+        assert Reference.create() is None
+
+    def test_uri_attribute_parsing(self):
+        """Reference should parse URI attribute."""
+        xml = f'<Reference xmlns="{NS_WST_SECEXT}" ' f'URI="#token123" />'
+        element = ElementTree.fromstring(xml)
+        ref = Reference(element)
+
+        assert ref.uri == "#token123"
+
+
+class TestSecurityTokenReference:
+    """Tests for SecurityTokenReference XMLNode."""
+
+    def test_create_returns_none(self):
+        """SecurityTokenReference.create() should return None."""
+        assert SecurityTokenReference.create() is None
+
+    def test_reference_element_parsing(self):
+        """SecurityTokenReference should parse Reference child element."""
+        xml = f"""
+        <SecurityTokenReference xmlns="{NS_WST_SECEXT}">
+            <Reference URI="#token456" />
+        </SecurityTokenReference>
+        """
+        element = ElementTree.fromstring(xml)
+        str_node = SecurityTokenReference(element)
+
+        assert str_node.reference is not None
+        assert str_node.reference.uri == "#token456"
+
+    def test_reference_element_optional(self):
+        """SecurityTokenReference Reference element is optional."""
+        xml = f'<SecurityTokenReference xmlns="{NS_WST_SECEXT}" />'
+        element = ElementTree.fromstring(xml)
+        str_node = SecurityTokenReference(element)
+
+        assert str_node.reference is None
+
+
+class TestRequestedToken:
+    """Tests for RequestedToken XMLNode."""
+
+    def test_create_returns_none(self):
+        """RequestedToken.create() should return None."""
+        assert RequestedToken.create() is None
