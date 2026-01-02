@@ -109,13 +109,23 @@ if __name__ == '__main__':
     parser.add_argument('--openssl-ciphers', help='The OpenSSL cipher string')
     parser.add_argument('--install', action='store_true',
         help='Installation mode: handle authentication errors gracefully')
+    parser.add_argument('--endpoint',
+        help='Full CEP endpoint URL (overrides default composition)')
     args = parser.parse_args()
     g_overrides = {}
-    if args.server is not None:
-        g_overrides['server'] = args.server
+    if (args.server is not None) or (args.endpoint is not None) :
+        if args.endpoint is not None:
+            if not args.endpoint.lower().startswith("https://"):
+                raise ValueError("Invalid endpoint: the endpoint must start with 'https://'.")
+            endpoint = args.endpoint
+        else:
+            endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % \
+                            (args.server, args.auth)
+        if args.server is not None:
+            g_overrides['server'] = args.server
+        else:
+            g_overrides['server'] = args.endpoint.split('/')[2]
         g_overrides['auth'] = args.auth
-        endpoint = 'https://%s/ADPolicyProvider_CEP_%s/service.svc/CEP' % \
-                        (args.server, args.auth)
         g_overrides['endpoint'] = endpoint
     if args.poll_interval is not None:
         g_overrides['poll_interval'] = args.poll_interval
