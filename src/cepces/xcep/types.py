@@ -102,7 +102,7 @@ class RequestFilter(XMLNode):
         # 6: Current schema (Windows 10/11, Server 2019/2022/2025)
         # Full detail: template properties, issuance requirements, key usage, renewal policies, and advanced flags.
         client_version = Element(QName(NS_CEP, "clientVersion"))  # type: ignore[type-var]  # noqa: E501
-        client_version.text = "6"
+        client_version.text = "0"
         element.append(client_version)
 
         # 0: No specific server schema version required
