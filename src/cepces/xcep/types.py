@@ -29,6 +29,15 @@ from cepces.xml.converter import UnsignedIntegerConverter
 from cepces.xcep import NS_CEP
 from cepces.xcep.converter import ClientAuthenticationConverter
 
+# XCEP RequestFilter version settings.
+# Version 0 means "no version filtering" - the server returns all templates
+# regardless of their schema version. This is appropriate since we currently
+# only parse the template commonName and don't use version-specific attributes.
+# See MS-XCEP section 3.1.4.1.3.22 for version filtering details.
+# If full attribute parsing is added later, consider using version 6 (latest).
+XCEP_CLIENT_VERSION = 0
+XCEP_SERVER_VERSION = 0
+
 
 class Client(XMLNode):
     """The `Client` node contains information about the client's current state
@@ -99,12 +108,14 @@ class RequestFilter(XMLNode):
         policy_oids.attrib[ATTR_NIL] = "true"
         element.append(policy_oids)
 
+        # Set version to bypass filtering and get all templates.
+        # See XCEP_CLIENT_VERSION and XCEP_SERVER_VERSION constants.
         client_version = Element(QName(NS_CEP, "clientVersion"))
-        client_version.attrib[ATTR_NIL] = "true"
+        client_version.text = str(XCEP_CLIENT_VERSION)
         element.append(client_version)
 
         server_version = Element(QName(NS_CEP, "serverVersion"))
-        server_version.attrib[ATTR_NIL] = "true"
+        server_version.text = str(XCEP_SERVER_VERSION)
         element.append(server_version)
 
         return element
