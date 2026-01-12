@@ -29,6 +29,15 @@ from cepces.xml.converter import UnsignedIntegerConverter
 from cepces.xcep import NS_CEP
 from cepces.xcep.converter import ClientAuthenticationConverter
 
+# XCEP RequestFilter version settings.
+# Version 0 means "no version filtering" - the server returns all templates
+# regardless of their schema version. This is appropriate since we currently
+# only parse the template commonName and don't use version-specific attributes.
+# See MS-XCEP section 3.1.4.1.3.22 for version filtering details.
+# If full attribute parsing is added later, consider using version 6 (latest).
+XCEP_CLIENT_VERSION = 0
+XCEP_SERVER_VERSION = 0
+
 
 class Client(XMLNode):
     """The `Client` node contains information about the client's current state
@@ -99,12 +108,14 @@ class RequestFilter(XMLNode):
         policy_oids.attrib[ATTR_NIL] = "true"
         element.append(policy_oids)
 
+        # Set version to bypass filtering and get all templates.
+        # See XCEP_CLIENT_VERSION and XCEP_SERVER_VERSION constants.
         client_version = Element(QName(NS_CEP, "clientVersion"))  # type: ignore[type-var]  # noqa: E501
-        client_version.attrib[ATTR_NIL] = "true"
+        client_version.text = str(XCEP_CLIENT_VERSION)
         element.append(client_version)
 
         server_version = Element(QName(NS_CEP, "serverVersion"))  # type: ignore[type-var]  # noqa: E501
-        server_version.attrib[ATTR_NIL] = "true"
+        server_version.text = str(XCEP_SERVER_VERSION)
         element.append(server_version)
 
         return element
@@ -240,7 +251,22 @@ class CertificateAuthority(XMLNode):
 
 
 class Attributes(XMLNode):
-    """Attributes"""
+    """Attributes of a CertificateEnrollmentPolicy.
+
+    NOTE: The MS-XCEP schema defines many additional attributes that are not
+    currently parsed, including:
+      - policySchema, certificateValidity, permission
+      - privateKeyAttributes (minimalKeyLength, keySpec, cryptoProviders, etc.)
+      - revision, supersededPolicies
+      - privateKeyFlags, subjectNameFlags, enrollmentFlags, generalFlags
+      - hashAlgorithmOIDReference, rARequirements, keyArchivalAttributes
+      - extensions
+
+    Currently we only extract commonName since that's all we need to match
+    templates for certificate enrollment. If additional attributes are needed
+    in the future, they should be added here and XCEP_CLIENT_VERSION/
+    XCEP_SERVER_VERSION should be updated to 6 to request full schema details.
+    """
 
     # A string value of the common name (CN) of a CertificateEnrollmentPolicy
     # object. The <xcep:commonName> element MUST be unique in the scope of a
