@@ -19,6 +19,7 @@
 
 Supports pinentry, kdialog, and zenity utilities with automatic fallback.
 """
+
 import os
 import shutil
 import subprocess

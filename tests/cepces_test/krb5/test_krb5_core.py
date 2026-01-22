@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Tests for cepces.krb5.core module."""
+
 import re
 from cepces.krb5.core import get_default_keytab_name, NAME_EX
 

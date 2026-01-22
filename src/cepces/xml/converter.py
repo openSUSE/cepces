@@ -17,6 +17,7 @@
 #
 # pylint: disable=arguments-differ
 """This module contains converters for common XML data types."""
+
 from datetime import datetime, timedelta, tzinfo
 import re
 import textwrap

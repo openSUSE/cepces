@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Tests for cepces.soap.auth module."""
+
 from unittest.mock import patch, MagicMock, PropertyMock
 
 from cepces.soap.auth import (

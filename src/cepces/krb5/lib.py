@@ -17,6 +17,7 @@
 #
 # pylint: disable=invalid-name
 """This module tries to load the shared library for Kerberos."""
+
 import ctypes
 
 # Try to load the Kerberos5 library dynamically. Naïvely try to load everything

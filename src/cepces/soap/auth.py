@@ -19,6 +19,7 @@
 # specification, just enough to be able to communicate a service.
 #
 """This module contains SOAP related authentication."""
+
 from abc import ABCMeta, abstractmethod, abstractproperty
 import base64
 import hashlib

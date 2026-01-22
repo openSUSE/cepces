@@ -5,6 +5,7 @@
 This script provides an interactive menu to test various CredentialsHandler
 features including password prompts and credential prompts.
 """
+
 import sys
 from cepces.credentials import CredentialsHandler
 

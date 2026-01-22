@@ -522,8 +522,7 @@ def test_submit_operation_with_no_endpoints():
     # Set up the required environment variable for Submit
     with patch.dict(
         os.environ,
-        {
-            "CERTMONGER_CSR": """-----BEGIN CERTIFICATE REQUEST-----
+        {"CERTMONGER_CSR": """-----BEGIN CERTIFICATE REQUEST-----
 MIIDgTCCAmkCAQAwEjEQMA4GA1UEAxMHZmVkb3JhMjCCASIwDQYJKoZIhvcNAQEB
 BQADggEPADCCAQoCggEBALhuaeeiXhuMyqCOWVpBeFBY+QqVKVWDz6tvW704uXOq
 /XxZDD4CGJEVNvuV3hRFhiHMiUoAKiqQYXSJ307sdfosLfhZllHmzB1G1AUbw3Le
@@ -544,8 +543,7 @@ IfGoQKCCi4nqcho+Ukfxa7i3ESoWuynVnqJzKOXnxie5/VHbNVVCJ372Kk3FbT3Z
 oMTDsPOVy3/SVhjVVl8eWs/ch6mJpnRlkkriOC1aQo/P606hCb+7+l9cc/31ENJj
 J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
 -----END CERTIFICATE REQUEST-----
-"""
-        },
+"""},
     ):
         # Create mock service that returns None (no endpoints available)
         mock_service = Mock()

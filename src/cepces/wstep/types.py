@@ -49,6 +49,7 @@ Key Elements (from WS-Security SOAP Message Security 1.0):
 - Reference (Section 7.2): References a security token using a URI. The URI
   attribute identifies the referenced token.
 """
+
 from xml.etree.ElementTree import Element, QName
 from cepces.wstep import NS_WST, NS_WST_SECEXT, NS_WST_UTILITY, NS_ENROLLMENT
 from cepces.wstep import TOKEN_TYPE, VALUE_TYPE, ENCODING_TYPE

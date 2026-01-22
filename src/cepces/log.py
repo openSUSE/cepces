@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """This module contains logging configuration."""
+
 from pathlib import Path
 import logging.config
 from cepces import __title__

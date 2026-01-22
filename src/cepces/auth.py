@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module containing authentication type handlers."""
+
 from abc import ABCMeta, abstractmethod
 from cepces import Base
 from cepces.credentials import CredentialsHandler

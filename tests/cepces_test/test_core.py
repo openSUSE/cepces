@@ -23,7 +23,6 @@ from cepces import Base
 from cepces.core import Service
 from cepces.xcep.types import GetPoliciesResponse
 
-
 # GetPoliciesResponse with nil policies and CAs (no enrollment available)
 GET_POLICIES_NIL_POLICIES_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{F803BF1A-EB36-42A4-973C-AF4555EB8782}</ns0:policyID><ns0:policyFriendlyName>My PKI</ns0:policyFriendlyName><ns0:nextUpdateHours>1</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies xsi:nil="true" /></ns0:response><ns0:cAs xsi:nil="true" /><ns0:oIDs xsi:nil="true" /></ns0:GetPoliciesResponse>'  # noqa: E501
 
