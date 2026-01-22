@@ -17,6 +17,7 @@
 #
 # pylint: disable=protected-access
 """Module for XCEP SOAP service logic."""
+
 from xml.etree import ElementTree
 import uuid
 from cepces.soap.service import Service as SOAPService

@@ -18,7 +18,6 @@
 # pylint: disable=invalid-name,no-self-use
 """Module containing core classes and functionality."""
 
-
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend

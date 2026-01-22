@@ -5,6 +5,7 @@
 This script provides an interactive menu to test various KeyringHandler
 features including password storage, retrieval, deletion, and key inspection.
 """
+
 import sys
 from cepces.keyring import KeyringHandler
 

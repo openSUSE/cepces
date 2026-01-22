@@ -20,6 +20,7 @@
 #
 # pylint: disable=invalid-name
 """This module contains common SOAP types."""
+
 from xml.etree.ElementTree import Element, QName
 from cepces.soap import NS_ADDRESSING, NS_SOAP, NS_WSSE, NS_WSU
 from cepces.xml import NS_XSI

@@ -19,6 +19,7 @@
 # specification, just enough to be able to communicate a service.
 #
 """This module contains SOAP service related logic."""
+
 from xml.etree import ElementTree
 from cepces import Base
 from cepces.http import create_session

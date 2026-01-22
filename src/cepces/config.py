@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module handling configuration loading."""
+
 from configparser import ConfigParser, ExtendedInterpolation
 from pathlib import Path
 import logging
@@ -25,7 +26,6 @@ import os
 from cepces import Base
 from cepces import auth as CoreAuth
 from cepces.soap import auth as SOAPAuth
-
 
 DEFAULT_CONFIG_FILES = [
     "/etc/cepces/cepces.conf",

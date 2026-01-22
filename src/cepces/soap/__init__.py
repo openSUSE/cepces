@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Package for very rudimentary SOAP  handling."""
+
 from xml.etree.ElementTree import QName
 
 NS_SOAP = "http://www.w3.org/2003/05/soap-envelope"

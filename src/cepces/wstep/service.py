@@ -17,6 +17,7 @@
 #
 # pylint: disable=protected-access
 """Module for WSTEP SOAP service logic."""
+
 from xml.etree import ElementTree
 import uuid
 import re

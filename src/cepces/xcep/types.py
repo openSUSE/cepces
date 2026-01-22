@@ -17,6 +17,7 @@
 #
 # pylint: disable=invalid-name
 """XCEP Types."""
+
 from xml.etree.ElementTree import Element, QName
 from cepces.xml.binding import ATTR_NIL
 from cepces.xml.binding import XMLElement, XMLElementList

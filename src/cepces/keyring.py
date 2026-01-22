@@ -16,11 +16,11 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for handling kernel keyring operations via keyctl utility."""
+
 import shutil
 import subprocess
 
 from cepces import Base
-
 
 # Use the user keyring
 KEYRING = "@u"

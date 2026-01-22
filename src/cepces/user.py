@@ -16,6 +16,7 @@
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module containing user cert enroll logic."""
+
 import os
 from pyasn1.codec.der.encoder import encode
 from pyasn1.type import char

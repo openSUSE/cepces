@@ -17,6 +17,7 @@
 #
 # pylint: disable=invalid-name,too-few-public-methods
 """This module contains all Kerberos specific types and structures."""
+
 import ctypes
 from enum import IntEnum
 
