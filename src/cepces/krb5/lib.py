@@ -20,6 +20,8 @@
 
 import ctypes
 
+__all__ = ["_shlib"]
+
 # Try to load the Kerberos5 library dynamically. Naïvely try to load everything
 # in the list until successful.
 _shlib: ctypes.CDLL | None = None

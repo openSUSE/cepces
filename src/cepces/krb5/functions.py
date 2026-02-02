@@ -21,7 +21,9 @@
 import ctypes
 import functools
 from cepces.krb5 import types as ktypes
-from cepces.krb5.lib import _shlib
+from cepces.krb5.lib import (
+    _shlib,  # pyright: ignore[reportAttributeAccessIssue]
+)
 
 assert _shlib is not None  # Guaranteed by RuntimeError in lib.py
 
