@@ -1,0 +1,14 @@
+import _cython_3_2_4limitednofinalize
+import gssapi._utils as _utils
+from gssapi.raw.misc import GSSError as GSSError
+from gssapi.raw.named_tuples import (
+    AcquireCredResult as AcquireCredResult,
+    AddCredResult as AddCredResult,
+    StoreCredResult as StoreCredResult,
+)
+
+GSSAPI: str
+__test__: dict
+acquire_cred_from: _cython_3_2_4limitednofinalize.cython_function_or_method
+add_cred_from: _cython_3_2_4limitednofinalize.cython_function_or_method
+store_cred_into: _cython_3_2_4limitednofinalize.cython_function_or_method

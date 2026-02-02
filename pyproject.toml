@@ -46,9 +46,15 @@ user-submit = [
 [tool.black]
 line-length = 79
 target-version = ['py310']
+extend-exclude = "stubs"
 
 [tool.flake8]
 max-complexity = 15
+exclude = ["stubs"]
+
+[tool.ruff]
+# Exclude auto-generated stub files from linting
+exclude = ["stubs"]
 
 [tool.ruff.lint.per-file-ignores]
 # don't resort auto-generated stub files

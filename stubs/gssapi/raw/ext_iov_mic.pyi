@@ -1,0 +1,9 @@
+import _cython_3_2_4limitednofinalize
+from gssapi.raw.ext_dce import IOVBufferType as IOVBufferType
+from gssapi.raw.misc import GSSError as GSSError
+
+GSSAPI: str
+__test__: dict
+get_mic_iov: _cython_3_2_4limitednofinalize.cython_function_or_method
+get_mic_iov_length: _cython_3_2_4limitednofinalize.cython_function_or_method
+verify_mic_iov: _cython_3_2_4limitednofinalize.cython_function_or_method
