@@ -1,0 +1,16 @@
+from _typeshed import Incomplete
+from typing import ClassVar
+
+__test__: dict
+
+class ChannelBindings:
+    __pyx_vtable__: ClassVar[PyCapsule] = ...
+    acceptor_address: Incomplete
+    acceptor_address_type: Incomplete
+    application_data: Incomplete
+    initiator_address: Incomplete
+    initiator_address_type: Incomplete
+    def __init__(self, *args, **kwargs) -> None: ...
+    def __reduce__(self): ...
+    def __reduce_cython__(self, *args, **kwargs): ...
+    def __setstate_cython__(self, *args, **kwargs): ...

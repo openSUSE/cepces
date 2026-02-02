@@ -1,0 +1,15 @@
+import _cython_3_2_4limitednofinalize
+from gssapi.raw.misc import GSSError as GSSError
+from gssapi.raw.named_tuples import (
+    GetNameAttributeResult as GetNameAttributeResult,
+    InquireNameResult as InquireNameResult,
+)
+
+GSSAPI: str
+__test__: dict
+delete_name_attribute: _cython_3_2_4limitednofinalize.cython_function_or_method
+display_name_ext: _cython_3_2_4limitednofinalize.cython_function_or_method
+export_name_composite: _cython_3_2_4limitednofinalize.cython_function_or_method
+get_name_attribute: _cython_3_2_4limitednofinalize.cython_function_or_method
+inquire_name: _cython_3_2_4limitednofinalize.cython_function_or_method
+set_name_attribute: _cython_3_2_4limitednofinalize.cython_function_or_method

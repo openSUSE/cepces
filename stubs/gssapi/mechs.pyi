@@ -1,0 +1,36 @@
+import typing as t
+from _typeshed import Incomplete
+from gssapi._utils import import_gssapi_extension as import_gssapi_extension
+from gssapi.raw import names as rnames, oids as roids
+
+rfc5587: Incomplete
+rfc5801: Incomplete
+
+class Mechanism(roids.OID):
+    def __new__(
+        cls, cpy: roids.OID | None = None, elements: bytes | None = None
+    ) -> Mechanism: ...
+    @property
+    def name_types(self) -> set[roids.OID]: ...
+    def __unicode__(self) -> str: ...
+    @property
+    def sasl_name(self) -> str: ...
+    @property
+    def description(self) -> str: ...
+    @property
+    def known_attrs(self) -> set[roids.OID]: ...
+    @property
+    def attrs(self) -> set[roids.OID]: ...
+    @classmethod
+    def all_mechs(cls) -> t.Iterator["Mechanism"]: ...
+    @classmethod
+    def from_name(cls, name: rnames.Name) -> t.Iterator["Mechanism"]: ...
+    @classmethod
+    def from_sasl_name(cls, name: bytes | str | None = None) -> Mechanism: ...
+    @classmethod
+    def from_attrs(
+        cls,
+        desired_attrs: roids.OID | t.Iterable[roids.OID] | None = None,
+        except_attrs: roids.OID | t.Iterable[roids.OID] | None = None,
+        critical_attrs: roids.OID | t.Iterable[roids.OID] | None = None,
+    ) -> t.Iterator["Mechanism"]: ...
