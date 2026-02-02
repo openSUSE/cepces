@@ -109,22 +109,27 @@ class PrincipalName(Base):
         if match is None:
             raise ValueError(f"Invalid principal format: {name}")
 
-        self._primary = match.group("primary")
-        self._instance = match.group("instance")
-        self._realm = match.group("realm")
+        primary = match.group("primary")
+        realm = match.group("realm")
+        if primary is None or realm is None:
+            raise ValueError(f"Invalid principal format: {name}")
+
+        self._primary: str = primary
+        self._instance: str | None = match.group("instance")
+        self._realm: str = realm
 
     @property
-    def primary(self):
+    def primary(self) -> str:
         """Get the primary component of the name."""
         return self._primary
 
     @property
-    def instance(self):
+    def instance(self) -> str | None:
         """Get the instance component of the name."""
         return self._instance
 
     @property
-    def realm(self):
+    def realm(self) -> str:
         """Get the realm component of the name."""
         return self._realm
 
@@ -158,17 +163,17 @@ class Principal(Base):
             kfuncs.free_principal(self._context.handle, self.handle)
 
     @property
-    def primary(self):
+    def primary(self) -> str:
         """Get the primary component of the name."""
         return self._name.primary
 
     @property
-    def instance(self):
+    def instance(self) -> str | None:
         """Get the instance component of the name."""
         return self._name.instance
 
     @property
-    def realm(self):
+    def realm(self) -> str:
         """Get the realm component of the name."""
         return self._name.realm
 

@@ -21,6 +21,7 @@
 """This module contains SOAP related authentication."""
 
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass, field
 from typing import Any
 import base64
 import hashlib
@@ -32,6 +33,18 @@ from cepces import Base
 from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Principal, get_default_keytab_name
 from cepces.soap.types import Security as WSSecurity, UsernameToken
+
+
+@dataclass
+class GSSAPIConfig:
+    """Configuration for GSSAPI authentication."""
+
+    name: str | None = None
+    init_ccache: bool = True
+    keytab: str | None = None
+    enctypes: list[str] = field(default_factory=list)
+    delegate: bool = True
+    principal: str | None = None
 
 
 class Authentication(Base, metaclass=ABCMeta):
@@ -87,30 +100,27 @@ class TransportGSSAPIAuthentication(Authentication):
     ) -> None:
         super().__init__()
 
-        self._config = {}
-        self._config["name"] = principal_name
-        self._config["init_ccache"] = init_ccache
-        self._config["keytab"] = keytab
-        self._config["enctypes"] = enctypes
-        self._config["delegate"] = delegate
+        self._config = GSSAPIConfig(
+            name=principal_name,
+            init_ccache=init_ccache,
+            keytab=keytab,
+            enctypes=enctypes if enctypes is not None else [],
+            delegate=delegate,
+        )
 
         context = Context()
 
         # If no "name" was specified, krb5 will use the default principal
         # of the given credential cache (KRB5CCNAME).
         # This is important for usage with init_ccache=False.
-        self._config["principal"] = None
-        if (
-            self._config["name"] is not None
-            and self._config["name"].strip() != ""
-        ):
+        if self._config.name is not None and self._config.name.strip() != "":
             # Create a valid principal using default realm if none is specified
             principal = Principal(
                 context,
-                name=self._config["name"],
+                name=self._config.name,
                 service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
             )
-            self._config["principal"] = "%s@%s" % (
+            self._config.principal = "%s@%s" % (
                 principal.primary,
                 principal.realm,
             )
@@ -118,24 +128,24 @@ class TransportGSSAPIAuthentication(Authentication):
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.
         gssapi_cred = None
-        if self._config["init_ccache"]:
+        if self._config.init_ccache:
             gssapi_cred = self._init_ccache()
 
         self._init_transport(gssapi_cred)
 
-    def _init_ccache(self):
+    def _init_ccache(self) -> Any:
         krb5_mech = gssapi.OID.from_int_seq("1.2.840.113554.1.2.2")
-        gss_name = gssapi.Name(self._config["principal"], gssapi.NameType.user)
+        gss_name = gssapi.Name(self._config.principal, gssapi.NameType.user)
 
         os.environ["KRB5CCNAME"] = "MEMORY:cepces"
 
-        keytab = None
-        if self._config["keytab"]:
-            keytab = self._config["keytab"]
+        keytab: str
+        if self._config.keytab:
+            keytab = self._config.keytab
         else:
             keytab = get_default_keytab_name()
 
-        store = {
+        store: dict[bytes, bytes] = {
             b"client_keytab": keytab.encode("utf-8"),
             # This doesn't work, we need to set KRB5CCNAME
             # b"ccache": "MEMORY:cepces",
@@ -156,11 +166,11 @@ class TransportGSSAPIAuthentication(Authentication):
         # This is important for usage with init_ccache=False.
         gss_name = None
         if (
-            self._config["principal"] is not None
-            and self._config["principal"].strip() != ""
+            self._config.principal is not None
+            and self._config.principal.strip() != ""
         ):
             gss_name = gssapi.Name(
-                self._config["principal"], gssapi.NameType.user
+                self._config.principal, gssapi.NameType.user
             )
 
         creds = gssapi.Credentials(
@@ -171,7 +181,7 @@ class TransportGSSAPIAuthentication(Authentication):
 
         self._transport = HTTPSPNEGOAuth(
             creds=creds,
-            delegate=self._config["delegate"],
+            delegate=self._config.delegate,
             mech=gssapi.Mechanism.from_sasl_name("SPNEGO"),
             channel_bindings="tls-server-end-point",
         )
