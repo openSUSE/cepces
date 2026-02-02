@@ -165,6 +165,8 @@ class UserEnrollment:
             return
 
         # return a "cookie" that can be used to later poll the status
+        if result.request_id is None:
+            raise RuntimeError("Approval pending but no request_id provided")
         if result.reference is None:
             raise RuntimeError("Approval pending but no reference provided")
         raise ApprovalPendingException(result.request_id, result.reference)

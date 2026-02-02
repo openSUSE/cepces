@@ -18,6 +18,7 @@
 # pylint: disable=protected-access
 """Module for WSTEP SOAP service logic."""
 
+from typing import Any
 from xml.etree import ElementTree
 import uuid
 import re
@@ -39,7 +40,12 @@ class Service(SOAPService):
     class Response(Base):
         """Inner class for a service response."""
 
-        def __init__(self, request_id, token=None, reference=None):
+        def __init__(
+            self,
+            request_id: str | int | None,
+            token: Any = None,
+            reference: str | None = None,
+        ) -> None:
             super().__init__()
 
             self._request_id = request_id
@@ -47,26 +53,26 @@ class Service(SOAPService):
             self._reference = reference
 
         @property
-        def request_id(self):
+        def request_id(self) -> str | int | None:
             """Returns the request ID."""
             return self._request_id
 
         @property
-        def token(self):
+        def token(self) -> Any:
             """Returns the response token."""
             return self._token
 
         @token.setter
-        def token(self, value):
+        def token(self, value: Any) -> None:
             """Sets the response token."""
             self._token = value
 
         @property
-        def reference(self):
+        def reference(self) -> str | None:
             """Returns the response reference."""
             return self._reference
 
-    def _get_envelope(self, payload):
+    def _get_envelope(self, payload: Any) -> Envelope:
         envelope = Envelope()
         envelope.header.action = ACTION
         envelope.header.message_id = "urn:uuid:{0:s}".format(str(uuid.uuid4()))
@@ -82,7 +88,7 @@ class Service(SOAPService):
 
         return envelope
 
-    def request(self, csr):
+    def request(self, csr: str) -> list["Response"]:
         """Request a certificate using a certificate signing request."""
         match = re.search(
             r"^\-{5}BEGIN (?:NEW )?CERTIFICATE REQUEST\-{5}\n"
@@ -135,7 +141,7 @@ class Service(SOAPService):
 
         return results
 
-    def poll(self, request_id):
+    def poll(self, request_id: str | int) -> list["Response"]:
         """Poll the service endpoint for the status of a previous request."""
         self._logger.debug("Sending info for previous request %s", request_id)
 
