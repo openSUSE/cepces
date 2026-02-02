@@ -119,7 +119,7 @@ class UserEnrollment:
 
         result = self.service.request(
             csr.sign(key, hashes.SHA256()),
-            renew=None,
+            renew=False,
         )
 
         self._check_result(result, cert_file)
