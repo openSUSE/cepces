@@ -111,7 +111,7 @@ class Service(SOAPService):
 
         # All responses has to be processed before hand, since they need to be
         # curated of any (possible) extra Microsoft-added line endings.
-        results = []
+        results: list[Service.Response] = []
 
         for response in result.responses or []:
             self._logger.debug("Got response: %s", str(response))
@@ -163,7 +163,7 @@ class Service(SOAPService):
 
         # All responses has to be processed before hand, since they need to be
         # curated of any (possible) extra Microsoft-added line endings.
-        results = []
+        results: list[Service.Response] = []
 
         for response in result.responses or []:
             self._logger.debug("Got response: %s", response)
