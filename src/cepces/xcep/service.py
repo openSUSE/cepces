@@ -18,6 +18,7 @@
 # pylint: disable=protected-access
 """Module for XCEP SOAP service logic."""
 
+from typing import Any
 from xml.etree import ElementTree
 import uuid
 from cepces.soap.service import Service as SOAPService
@@ -34,7 +35,7 @@ ACTION = (
 class Service(SOAPService):
     """XCEP Service proxy."""
 
-    def _get_envelope(self, payload):
+    def _get_envelope(self, payload: Any) -> Envelope:
         envelope = Envelope()
         envelope.header.action = ACTION
         envelope.header.message_id = "urn:uuid:{0:s}".format(str(uuid.uuid4()))
