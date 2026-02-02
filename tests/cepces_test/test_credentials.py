@@ -27,8 +27,8 @@ from cepces.credentials import (
 
 @patch("cepces.credentials.shutil.which")
 def test_credentials_handler_initialization_with_pinentry_available(
-    mock_which,
-):
+    mock_which: MagicMock,
+) -> None:
     """Test initialization when pinentry is available"""
     mock_which.return_value = "/usr/bin/pinentry"
 
@@ -43,8 +43,8 @@ def test_credentials_handler_initialization_with_pinentry_available(
 
 @patch("cepces.credentials.shutil.which")
 def test_credentials_handler_initialization_with_pinentry_unavailable(
-    mock_which,
-):
+    mock_which: MagicMock,
+) -> None:
     """Test initialization when pinentry is not available"""
     mock_which.return_value = None
 
@@ -58,7 +58,9 @@ def test_credentials_handler_initialization_with_pinentry_unavailable(
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_initialization_with_default_title(mock_which):
+def test_credentials_handler_initialization_with_default_title(
+    mock_which: MagicMock,
+) -> None:
     """Test initialization with default title"""
     mock_which.return_value = "/usr/bin/pinentry"
 
@@ -69,7 +71,9 @@ def test_credentials_handler_initialization_with_default_title(mock_which):
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_is_supported_available(mock_which):
+def test_credentials_handler_is_supported_available(
+    mock_which: MagicMock,
+) -> None:
     """Test is_supported when pinentry is available"""
     mock_which.return_value = "/usr/bin/pinentry"
 
@@ -80,7 +84,9 @@ def test_credentials_handler_is_supported_available(mock_which):
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_is_supported_unavailable(mock_which):
+def test_credentials_handler_is_supported_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test is_supported when pinentry is not available"""
     mock_which.return_value = None
 
@@ -92,7 +98,9 @@ def test_credentials_handler_is_supported_unavailable(mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_run_pinentry_success(mock_run, mock_which):
+def test_credentials_handler_run_pinentry_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test successful pinentry execution"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(
@@ -111,7 +119,9 @@ def test_credentials_handler_run_pinentry_success(mock_run, mock_which):
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_run_pinentry_when_unavailable(mock_which):
+def test_credentials_handler_run_pinentry_when_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test _run_pinentry when pinentry is unavailable"""
     mock_which.return_value = None
 
@@ -125,7 +135,9 @@ def test_credentials_handler_run_pinentry_when_unavailable(mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_run_pinentry_error_response(mock_run, mock_which):
+def test_credentials_handler_run_pinentry_error_response(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test pinentry execution with error response"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(
@@ -143,7 +155,9 @@ def test_credentials_handler_run_pinentry_error_response(mock_run, mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_prompt_password_success(mock_run, mock_which):
+def test_credentials_handler_prompt_password_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test successful password prompt"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(
@@ -167,7 +181,9 @@ def test_credentials_handler_prompt_password_success(mock_run, mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_prompt_password_cancelled(mock_run, mock_which):
+def test_credentials_handler_prompt_password_cancelled(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test password prompt when user cancels"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(
@@ -181,7 +197,9 @@ def test_credentials_handler_prompt_password_cancelled(mock_run, mock_which):
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_prompt_password_when_unavailable(mock_which):
+def test_credentials_handler_prompt_password_when_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test password prompt when pinentry is unavailable"""
     mock_which.return_value = None
 
@@ -193,7 +211,9 @@ def test_credentials_handler_prompt_password_when_unavailable(mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_prompt_password_no_data(mock_run, mock_which):
+def test_credentials_handler_prompt_password_no_data(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test password prompt with no data returned"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(stdout="OK\n", returncode=0)
@@ -206,7 +226,9 @@ def test_credentials_handler_prompt_password_no_data(mock_run, mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_prompt_credentials_success(mock_run, mock_which):
+def test_credentials_handler_prompt_credentials_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test successful credentials prompt"""
     mock_which.return_value = "/usr/bin/pinentry"
 
@@ -244,8 +266,8 @@ def test_credentials_handler_prompt_credentials_success(mock_run, mock_which):
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
 def test_credentials_handler_prompt_credentials_username_cancelled(
-    mock_run, mock_which
-):
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test credentials prompt when username is cancelled"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(
@@ -264,8 +286,8 @@ def test_credentials_handler_prompt_credentials_username_cancelled(
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
 def test_credentials_handler_prompt_credentials_password_cancelled(
-    mock_run, mock_which
-):
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test credentials prompt when password is cancelled"""
     mock_which.return_value = "/usr/bin/pinentry"
 
@@ -288,8 +310,8 @@ def test_credentials_handler_prompt_credentials_password_cancelled(
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
 def test_credentials_handler_prompt_credentials_no_username_data(
-    mock_run, mock_which
-):
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test credentials prompt when no username data returned"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(stdout="OK\n", returncode=0)
@@ -302,7 +324,9 @@ def test_credentials_handler_prompt_credentials_no_username_data(
 
 
 @patch("cepces.credentials.shutil.which")
-def test_credentials_handler_prompt_credentials_when_unavailable(mock_which):
+def test_credentials_handler_prompt_credentials_when_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test credentials prompt when pinentry is unavailable"""
     mock_which.return_value = None
 
@@ -315,7 +339,9 @@ def test_credentials_handler_prompt_credentials_when_unavailable(mock_which):
 
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
-def test_credentials_handler_run_pinentry_file_not_found(mock_run, mock_which):
+def test_credentials_handler_run_pinentry_file_not_found(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test _run_pinentry when command raises FileNotFoundError"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.side_effect = FileNotFoundError()
@@ -331,8 +357,8 @@ def test_credentials_handler_run_pinentry_file_not_found(mock_run, mock_which):
 @patch("cepces.credentials.shutil.which")
 @patch("cepces.credentials.subprocess.run")
 def test_credentials_handler_prompt_password_with_defaults(
-    mock_run, mock_which
-):
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test password prompt with default parameters"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.return_value = MagicMock(
@@ -349,7 +375,7 @@ def test_credentials_handler_prompt_password_with_defaults(
     assert "SETPROMPT Password:" in input_data
 
 
-def test_credentials_error_hierarchy():
+def test_credentials_error_hierarchy() -> None:
     """Test exception hierarchy"""
     assert issubclass(CredentialsNotFoundError, CredentialsError)
     assert issubclass(CredentialsOperationError, CredentialsError)
