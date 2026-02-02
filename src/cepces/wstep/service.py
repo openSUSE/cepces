@@ -107,7 +107,7 @@ class Service(SOAPService):
         # curated of any (possible) extra Microsoft-added line endings.
         results = []
 
-        for response in result.responses:
+        for response in result.responses or []:
             self._logger.debug("Got response: %s", str(response))
 
             token = response.requested_token
@@ -157,7 +157,7 @@ class Service(SOAPService):
         # curated of any (possible) extra Microsoft-added line endings.
         results = []
 
-        for response in result.responses:
+        for response in result.responses or []:
             self._logger.debug("Got response: %s", response)
 
             token = response.requested_token
