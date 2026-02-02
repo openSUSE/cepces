@@ -24,6 +24,7 @@ import sys
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.x509.oid import NameOID
 from cepces import __title__, __version__
 from cepces import Base
 from cepces.core import PartialChainError
@@ -90,7 +91,7 @@ class Operation(Base, metaclass=ABCMeta):
                 self._vars[var] = os.environ[var]
 
     @abstractmethod
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         """Calls the operation to let it performs its logic.
 
         :return: the certmonger result code.
@@ -106,7 +107,7 @@ class Submit(Operation):
         ("CERTMONGER_CERTIFICATE", None),
     ]
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         service = self._service
 
         csr_var = self._vars["CERTMONGER_CSR"]
@@ -164,7 +165,7 @@ class Poll(Operation):
     name = "POLL"
     required = ["CERTMONGER_CA_COOKIE"]
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         service = self._service
 
         cookie = self._vars["CERTMONGER_CA_COOKIE"]
@@ -207,7 +208,7 @@ class Identify(Operation):
     name = "IDENTIFY"
     needs_service = False
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         print("{} {}".format(__title__, __version__), file=self._out)
 
         return CertmongerResult.DEFAULT
@@ -219,7 +220,7 @@ class GetNewRequestRequirements(Operation):
     name = "GET-NEW-REQUEST-REQUIREMENTS"
     needs_service = False
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         # Output a list of required environment variables.
         print("CERTMONGER_CA_PROFILE", file=self._out)
 
@@ -232,7 +233,7 @@ class GetRenewRequestRequirements(Operation):
     name = "GET-RENEW-REQUEST-REQUIREMENTS"
     needs_service = False
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         # Output a list of required environment variables.
         print("CERTMONGER_CA_PROFILE", file=self._out)
 
@@ -244,7 +245,7 @@ class GetSupportedTemplates(Operation):
 
     name = "GET-SUPPORTED-TEMPLATES"
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         # When called with --install flag during package installation,
         # authentication may fail and self._service will be None.
         # Return an empty list; certmonger will query again later.
@@ -270,7 +271,7 @@ class GetDefaultTemplate(Operation):
     name = "GET-DEFAULT-TEMPLATE"
     needs_service = False
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         return CertmongerResult.DEFAULT
 
 
@@ -279,14 +280,14 @@ class FetchRoots(Operation):
 
     name = "FETCH-ROOTS"
 
-    def __call__(self):
+    def __call__(self) -> CertmongerResult:
         # When called with --install flag during package installation,
         # authentication may fail and self._service will be None.
         # Return an empty list; certmonger will query again later.
         if self._service is None:
             return CertmongerResult.DEFAULT
 
-        oid_cn = x509.oid.NameOID.COMMON_NAME
+        oid_cn = NameOID.COMMON_NAME
 
         # Retrieve the certificate chain as far as possible.
         try:
