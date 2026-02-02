@@ -112,7 +112,7 @@ class BooleanConverter:
     """Converts to and from booleans."""
 
     @staticmethod
-    def from_string(value):
+    def from_string(value: str | None) -> bool | None:
         """Converts the input value to a boolean
 
         :param value: the value to convert, or None
@@ -149,7 +149,7 @@ class IntegerConverter:
     """Converts to and from integers."""
 
     @staticmethod
-    def from_string(value):
+    def from_string(value: str | None) -> int | None:
         """Converts the input value to an integer
 
         :param value: the value to convert, or None
@@ -165,7 +165,7 @@ class IntegerConverter:
         return int(result)
 
     @staticmethod
-    def to_string(value):
+    def to_string(value: int | None) -> str | None:
         """Converts the an integer to a string
 
         :param value: the integer to convert, or None
@@ -180,7 +180,7 @@ class RangedIntegerConverter:
     """Converts to and from integers with a range constraint."""
 
     @staticmethod
-    def range_check(value, lower, upper):
+    def range_check(value: int | None, lower: int, upper: int) -> int | None:
         """Check that the given value is within the inclusive range.
 
         :param value: the integer to check
@@ -206,7 +206,7 @@ class RangedIntegerConverter:
         return value
 
     @staticmethod
-    def from_string(value, lower, upper):
+    def from_string(value: str | None, lower: int, upper: int) -> int | None:
         """Converts the input value to an integer within the allowed range.
 
         :param value: the integer to check
@@ -222,7 +222,7 @@ class RangedIntegerConverter:
         return RangedIntegerConverter.range_check(result, lower, upper)
 
     @staticmethod
-    def to_string(value, lower, upper):
+    def to_string(value: int | None, lower: int, upper: int) -> str | None:
         """Converts the an integer to a string
 
         :param value: the integer to convert, or None
@@ -327,17 +327,17 @@ class DateTimeConverter(Converter):
     class FixedOffset(tzinfo):
         """Internal class representing a fixed Time Zone."""
 
-        def __init__(self, offset, name=None):
+        def __init__(self, offset: int, name: str | None = None) -> None:
             self._offset = timedelta(minutes=offset)
             self._name = name
 
-        def utcoffset(self, _dt):
+        def utcoffset(self, _dt: datetime | None) -> timedelta:
             return self._offset
 
-        def tzname(self, _dt):
+        def tzname(self, _dt: datetime | None) -> str | None:
             return self._name
 
-        def dst(self, _dt):
+        def dst(self, _dt: datetime | None) -> timedelta:
             return timedelta(0)
 
     @staticmethod
@@ -397,7 +397,9 @@ class DateTimeConverter(Converter):
         )
 
     @staticmethod
-    def to_string(value, value_type=str):
+    def to_string(
+        value: datetime | None, value_type: type = str
+    ) -> str | None:
         """Convert a datetime object to a string.
 
         :param value: the datetime object to convert
@@ -467,7 +469,7 @@ class CertificateConverter:
         )
 
     @staticmethod
-    def to_string(value):
+    def to_string(value: str) -> str:
         """Converts the certificate to a plain string
 
         :param value: the certificate to convert, or None
@@ -483,4 +485,7 @@ class CertificateConverter:
         if match is None:
             raise ValueError(f"Invalid certificate format: {value}")
 
-        return Converter.to_string(match.group(1), str)
+        result = Converter.to_string(match.group(1), str)
+        # match.group(1) is a valid string, so result is never None here
+        assert result is not None
+        return result
