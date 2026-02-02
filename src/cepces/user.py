@@ -20,6 +20,7 @@
 import os
 from pyasn1.codec.der.encoder import encode
 from pyasn1.type import char
+from typing import Any
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.backends import default_backend
@@ -35,21 +36,32 @@ from cryptography.hazmat.primitives.asymmetric import (
 )
 from cepces.config import Configuration
 from cepces.core import Service
+from cepces.wstep.service import Service as WSTEPService
 
 
 class ApprovalPendingException(Exception):
-    def __init__(self, request_id, reference, *args, **kwargs):
+    def __init__(
+        self,
+        request_id: str | int,
+        reference: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.request_id = request_id
         self.reference = reference
 
 
 class UserEnrollment:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__()
         self.service = self._init_service(*args, **kwargs)
 
-    def _init_service(self, global_overrides=None, krb5_overrides=None):
+    def _init_service(
+        self,
+        global_overrides: dict[str, str] | None = None,
+        krb5_overrides: dict[str, str] | None = None,
+    ) -> Service:
         # Load the configuration and instantiate a service.
         config = Configuration.load(
             global_overrides=global_overrides, krb5_overrides=krb5_overrides
@@ -57,7 +69,14 @@ class UserEnrollment:
 
         return Service(config)
 
-    def request(self, key_file, cert_file, profile, keysize, passphrase):
+    def request(
+        self,
+        key_file: str,
+        cert_file: str,
+        profile: str,
+        keysize: int | str,
+        passphrase: str | None,
+    ) -> None:
         if os.path.exists(key_file):
             with open(key_file, "rb") as f:
                 tmp_key = serialization.load_pem_private_key(
@@ -124,11 +143,18 @@ class UserEnrollment:
 
         self._check_result(result, cert_file)
 
-    def poll(self, cert_file, request_id, reference):
+    def poll(
+        self, cert_file: str, request_id: str | int, reference: str
+    ) -> None:
         result = self.service.poll(int(request_id), reference)
         self._check_result(result, cert_file)
 
-    def _check_result(self, result, cert_file):
+    def _check_result(
+        self, result: "WSTEPService.Response | None", cert_file: str
+    ) -> None:
+        if result is None:
+            raise RuntimeError("No response received from service")
+
         # if we have a certificate, save it
         if result.token:
             pem = result.token.public_bytes(serialization.Encoding.PEM)
@@ -139,4 +165,6 @@ class UserEnrollment:
             return
 
         # return a "cookie" that can be used to later poll the status
+        if result.reference is None:
+            raise RuntimeError("Approval pending but no reference provided")
         raise ApprovalPendingException(result.request_id, result.reference)
