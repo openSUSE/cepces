@@ -34,7 +34,9 @@ if TYPE_CHECKING:
     from logging import Logger
 
 
-def _get_display_config_from_parser(parser):
+def _get_display_config_from_parser(
+    parser: ConfigParser,
+) -> tuple[str, str] | None:
     """Get display configuration from ConfigParser.
 
     Args:
@@ -57,7 +59,7 @@ def _get_display_config_from_parser(parser):
     return (env_var, display_value)
 
 
-def strtobool(value):
+def strtobool(value: str | bool | int) -> bool:
     if str(value).lower() in ("t", "true", "y", "yes", "1"):
         return True
     return False
