@@ -311,7 +311,7 @@ class FetchRoots(Operation):
         except PartialChainError as error:
             certs = error.result
 
-        output = []
+        output: list[str] = []
 
         for cert in certs:
             names = cert.subject.get_attributes_for_oid(oid_cn)
