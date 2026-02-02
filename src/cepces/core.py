@@ -88,6 +88,9 @@ class Service(Base):
         self._session = create_session(config.openssl_ciphers)
         self._xcep: XCEPService | None
 
+        if config.endpoint is None:
+            raise RuntimeError("Configuration endpoint is required")
+
         if config.endpoint_type == "Policy":
             self._xcep = XCEPService(
                 endpoint=config.endpoint,
