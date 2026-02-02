@@ -125,7 +125,7 @@ class SecurityTokenRequest(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> Element:
         """Create a new RequestSecurityToken XML element.
 
         Constructs a wst:RequestSecurityToken element with the required child
@@ -198,7 +198,7 @@ class Reference(XMLNode):
     uri = XMLAttribute("URI", converter=StringConverter)
 
     @staticmethod
-    def create():
+    def create() -> None:
         """Create a new Reference XML element.
 
         Returns:
@@ -236,7 +236,7 @@ class SecurityTokenReference(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         """Create a new SecurityTokenReference XML element.
 
         Returns:
@@ -296,7 +296,7 @@ class RequestedToken(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         """Create a new RequestedSecurityToken XML element.
 
         Returns:
@@ -378,7 +378,7 @@ class SecurityTokenResponse(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         """Create a new RequestSecurityTokenResponse XML element.
 
         Returns:
@@ -421,7 +421,7 @@ class SecurityTokenResponseCollection(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         """Create a new RequestSecurityTokenResponseCollection XML element.
 
         Returns:

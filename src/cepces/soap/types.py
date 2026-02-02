@@ -34,7 +34,7 @@ class FaultSubcode(XMLNode):
     value = XMLValue("Value", converter=StringConverter, namespace=NS_SOAP)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         element = Element(QName(NS_SOAP, "Subcode"))  # type: ignore[type-var]
 
         value = Element(QName(NS_SOAP, "Value"))  # type: ignore[type-var]
@@ -51,7 +51,7 @@ class FaultCode(XMLNode):
     subcode = XMLElement("Subcode", binder=FaultSubcode, namespace=NS_SOAP)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         element = Element(QName(NS_SOAP, "Code"))  # type: ignore[type-var]
 
         value = Element(QName(NS_SOAP, "Value"))  # type: ignore[type-var]
@@ -68,7 +68,7 @@ class FaultReason(XMLNode):
     text = XMLValue("Text", converter=StringConverter, namespace=NS_SOAP)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         element = Element(QName(NS_SOAP, "Reason"))  # type: ignore[type-var]
 
         value = Element(QName(NS_SOAP, "Text"))  # type: ignore[type-var]
@@ -85,7 +85,7 @@ class Fault(XMLNode):
     reason = XMLElement("Reason", binder=FaultReason, namespace=NS_SOAP)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         element = Element(QName(NS_SOAP, "Fault"))  # type: ignore[type-var]
         element.append(FaultCode.create())
         element.append(FaultReason.create())
@@ -108,7 +108,7 @@ class UsernameToken(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> Element:
         usernametoken = Element(QName(NS_WSSE, "UsernameToken"))  # type: ignore[type-var]  # noqa: E501
 
         username = Element(QName(NS_WSSE, "Username"))  # type: ignore[type-var]  # noqa: E501
@@ -138,7 +138,7 @@ class Security(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> Element:
         security = Element(QName(NS_WSSE, "Security"))  # type: ignore[type-var]  # noqa: E501
         security.attrib[QName(NS_SOAP, "mustUnderstand")] = "1"  # type: ignore[index]  # noqa: E501
 
@@ -176,7 +176,7 @@ class Header(XMLNode):
     security = XMLElement("Security", binder=Security, namespace=NS_WSSE)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         header = Element(QName(NS_SOAP, "Header"))  # type: ignore[type-var]
 
         action = Element(QName(NS_ADDRESSING, "Action"))  # type: ignore[type-var]  # noqa: E501
@@ -202,7 +202,7 @@ class Body(XMLNode):
     payload = XMLElement("*", binder=None, required=False)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         body = Element(QName(NS_SOAP, "Body"))  # type: ignore[type-var]
 
         return body
@@ -216,7 +216,7 @@ class Envelope(XMLNode):
     body = XMLElement("Body", binder=Body, namespace=NS_SOAP)
 
     @staticmethod
-    def create():
+    def create() -> Element:
         envelope = Element(QName(NS_SOAP, "Envelope"))  # type: ignore[type-var]  # noqa: E501
         envelope.append(Header.create())
         envelope.append(Body.create())

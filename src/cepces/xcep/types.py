@@ -60,7 +60,7 @@ class Client(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> Element:
         client = Element(QName(NS_CEP, "client"))  # type: ignore[type-var]
 
         last_update = Element(QName(NS_CEP, "lastUpdate"))  # type: ignore[type-var]  # noqa: E501
@@ -102,7 +102,7 @@ class RequestFilter(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> Element:
         element = Element(QName(NS_CEP, "requestFilter"))  # type: ignore[type-var]  # noqa: E501
 
         policy_oids = Element(QName(NS_CEP, "policyOIDs"))  # type: ignore[type-var]  # noqa: E501
@@ -131,7 +131,7 @@ class GetPolicies(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> Element:
         element = Element(QName(NS_CEP, "GetPolicies"))  # type: ignore[type-var]  # noqa: E501
         element.append(Client.create())
         element.append(RequestFilter.create())
@@ -195,7 +195,7 @@ class CertificateAuthorityURI(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         return None
 
 
@@ -247,7 +247,7 @@ class CertificateAuthority(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         return None
 
 
@@ -280,7 +280,7 @@ class Attributes(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         return None
 
 
@@ -312,7 +312,7 @@ class CertificateEnrollmentPolicy(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         return None
 
 
@@ -385,7 +385,7 @@ class Response(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         return None
 
 
@@ -418,5 +418,5 @@ class GetPoliciesResponse(XMLNode):
     )
 
     @staticmethod
-    def create():
+    def create() -> None:
         return None

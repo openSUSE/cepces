@@ -161,17 +161,17 @@ class XMLNode(metaclass=ListingMeta):
                 )
             )
 
-        self._element = element
-        self._bindings = {}
+        self._element: ElementTree.Element | None = element
+        self._bindings: dict[str, Any] = {}
 
     @property
-    def element(self):
+    def element(self) -> ElementTree.Element | None:
         """Get the backing XML element."""
         return self._element
 
     @staticmethod
     @abstractmethod
-    def create():
+    def create() -> ElementTree.Element | None:
         """Create a new XML element for the node."""
         raise NotImplementedError()
 
