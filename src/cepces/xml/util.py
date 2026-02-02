@@ -20,7 +20,7 @@
 import re
 
 
-def to_clark(name, namespace=None):
+def to_clark(name: str, namespace: str | None = None) -> str:
     """Returns an element name in Clark's Notation.
 
     :param name: the element name
@@ -33,7 +33,7 @@ def to_clark(name, namespace=None):
     return str(name)
 
 
-def from_clark(string):
+def from_clark(string: str) -> tuple[str, str | None]:
     """Returns a (name, namespace) tuple from an element name following Clark's
     notation.
     Note that the URI is not checked whether it is well-formed or not.
