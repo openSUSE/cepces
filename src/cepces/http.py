@@ -44,7 +44,7 @@ class SSLAdapter(HTTPAdapter):
         self.ssl_context = ssl_context
         super().__init__(*args, **kwargs)
 
-    def init_poolmanager(self, *args, **kwargs):
+    def init_poolmanager(self, *args: Any, **kwargs: Any) -> Any:
         """Initialize the pool manager with custom SSL context."""
         if self.ssl_context:
             kwargs["ssl_context"] = self.ssl_context
