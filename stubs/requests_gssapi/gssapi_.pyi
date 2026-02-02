@@ -1,7 +1,4 @@
-from .exceptions import (
-    MutualAuthenticationError as MutualAuthenticationError,
-    SPNEGOExchangeError as SPNEGOExchangeError,
-)
+from .exceptions import MutualAuthenticationError as MutualAuthenticationError, SPNEGOExchangeError as SPNEGOExchangeError
 from _typeshed import Incomplete
 from requests.auth import AuthBase
 from requests.models import Response
@@ -35,20 +32,8 @@ class HTTPSPNEGOAuth(AuthBase):
     mech: Incomplete
     sanitize_mutual_error_response: Incomplete
     channel_bindings: Incomplete
-    def __init__(
-        self,
-        mutual_authentication=...,
-        target_name: str = "HTTP",
-        delegate: bool = False,
-        opportunistic_auth: bool = False,
-        creds=None,
-        mech=...,
-        sanitize_mutual_error_response: bool = True,
-        channel_bindings=None,
-    ) -> None: ...
-    def generate_request_header(
-        self, response, host, is_preemptive: bool = False
-    ): ...
+    def __init__(self, mutual_authentication=..., target_name: str = 'HTTP', delegate: bool = False, opportunistic_auth: bool = False, creds=None, mech=..., sanitize_mutual_error_response: bool = True, channel_bindings=None) -> None: ...
+    def generate_request_header(self, response, host, is_preemptive: bool = False): ...
     def authenticate_user(self, response, **kwargs): ...
     def handle_401(self, response, **kwargs): ...
     def handle_other(self, response): ...

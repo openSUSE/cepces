@@ -5,12 +5,8 @@ from typing import ClassVar
 GSSAPI: str
 __test__: dict
 indicate_mechs: _cython_3_2_4limitednofinalize.cython_function_or_method
-inquire_mechs_for_name: (
-    _cython_3_2_4limitednofinalize.cython_function_or_method
-)
-inquire_names_for_mech: (
-    _cython_3_2_4limitednofinalize.cython_function_or_method
-)
+inquire_mechs_for_name: _cython_3_2_4limitednofinalize.cython_function_or_method
+inquire_names_for_mech: _cython_3_2_4limitednofinalize.cython_function_or_method
 
 class GSSError(Exception):
     MESSAGE: ClassVar[str] = ...

@@ -13,9 +13,4 @@ class UnknownUsageError(GeneralError):
 class EncryptionNotUsed(GeneralError):
     MAJOR_MESSAGE: str
     unwrapped_message: Incomplete
-    def __init__(
-        self,
-        minor_message: str,
-        unwrapped_message: bytes | None = None,
-        **kwargs: str,
-    ) -> None: ...
+    def __init__(self, minor_message: str, unwrapped_message: bytes | None = None, **kwargs: str) -> None: ...

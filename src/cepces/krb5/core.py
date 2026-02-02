@@ -142,8 +142,8 @@ class Principal(Base):
     ) -> None:
         super().__init__(ktypes.krb5_principal())
 
-        self._context = context
-        self._name = PrincipalName(
+        self._context: Context = context
+        self._name: PrincipalName = PrincipalName(
             self,
             name,
             context,

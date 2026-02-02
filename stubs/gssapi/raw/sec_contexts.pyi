@@ -1,15 +1,7 @@
 import _cython_3_2_4limitednofinalize
 from gssapi.raw.misc import GSSError as GSSError
-from gssapi.raw.named_tuples import (
-    AcceptSecContextResult as AcceptSecContextResult,
-    InitSecContextResult as InitSecContextResult,
-    InquireContextResult as InquireContextResult,
-)
-from gssapi.raw.types import (
-    IntEnumFlagSet as IntEnumFlagSet,
-    MechType as MechType,
-    RequirementFlag as RequirementFlag,
-)
+from gssapi.raw.named_tuples import AcceptSecContextResult as AcceptSecContextResult, InitSecContextResult as InitSecContextResult, InquireContextResult as InquireContextResult
+from gssapi.raw.types import IntEnumFlagSet as IntEnumFlagSet, MechType as MechType, RequirementFlag as RequirementFlag
 
 GSSAPI: str
 __reduce_cython__: _cython_3_2_4limitednofinalize.cython_function_or_method
