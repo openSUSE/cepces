@@ -38,7 +38,7 @@ class MissingEnvironmentVariable(RuntimeError):
     """This error is raised when an expected environment variable is
     missing."""
 
-    def __init__(self, variable):
+    def __init__(self, variable: str) -> None:
         """Initializes the error.
 
         :param variable: the name of the missing environment variable.
