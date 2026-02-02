@@ -30,17 +30,17 @@ from cepces.soap.auth import (
 class TestAnonymousAuthentication:
     """Tests for AnonymousAuthentication class."""
 
-    def test_transport_property_returns_none(self):
+    def test_transport_property_returns_none(self) -> None:
         """Test that transport property returns None."""
         auth = AnonymousAuthentication()
         assert auth.transport is None
 
-    def test_clientcertificate_property_returns_none(self):
+    def test_clientcertificate_property_returns_none(self) -> None:
         """Test that clientcertificate property returns None."""
         auth = AnonymousAuthentication()
         assert auth.clientcertificate is None
 
-    def test_post_process_returns_envelope_unchanged(self):
+    def test_post_process_returns_envelope_unchanged(self) -> None:
         """Test that post_process returns the envelope unchanged."""
         auth = AnonymousAuthentication()
         mock_envelope = MagicMock()
@@ -60,14 +60,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_initialization_with_defaults(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test initialization with default parameters."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -109,14 +109,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_initialization_with_principal_name(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test initialization with specific principal name."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -153,14 +153,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_initialization_with_custom_keytab(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test initialization with custom keytab."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -203,14 +203,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_initialization_with_delegate_false(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test initialization with delegate=False."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -245,14 +245,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_transport_property(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test that transport property returns HTTPSPNEGOAuth instance."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -288,14 +288,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_clientcertificate_property_returns_none(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test that clientcertificate property returns None."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -328,14 +328,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
     def test_post_process_returns_envelope_unchanged(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test that post_process returns the envelope unchanged."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -371,14 +371,14 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.os.environ", {})
     def test_init_ccache_sets_environment_variable(
         self,
-        mock_http_spnego,
-        mock_gssapi_credentials,
-        mock_gssapi_name,
-        mock_acquire_cred,
-        mock_get_keytab,
-        mock_principal,
-        mock_context,
-    ):
+        mock_http_spnego: MagicMock,
+        mock_gssapi_credentials: MagicMock,
+        mock_gssapi_name: MagicMock,
+        mock_acquire_cred: MagicMock,
+        mock_get_keytab: MagicMock,
+        mock_principal: MagicMock,
+        mock_context: MagicMock,
+    ) -> None:
         """Test that _init_ccache sets KRB5CCNAME environment variable."""
         # Setup mocks
         mock_context_instance = MagicMock()
@@ -410,7 +410,7 @@ class TestTransportGSSAPIAuthentication:
 class TestMessageUsernamePasswordAuthentication:
     """Tests for MessageUsernamePasswordAuthentication class."""
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test initialization with username and password."""
         auth = MessageUsernamePasswordAuthentication("testuser", "testpass")
         assert auth._username == "testuser"
@@ -418,17 +418,17 @@ class TestMessageUsernamePasswordAuthentication:
         assert hasattr(auth, "_nonce")
         assert hasattr(auth, "_created")
 
-    def test_transport_property_returns_none(self):
+    def test_transport_property_returns_none(self) -> None:
         """Test that transport property returns None."""
         auth = MessageUsernamePasswordAuthentication("testuser", "testpass")
         assert auth.transport is None
 
-    def test_clientcertificate_property_returns_none(self):
+    def test_clientcertificate_property_returns_none(self) -> None:
         """Test that clientcertificate property returns None."""
         auth = MessageUsernamePasswordAuthentication("testuser", "testpass")
         assert auth.clientcertificate is None
 
-    def test_post_process_adds_security_header(self):
+    def test_post_process_adds_security_header(self) -> None:
         """Test that post_process adds security header to envelope."""
         auth = MessageUsernamePasswordAuthentication("testuser", "testpass")
 
@@ -446,7 +446,7 @@ class TestMessageUsernamePasswordAuthentication:
 class TestTransportCertificateAuthentication:
     """Tests for TransportCertificateAuthentication class."""
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test initialization with certificate and key files."""
         auth = TransportCertificateAuthentication(
             "/path/to/cert.pem", "/path/to/key.pem"
@@ -454,14 +454,14 @@ class TestTransportCertificateAuthentication:
         assert auth._certfile == "/path/to/cert.pem"
         assert auth._keyfile == "/path/to/key.pem"
 
-    def test_transport_property_returns_none(self):
+    def test_transport_property_returns_none(self) -> None:
         """Test that transport property returns None."""
         auth = TransportCertificateAuthentication(
             "/path/to/cert.pem", "/path/to/key.pem"
         )
         assert auth.transport is None
 
-    def test_clientcertificate_property_returns_tuple(self):
+    def test_clientcertificate_property_returns_tuple(self) -> None:
         """Test clientcertificate property returns cert and key tuple."""
         auth = TransportCertificateAuthentication(
             "/path/to/cert.pem", "/path/to/key.pem"
@@ -471,7 +471,7 @@ class TestTransportCertificateAuthentication:
             "/path/to/key.pem",
         )
 
-    def test_post_process_returns_envelope_unchanged(self):
+    def test_post_process_returns_envelope_unchanged(self) -> None:
         """Test that post_process returns the envelope unchanged."""
         auth = TransportCertificateAuthentication(
             "/path/to/cert.pem", "/path/to/key.pem"
