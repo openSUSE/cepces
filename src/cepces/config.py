@@ -65,15 +65,15 @@ class Configuration(Base):
 
     def __init__(
         self,
-        parser,
-        endpoint,
-        endpoint_type,
-        cas,
-        auth,
-        poll_interval,
-        openssl_ciphers,
-        display=None,
-    ):
+        parser: ConfigParser,
+        endpoint: str | None,
+        endpoint_type: str | None,
+        cas: str | bool,
+        auth: SOAPAuth.Authentication,
+        poll_interval: str | None,
+        openssl_ciphers: str | None,
+        display: str | None = None,
+    ) -> None:
         super().__init__()
 
         self._parser = parser
@@ -137,7 +137,7 @@ class Configuration(Base):
         return (env_var, self._display)
 
     @staticmethod
-    def _detect_display_type(display_value):
+    def _detect_display_type(display_value: str) -> str:
         """Detect whether a display value is for Xorg or Wayland.
 
         Args:
@@ -165,7 +165,9 @@ class Configuration(Base):
         return self._load_user_config(self._parser)
 
     @staticmethod
-    def _load_user_config(parser):
+    def _load_user_config(
+        parser: ConfigParser,
+    ) -> tuple[str, str, str, str, int, int] | None:
         """Load user certificate configuration from parser."""
         if "user" not in parser:
             return None
@@ -201,8 +203,12 @@ class Configuration(Base):
 
     @classmethod
     def load(
-        cls, files=None, dirs=None, global_overrides=None, krb5_overrides=None
-    ):
+        cls,
+        files: list[str] | None = None,
+        dirs: list[str] | None = None,
+        global_overrides: dict[str, str] | None = None,
+        krb5_overrides: dict[str, str] | None = None,
+    ) -> "Configuration":
         """Load configuration files and directories and instantiate a new
         Configuration."""
         name = "{}.{}".format(
@@ -262,7 +268,7 @@ class Configuration(Base):
         return Configuration.from_parser(config)
 
     @classmethod
-    def from_parser(cls, parser):
+    def from_parser(cls, parser: ConfigParser) -> "Configuration":
         """Create a Configuration instance from a ConfigParser."""
         name = "{}.{}".format(
             cls.__module__,

@@ -51,7 +51,13 @@ class SOAPFault(Exception):
 class Service(Base):
     """Base class for a SOAP service endpoint."""
 
-    def __init__(self, endpoint, auth=None, capath=True, openssl_ciphers=None):
+    def __init__(
+        self,
+        endpoint,
+        auth=None,
+        capath: str | bool = True,
+        openssl_ciphers=None,
+    ):
         super().__init__()
 
         self._logger.debug(
