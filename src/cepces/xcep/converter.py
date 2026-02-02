@@ -54,8 +54,9 @@ class ClientAuthenticationConverter(IntegerConverter):
 
             return ClientAuthenticationConverter.MAP[index][1]
 
+    # This method also intentionally uses different types than parent.
     @staticmethod
-    def to_string(value):
+    def to_string(value):  # type: ignore[override]
         """Converts the string value its stringified integer
 
         :param value: the string to convert, or None
