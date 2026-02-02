@@ -18,13 +18,20 @@
 """Module containing authentication type handlers."""
 
 from abc import ABCMeta, abstractmethod
+from configparser import ConfigParser
+from typing import TYPE_CHECKING
+
 from cepces import Base
 from cepces.credentials import CredentialsHandler
 from cepces.keyring import KeyringHandler, KeyringOperationError
 from cepces.krb5.types import EncryptionType as KerberosEncryptionType
 from cepces.krb5 import functions as krb5_functions
 from cepces.soap import auth as SOAPAuth
+from cepces.soap.auth import Authentication
 import gssapi.exceptions
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 
 def _get_display_config_from_parser(parser):
@@ -59,26 +66,28 @@ def strtobool(value):
 class AuthenticationHandler(Base, metaclass=ABCMeta):
     """Base class for any authentication handled."""
 
-    def __init__(self, parser):
-        super().__init__()
+    def __init__(
+        self, parser: ConfigParser, logger: "Logger | None" = None
+    ) -> None:
+        super().__init__(logger)
         self._parser = parser
 
     @abstractmethod
-    def handle(self):
+    def handle(self) -> Authentication:
         """Constructs and returns a SOAPAuth authentication handler."""
 
 
 class AnonymousAuthenticationHandler(AuthenticationHandler):
     """Constructs an anonymous authentication handler."""
 
-    def handle(self):
+    def handle(self) -> Authentication:
         return SOAPAuth.AnonymousAuthentication()
 
 
 class GSSAPIAuthenticationHandler(AuthenticationHandler):
     """GSSAPI Authentication Handler"""
 
-    def handle(self):
+    def handle(self) -> Authentication:
         parser = self._parser
 
         # Ensure there's a kerberos section present.
@@ -167,7 +176,7 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
         )
         return username, password
 
-    def handle(self):
+    def handle(self) -> Authentication:
         parser = self._parser
 
         # Ensure there's a usernamepassword section present.
@@ -186,7 +195,7 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
         keyring = KeyringHandler(keyring_service)
 
         # Check if keyring is supported and try to get password from it
-        if keyring.is_supported():
+        if keyring.is_supported() and username is not None:
             keyctl_password = keyring.get_password(username)
             if keyctl_password:
                 password = keyctl_password
@@ -218,7 +227,7 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
 class CertificateAuthenticationHandler(AuthenticationHandler):
     """Handler for Certificate based authentication."""
 
-    def handle(self):
+    def handle(self) -> Authentication:
         """Constructs and returns a SOAPAuth authentication handler."""
         parser = self._parser
 
