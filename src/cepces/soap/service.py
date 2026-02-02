@@ -101,6 +101,8 @@ class Service(Base):
         # Convert the response.
         element = ElementTree.fromstring(req.text)
         envelope = Envelope(element)
+        # envelope.element is always set after Envelope.__init__
+        assert envelope.element is not None
         self._logger.debug(
             "Received message: %s",
             ElementTree.tostring(envelope.element),
