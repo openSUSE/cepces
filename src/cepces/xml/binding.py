@@ -19,13 +19,15 @@
 # pylint: disable=too-many-ancestors
 """Module containing XML bindings."""
 
-from typing import Any
+from typing import Any, TypeVar
 from collections.abc import MutableSequence
 from xml.etree import ElementTree
 import inspect
 from abc import ABCMeta, abstractmethod
 from cepces.xml import ATTR_NIL, NS_XSI, util
-from cepces.xml.converter import StringConverter
+from cepces.xml.converter import Converter, StringConverter
+
+T = TypeVar("T")
 
 
 class XMLDescriptor(metaclass=ABCMeta):
@@ -37,7 +39,7 @@ class XMLDescriptor(metaclass=ABCMeta):
 
     _index = 0
 
-    def __init__(self, name, namespace=None):
+    def __init__(self, name: str, namespace: str | None = None) -> None:
         """Initializes a new `XMLDescriptor`.
         When initializing a new XMLDescriptor object, the name (and possibly
         namespace) is used to construct an internal Qualified Name using
@@ -60,15 +62,15 @@ class XMLDescriptor(metaclass=ABCMeta):
             self._qname = name
 
     @abstractmethod
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         pass
 
     @abstractmethod
-    def __set__(self, instance, value):
+    def __set__(self, instance: Any, value: Any) -> None:
         pass
 
     @abstractmethod
-    def __delete__(self, instance):
+    def __delete__(self, instance: Any) -> None:
         pass
 
 
@@ -99,7 +101,14 @@ class ListingMeta(type):
 class XMLAttribute(XMLDescriptor):
     """This class binds to an attribute of an element."""
 
-    def __init__(self, name, namespace=None, converter=None):
+    _converter: type[Converter]
+
+    def __init__(
+        self,
+        name: str,
+        namespace: str | None = None,
+        converter: type[Converter] | None = None,
+    ) -> None:
         """Initializes a new `XMLAttribute`.
 
         :param name: The name of the element to bind with.
@@ -114,15 +123,15 @@ class XMLAttribute(XMLDescriptor):
 
         self._converter = converter
 
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         attribute = instance._element.get(self._qname)
 
         return self._converter.from_string(attribute)
 
-    def __set__(self, instance, value):
+    def __set__(self, instance: Any, value: Any) -> None:
         instance._element.set(self._qname, self._converter.to_string(value))
 
-    def __delete__(self, instance):
+    def __delete__(self, instance: Any) -> None:
         del instance._element.attrib[self._qname]
 
 
@@ -166,13 +175,18 @@ class XMLElement(XMLDescriptor):
     """Map an element to an XMLNode instance."""
 
     def __init__(
-        self, name, binder=None, namespace=None, required=True, nillable=False
-    ):
+        self,
+        name: str,
+        binder: Any = None,
+        namespace: str | None = None,
+        required: bool = True,
+        nillable: bool = False,
+    ) -> None:
         super().__init__(name, namespace)
 
         if binder is None:
 
-            def func(value):
+            def func(value: Any) -> Any:
                 """Simple pass-through function."""
                 return value
 
@@ -182,7 +196,7 @@ class XMLElement(XMLDescriptor):
         self._required = required
         self._nillable = nillable
 
-    def index(self, instance):
+    def index(self, instance: Any) -> int:
         """Returns the element index of this descriptor for a given class."""
         if not isinstance(type(instance), ListingMeta):
             raise TypeError(
@@ -205,7 +219,7 @@ class XMLElement(XMLDescriptor):
 
         return attr_index
 
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         if instance is None:
             return self
 
@@ -227,7 +241,7 @@ class XMLElement(XMLDescriptor):
 
         return binder
 
-    def __set__(self, instance, value):
+    def __set__(self, instance: Any, value: Any) -> None:
         # If there is a previous value assigned, (try to) delete it first.
         if hash(self) in instance._bindings:
             del instance._bindings[hash(self)]
@@ -245,7 +259,7 @@ class XMLElement(XMLDescriptor):
         index = self.index(instance)
         instance._element.insert(index, value)
 
-    def __delete__(self, instance):
+    def __delete__(self, instance: Any) -> None:
         """Deletes an element."""
         if self._required:
             raise AttributeError("Element is required, cannot delete.")
@@ -315,24 +329,23 @@ class XMLElementList(XMLElement):
             self._element.insert(key, value._element)
             self._list[key] = value
 
-        # pylint: disable=arguments-differ
-        def insert(self, key, value):
-            self._element.insert(key, value._element)
-            self._list.insert(key, value)
+        def insert(self, index: int, value: Any) -> None:
+            self._element.insert(index, value._element)
+            self._list.insert(index, value)
 
             # Check if nillable.
             if self._parent._nillable:
                 if ATTR_NIL in self._element.attrib:
                     del self._element.attrib[ATTR_NIL]
 
-        def __str__(self):
+        def __str__(self) -> str:
             return str(self._list)
 
     def __init__(
         self,
-        name,
-        child_name,
-        binder,
+        name: str,
+        child_name: str,
+        binder: Any,
         namespace=None,
         child_namespace=None,
         required=True,
@@ -481,20 +494,19 @@ class XMLValueList(XMLElement):
         def __setitem__(self, key, value):
             self._list[key].text = self._converter.to_string(value)
 
-        # pylint: disable=arguments-differ
-        def insert(self, key, value):
+        def insert(self, index: int, value: Any) -> None:
             element = ElementTree.Element(self._qname)
             element.text = self._converter.to_string(value)
 
-            self._element.insert(key, element)
-            self._list.insert(key, element)
+            self._element.insert(index, element)
+            self._list.insert(index, element)
 
             # Check if nillable.
             if self._parent._nillable:
                 if ATTR_NIL in self._element.attrib:
                     del self._element.attrib[ATTR_NIL]
 
-        def __str__(self):
+        def __str__(self) -> str:
             return str(self._list)
 
     def __init__(
