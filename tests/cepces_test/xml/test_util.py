@@ -19,13 +19,13 @@ from cepces.xml import util
 import pytest
 
 
-def test_to_clark_name():
+def test_to_clark_name() -> None:
     """Name should not be changed when namespace is None"""
     name = "TestName"
     assert util.to_clark(name) == name
 
 
-def test_to_clark_name_and_namespace():
+def test_to_clark_name_and_namespace() -> None:
     """Result should follow Clarks's notation"""
     name = "TestName"
     namespace = "TestNameSpace"
@@ -35,15 +35,16 @@ def test_to_clark_name_and_namespace():
     )
 
 
-def test_to_clark_namespace_only():
+def test_to_clark_namespace_only() -> None:
     """Only specifying the namespace should fail"""
     namespace = "TestNameSpace"
 
     with pytest.raises(TypeError):
-        util.to_clark(None, namespace)
+        # Intentionally passing None to test error handling
+        util.to_clark(None, namespace)  # type: ignore[arg-type]
 
 
-def test_from_clark_only_name():
+def test_from_clark_only_name() -> None:
     """Input should be returned unaltered"""
     name = "TestName"
     rname, rnamespace = util.from_clark(name)
@@ -52,7 +53,7 @@ def test_from_clark_only_name():
     assert rnamespace is None
 
 
-def test_from_clark_name_and_namespace():
+def test_from_clark_name_and_namespace() -> None:
     """(name, namsepace) tuple should be returned"""
     name = "TestName"
     namespace = "TestNamespace"
@@ -64,7 +65,7 @@ def test_from_clark_name_and_namespace():
     assert namespace == rnamespace
 
 
-def test_from_clark_only_namespace():
+def test_from_clark_only_namespace() -> None:
     """Having only a namespace should fail"""
     string = "{TestNamespace}"
 
