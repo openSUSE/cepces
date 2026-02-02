@@ -27,7 +27,9 @@ from cepces.keyring import (
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_initialization_with_keyctl_available(mock_which):
+def test_keyctl_handler_initialization_with_keyctl_available(
+    mock_which: MagicMock,
+) -> None:
     """Test initialization when keyctl is available"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -39,7 +41,9 @@ def test_keyctl_handler_initialization_with_keyctl_available(mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_initialization_with_keyctl_unavailable(mock_which):
+def test_keyctl_handler_initialization_with_keyctl_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test initialization when keyctl is not available"""
     mock_which.return_value = None
 
@@ -51,7 +55,9 @@ def test_keyctl_handler_initialization_with_keyctl_unavailable(mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_initialization_with_default_service_name(mock_which):
+def test_keyctl_handler_initialization_with_default_service_name(
+    mock_which: MagicMock,
+) -> None:
     """Test initialization with default service name"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -63,7 +69,9 @@ def test_keyctl_handler_initialization_with_default_service_name(mock_which):
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_is_supported_success(mock_run, mock_which):
+def test_keyctl_handler_is_supported_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test is_supported when keyctl is available and keyring is accessible"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.return_value = MagicMock(returncode=0)
@@ -81,7 +89,9 @@ def test_keyctl_handler_is_supported_success(mock_run, mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_is_supported_keyctl_unavailable(mock_which):
+def test_keyctl_handler_is_supported_keyctl_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test is_supported when keyctl is not available"""
     mock_which.return_value = None
 
@@ -94,8 +104,8 @@ def test_keyctl_handler_is_supported_keyctl_unavailable(mock_which):
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
 def test_keyctl_handler_is_supported_keyring_not_accessible(
-    mock_run, mock_which
-):
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test is_supported when keyctl is available but keyring is not
     accessible"""
     mock_which.return_value = "/usr/bin/keyctl"
@@ -111,7 +121,9 @@ def test_keyctl_handler_is_supported_keyring_not_accessible(
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_is_supported_file_not_found(mock_run, mock_which):
+def test_keyctl_handler_is_supported_file_not_found(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test is_supported when keyctl command raises FileNotFoundError"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.side_effect = FileNotFoundError()
@@ -122,7 +134,7 @@ def test_keyctl_handler_is_supported_file_not_found(mock_run, mock_which):
     assert result is False
 
 
-def test_keyctl_handler_get_key_description():
+def test_keyctl_handler_get_key_description() -> None:
     """Test key description generation"""
     with patch("cepces.keyring.shutil.which", return_value="/usr/bin/keyctl"):
         handler = KeyringHandler("test-service")
@@ -133,7 +145,9 @@ def test_keyctl_handler_get_key_description():
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_get_password_success(mock_run, mock_which):
+def test_keyctl_handler_get_password_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test successful password retrieval"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -164,7 +178,9 @@ def test_keyctl_handler_get_password_success(mock_run, mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_get_password_with_no_username(mock_which):
+def test_keyctl_handler_get_password_with_no_username(
+    mock_which: MagicMock,
+) -> None:
     """Test password retrieval with no username"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -175,7 +191,9 @@ def test_keyctl_handler_get_password_with_no_username(mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_get_password_when_keyctl_unavailable(mock_which):
+def test_keyctl_handler_get_password_when_keyctl_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test password retrieval when keyctl is unavailable"""
     mock_which.return_value = None
 
@@ -187,7 +205,9 @@ def test_keyctl_handler_get_password_when_keyctl_unavailable(mock_which):
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_get_password_not_found(mock_run, mock_which):
+def test_keyctl_handler_get_password_not_found(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test password retrieval when key not found"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.side_effect = subprocess.CalledProcessError(
@@ -202,7 +222,9 @@ def test_keyctl_handler_get_password_not_found(mock_run, mock_which):
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_set_password_success(mock_run, mock_which):
+def test_keyctl_handler_set_password_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test successful password storage"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.return_value = MagicMock(returncode=0)
@@ -224,7 +246,9 @@ def test_keyctl_handler_set_password_success(mock_run, mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_set_password_when_keyctl_unavailable(mock_which):
+def test_keyctl_handler_set_password_when_keyctl_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test password storage when keyctl is unavailable"""
     mock_which.return_value = None
 
@@ -237,7 +261,9 @@ def test_keyctl_handler_set_password_when_keyctl_unavailable(mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_set_password_with_empty_username(mock_which):
+def test_keyctl_handler_set_password_with_empty_username(
+    mock_which: MagicMock,
+) -> None:
     """Test password storage with empty username"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -250,7 +276,9 @@ def test_keyctl_handler_set_password_with_empty_username(mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_set_password_with_empty_password(mock_which):
+def test_keyctl_handler_set_password_with_empty_password(
+    mock_which: MagicMock,
+) -> None:
     """Test password storage with empty password"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -264,7 +292,9 @@ def test_keyctl_handler_set_password_with_empty_password(mock_which):
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_set_password_subprocess_error(mock_run, mock_which):
+def test_keyctl_handler_set_password_subprocess_error(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test password storage when subprocess fails"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.side_effect = subprocess.CalledProcessError(
@@ -281,7 +311,9 @@ def test_keyctl_handler_set_password_subprocess_error(mock_run, mock_which):
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_delete_password_success(mock_run, mock_which):
+def test_keyctl_handler_delete_password_success(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test successful password deletion"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -312,7 +344,9 @@ def test_keyctl_handler_delete_password_success(mock_run, mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_delete_password_with_no_username(mock_which):
+def test_keyctl_handler_delete_password_with_no_username(
+    mock_which: MagicMock,
+) -> None:
     """Test password deletion with no username"""
     mock_which.return_value = "/usr/bin/keyctl"
 
@@ -323,7 +357,9 @@ def test_keyctl_handler_delete_password_with_no_username(mock_which):
 
 
 @patch("cepces.keyring.shutil.which")
-def test_keyctl_handler_delete_password_when_keyctl_unavailable(mock_which):
+def test_keyctl_handler_delete_password_when_keyctl_unavailable(
+    mock_which: MagicMock,
+) -> None:
     """Test password deletion when keyctl is unavailable"""
     mock_which.return_value = None
 
@@ -335,7 +371,9 @@ def test_keyctl_handler_delete_password_when_keyctl_unavailable(mock_which):
 
 @patch("cepces.keyring.shutil.which")
 @patch("cepces.keyring.subprocess.run")
-def test_keyctl_handler_delete_password_not_found(mock_run, mock_which):
+def test_keyctl_handler_delete_password_not_found(
+    mock_run: MagicMock, mock_which: MagicMock
+) -> None:
     """Test password deletion when key not found"""
     mock_which.return_value = "/usr/bin/keyctl"
     mock_run.side_effect = subprocess.CalledProcessError(
@@ -348,7 +386,7 @@ def test_keyctl_handler_delete_password_not_found(mock_run, mock_which):
     assert result is False
 
 
-def test_keyctl_error_hierarchy():
+def test_keyctl_error_hierarchy() -> None:
     """Test exception hierarchy"""
     assert issubclass(KeyringNotFoundError, KeyringError)
     assert issubclass(KeyringOperationError, KeyringError)
