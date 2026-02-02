@@ -25,12 +25,13 @@ from cepces import Base
 from cepces.http import create_session
 from cepces.soap import QNAME_FAULT
 from cepces.soap.types import Envelope, Fault
+from cepces.soap.auth import Authentication
 
 
 class SOAPFault(Exception):
     """Runtime error representing a SOAP fault."""
 
-    def __init__(self, fault):
+    def __init__(self, fault: Fault) -> None:
         self._code = fault.code.value
         self._reason = fault.reason.text
 
@@ -53,11 +54,11 @@ class Service(Base):
 
     def __init__(
         self,
-        endpoint,
-        auth=None,
+        endpoint: str,
+        auth: Authentication | None = None,
         capath: str | bool = True,
-        openssl_ciphers=None,
-    ):
+        openssl_ciphers: str | None = None,
+    ) -> None:
         super().__init__()
 
         self._logger.debug(
@@ -70,9 +71,10 @@ class Service(Base):
         self._capath = capath
         self._session = create_session(openssl_ciphers)
 
-    def send(self, message):
+    def send(self, message: Envelope) -> Envelope:
         """Send a message to the remote SOAP service."""
         headers = {"Content-Type": "application/soap+xml; charset=utf-8"}
+        assert message.element is not None
         data = ElementTree.tostring(message.element)
 
         self._logger.debug("Sending message:")
@@ -85,6 +87,7 @@ class Service(Base):
         # Post process the envelope.
         if self._auth:
             message = self._auth.post_process(message)
+            assert message.element is not None
             data = ElementTree.tostring(message.element)
             self._logger.debug(" -data after post-processing: %s", data)
 
