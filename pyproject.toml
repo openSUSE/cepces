@@ -80,7 +80,7 @@ reportUnknownParameterType = "warning"
 reportUnknownVariableType = "warning"
 reportUnknownMemberType = "warning"
 reportUnknownArgumentType = "warning"
-reportMissingParameterType = "warning"
+reportMissingParameterType = "error"
 
 # Ignore these for now
 reportMissingTypeStubs = "none"
