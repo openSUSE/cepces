@@ -21,7 +21,12 @@
 from abc import ABCMeta, abstractmethod
 import os
 import sys
+from typing import TYPE_CHECKING, TextIO
 from cryptography import x509
+
+if TYPE_CHECKING:
+    from logging import Logger
+    from cepces.core import Service
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
@@ -59,7 +64,12 @@ class Operation(Base, metaclass=ABCMeta):
     optional: list[tuple[str, str | None]] = []
     needs_service: bool = True
 
-    def __init__(self, service, out=sys.stdout, logger=None):
+    def __init__(
+        self,
+        service: "Service | None",
+        out: TextIO = sys.stdout,
+        logger: "Logger | None" = None,
+    ) -> None:
         """Initializes an Operation.
 
         All required and optional environment variables are verified, read and
@@ -109,6 +119,7 @@ class Submit(Operation):
 
     def __call__(self) -> CertmongerResult:
         service = self._service
+        assert service is not None  # needs_service=True ensures this
 
         csr_var = self._vars["CERTMONGER_CSR"]
         assert csr_var is not None  # Required variable, guaranteed to be set
@@ -167,6 +178,7 @@ class Poll(Operation):
 
     def __call__(self) -> CertmongerResult:
         service = self._service
+        assert service is not None  # needs_service=True ensures this
 
         cookie = self._vars["CERTMONGER_CA_COOKIE"]
         assert cookie is not None  # Required variable, guaranteed to be set
@@ -178,6 +190,10 @@ class Poll(Operation):
             print(error, file=self._out)
 
             return CertmongerResult.REJECTED
+
+        if result is None:
+            self._logger.error("No result received from poll")
+            return CertmongerResult.UNDERCONFIGURED
 
         # If we have a certificate, return it. Otherwise, ask certmonger to
         # wait a bit.
