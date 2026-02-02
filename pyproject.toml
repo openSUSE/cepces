@@ -122,4 +122,5 @@ addopts = [
     "-v",
     "--strict-markers",
     "--tb=short",
+    "--ignore=tests/manual",
 ]
