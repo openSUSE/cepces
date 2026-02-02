@@ -24,6 +24,7 @@ from cepces.xcep.types import GetPoliciesResponse
 from cepces.wstep.types import SecurityTokenResponseCollection
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.x509.oid import NameOID
 import io
 
 
@@ -445,13 +446,11 @@ def test_submit_operation_with_issued_certificate():
     )
 
     # Verify the certificate subject
-    cn = cert.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0]
+    cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0]
     assert cn.value == "fedora2.mars.milkyway.site"
 
     # Verify the certificate issuer (MARS-ROOT-CA)
-    issuer_cn = cert.issuer.get_attributes_for_oid(
-        x509.oid.NameOID.COMMON_NAME
-    )[0]
+    issuer_cn = cert.issuer.get_attributes_for_oid(NameOID.COMMON_NAME)[0]
     assert issuer_cn.value == "MARS-ROOT-CA"
 
     # Mock the Submit operation result
