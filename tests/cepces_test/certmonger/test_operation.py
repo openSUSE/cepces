@@ -28,7 +28,7 @@ from cryptography.x509.oid import NameOID
 import io
 
 
-def test_get_default_template_call():
+def test_get_default_template_call() -> None:
     """Tests the GetDefaultTemplate operation"""
     out = io.StringIO()
     operation = CertmongerOperations.GetDefaultTemplate(None, out=out)
@@ -37,7 +37,7 @@ def test_get_default_template_call():
     assert out.getvalue() == ""
 
 
-def test_identify_call():
+def test_identify_call() -> None:
     """Tests the Identity operation"""
     out = io.StringIO()
     operation = CertmongerOperations.Identify(None, out=out)
@@ -82,7 +82,7 @@ KNALyDR9LeTgyB0+TY69kSg=
 -----END CERTIFICATE-----"""
 
 
-def test_fetch_roots_with_single_ca():
+def test_fetch_roots_with_single_ca() -> None:
     """Tests the FetchRoots operation with a single CA certificate."""
     # Load the real certificate
     cert = x509.load_pem_x509_certificate(
@@ -110,7 +110,7 @@ def test_fetch_roots_with_single_ca():
     assert result == CertmongerResult.DEFAULT
 
 
-def test_fetch_roots_with_no_cas():
+def test_fetch_roots_with_no_cas() -> None:
     """Tests the FetchRoots operation when no CAs are available."""
     # Mock the service with certificate_chain returning None
     mock_service = Mock()
@@ -131,7 +131,7 @@ def test_fetch_roots_with_no_cas():
 GET_POLICIES_RESPONSE_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{DA239A97-1289-4B14-924F-B318D56ED254}</ns0:policyID><ns0:policyFriendlyName /><ns0:nextUpdateHours>8</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies><ns0:policy><ns0:policyOIDReference>13</ns0:policyOIDReference><ns0:cAs><ns0:cAReference>0</ns0:cAReference></ns0:cAs><ns0:attributes><ns0:commonName>Machine</ns0:commonName><ns0:policySchema>1</ns0:policySchema><ns0:certificateValidity><ns0:validityPeriodSeconds>31536000</ns0:validityPeriodSeconds><ns0:renewalPeriodSeconds>3628800</ns0:renewalPeriodSeconds></ns0:certificateValidity><ns0:permission><ns0:enroll>true</ns0:enroll><ns0:autoEnroll>false</ns0:autoEnroll></ns0:permission><ns0:privateKeyAttributes><ns0:minimalKeyLength>2048</ns0:minimalKeyLength><ns0:keySpec>1</ns0:keySpec><ns0:keyUsageProperty xsi:nil="true" /><ns0:permissions xsi:nil="true" /><ns0:algorithmOIDReference xsi:nil="true" /><ns0:cryptoProviders><ns0:provider>Microsoft RSA SChannel Cryptographic Provider</ns0:provider></ns0:cryptoProviders></ns0:privateKeyAttributes><ns0:revision><ns0:majorRevision>5</ns0:majorRevision><ns0:minorRevision>1</ns0:minorRevision></ns0:revision><ns0:supersededPolicies xsi:nil="true" /><ns0:privateKeyFlags>0</ns0:privateKeyFlags><ns0:subjectNameFlags>402653184</ns0:subjectNameFlags><ns0:enrollmentFlags>0</ns0:enrollmentFlags><ns0:generalFlags>66144</ns0:generalFlags><ns0:hashAlgorithmOIDReference xsi:nil="true" /><ns0:rARequirements xsi:nil="true" /><ns0:keyArchivalAttributes xsi:nil="true" /><ns0:extensions><ns0:extension><ns0:oIDReference>5</ns0:oIDReference><ns0:critical>false</ns0:critical><ns0:value>Hg4ATQBhAGMAaABpAG4AZQ==</ns0:value></ns0:extension></ns0:extensions></ns0:attributes></ns0:policy></ns0:policies></ns0:response><ns0:cAs><ns0:cA><ns0:uris><ns0:cAURI><ns0:clientAuthentication>2</ns0:clientAuthentication><ns0:uri>https://win-ca01.mars.milkyway.site/MARS-ROOT-CA_CES_Kerberos/service.svc/CES</ns0:uri><ns0:priority>1</ns0:priority><ns0:renewalOnly>false</ns0:renewalOnly></ns0:cAURI></ns0:uris><ns0:certificate>MIIFrTCCA5WgAwIBAgIQb7gIsLLyR51KVoyagCO2ljANBgkqhkiG9w0BAQ0FADBdMRQwEgYKCZImiZPyLGQBGRYEc2l0ZTEYMBYGCgmSJomT8ixkARkWCG1pbGt5d2F5MRQwEgYKCZImiZPyLGQBGRYEbWFyczEVMBMGA1UEAxMMTUFSUy1ST09ULUNBMB4XDTI1MDYzMDA4MTQzNFoXDTMwMDYzMDA4MjQzM1owXTEUMBIGCgmSJomT8ixkARkWBHNpdGUxGDAWBgoJkiaJk/IsZAEZFghtaWxreXdheTEUMBIGCgmSJomT8ixkARkWBG1hcnMxFTATBgNVBAMTDE1BUlMtUk9PVC1DQTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAM7E6RzfKHgzJBgKDv+f3YIWGD25K9Uk7ZYfvI9pywO4Eaj4ER1DBDZGKwx3wElNW/pS45kza4zHgZhhHHImMyXKKoH/4+NCsW+F+KKS9i/EwHeOKi01/KI9BWhS9kiCvJ9e1ir3HOkcEtROTOt+vdncNDbHSQ9MlkZA9V1oCT8gAH1W1knhvoMxnIp+rS7/MKnNiNTiIgEUHyau/MpzzeJb2GE0NWlfKdxAmvYJp6SDwIqVAhSXm5jQ29ByFLfyz2jaRyJknwdskg8h9lGoPcWSq4iT70YVFxdRhzm0lo3Ag98TJ/RGIn0Gd5TTterjzJdNaU3ugIbssILIG7iVB68jonrhVaDWiEcF8NCz4/0XLcriCpO4I1gOEgJp5OulHs/8ZVCBSTXbkh2640+bgzO4NaqaJZJHwTiy10nw1+VsVa7bS9jk5OsTopBm6FTewa+NylRpK6V+kohg0P2fmcbOqSTtAvUB4I0EtbnQu5qvlw3bVeUbn1jHWZ3lTPTKRoz5Bq9MUFbYJAIOg3KNdk+OTZkQqiHbUf7NqNMq6UTqrjec9nnMj1ngD7OOaddExLtbfkrZ88gfYJLGt71e8tzAKMrPQ0p+WJ536uPGVOFChM3oy6YeUpExZirK+aymzjbZQlRxlCTtFJgJoz3AqmUYFPXisOtWy1p8SYsxooX9AgMBAAGjaTBnMBMGCSsGAQQBgjcUAgQGHgQAQwBBMA4GA1UdDwEB/wQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTsrV5HZN1O6EYT6YUp9TpQymsGljAQBgkrBgEEAYI3FQEEAwIBADANBgkqhkiG9w0BAQ0FAAOCAgEAesNDznHL8SKc1yY+p7rBxX4zqZxlcr9MFMmoaYrJR2CopVH3R5G++AkN1JOgZlJnoD0E3hQqwGmWjkLv/k94uDcWIuPsMy4KAsyFY3+8z6zs+dNaue6R2n56zH0Om/QgEfjokZv7fOJI2zBf5SZ86xQBehoL9UIst0A+Mey8TRYzZX6s4dZXudelr7wu0KdRbFZTYB/j5mZx/vOfow1osEnr0yoIeh9Yp79hjukyGBGtUpmTFoBNQwWEpjOkJ50Q+TqNOVOwNYls4pVwkYx+EwHTrDFEAFUtCp0M9rwWJ6LzqypsbyWtFFD38q6QY59rUv/m5m7AEMrHJo0yYaYOce7jqrG5d7RXBHSDKnYpBXzsqvz3oqXLH9H3ur+52CzqLs7hONnlk9C7blnCZFwMCBhXRP0PtUO2+t8XJpXeMfnVNmgJmKq1+CT78/4T4wINEMhhsONpi0v0IptRethHJknfZ0QYWMGEMxhG3KxRVK+LCqDxw5UCPmtSxnB9h5aP5NIzhq2wLMNgfW53u+KrrhdocTcVwus379oVOtStnNI0vX0tCZ/t8DzzxlMiAhXnyKl/y8kt/5Z8o0T0/3PjGdTdz9+3Fdhxf3uYQ2MGSUKTy4Bb2zJZLfKWNYmAbyQ3PadhztqU5DNkAh8NksvqKNALyDR9LeTgyB0+TY69kSg=</ns0:certificate><ns0:enrollPermission>true</ns0:enrollPermission><ns0:cAReferenceID>0</ns0:cAReferenceID></ns0:cA></ns0:cAs><ns0:oIDs><ns0:oID><ns0:value>1.3.6.1.5.5.7.3.2</ns0:value><ns0:group>7</ns0:group><ns0:oIDReferenceID>4</ns0:oIDReferenceID><ns0:defaultName>Client Authentication</ns0:defaultName></ns0:oID></ns0:oIDs></ns0:GetPoliciesResponse>'  # noqa: E501
 
 
-def test_fetch_roots_from_xml_response():
+def test_fetch_roots_from_xml_response() -> None:
     """Tests the FetchRoots operation by parsing actual XML from AD CS.
 
     This test parses the GetPoliciesResponse XML captured from a real AD CS
@@ -189,7 +189,7 @@ GET_SUPPORTED_TEMPLATES_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schem
 # fmt: on
 
 
-def test_fetch_roots_from_xml_response_with_nil_cas():
+def test_fetch_roots_from_xml_response_with_nil_cas() -> None:
     """Tests parsing XML response where cAs has xsi:nil='true'.
 
     This reproduces the bug where accessing .cas on a GetPoliciesResponse
@@ -218,7 +218,7 @@ def test_fetch_roots_from_xml_response_with_nil_cas():
     assert result == CertmongerResult.DEFAULT
 
 
-def test_get_supported_templates_call():
+def test_get_supported_templates_call() -> None:
     """Tests the GetSupportedTemplates operation with templates."""
     mock_service = Mock()
     mock_service.templates = ["Machine", "User", "WebServer"]
@@ -236,7 +236,7 @@ def test_get_supported_templates_call():
     assert result == CertmongerResult.DEFAULT
 
 
-def test_get_supported_templates_with_no_templates():
+def test_get_supported_templates_with_no_templates() -> None:
     """Tests the GetSupportedTemplates operation with no templates."""
     mock_service = Mock()
     mock_service.templates = None
@@ -254,7 +254,7 @@ def test_get_supported_templates_with_no_templates():
     assert result == CertmongerResult.DEFAULT
 
 
-def test_get_supported_templates_from_xml_response():
+def test_get_supported_templates_from_xml_response() -> None:
     """Tests extracting templates from actual XML response from AD CS.
 
     This test parses the GetPoliciesResponse XML from line 33 of the
@@ -296,7 +296,7 @@ def test_get_supported_templates_from_xml_response():
     assert result == CertmongerResult.DEFAULT
 
 
-def test_get_new_request_requirements_call():
+def test_get_new_request_requirements_call() -> None:
     """Tests the GetNewRequestRequirements operation.
 
     Based on cepces-get-new-request-requirements.log line 35, this operation
@@ -320,7 +320,7 @@ GET_NEW_REQUEST_REQUIREMENTS_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://
 # fmt: on
 
 
-def test_get_new_request_requirements_from_xml_response():
+def test_get_new_request_requirements_from_xml_response() -> None:
     """Tests GetNewRequestRequirements with XML from AD CS server.
 
     This test parses the GetPoliciesResponse XML from line 33 of the
@@ -402,7 +402,7 @@ z1qRP/PjWqwR/FRkXg3Z/AdHUqnRyWoPDmQELgQoV7R2KcHCEBgCpFX672JPSQVR
 # fmt: on
 
 
-def test_submit_wstep_response_parsing():
+def test_submit_wstep_response_parsing() -> None:
     """Tests parsing the WSTEP SecurityTokenResponseCollection from AD CS.
 
     This test parses the RequestSecurityTokenResponseCollection XML from
@@ -434,7 +434,7 @@ def test_submit_wstep_response_parsing():
     assert response.requested_token.text is not None
 
 
-def test_submit_operation_with_issued_certificate():
+def test_submit_operation_with_issued_certificate() -> None:
     """Tests the Submit operation with an issued certificate.
 
     Based on cepces-submit.log lines 71-72, the Submit operation returns
@@ -475,7 +475,7 @@ def test_submit_operation_with_issued_certificate():
 GET_POLICIES_NIL_POLICIES_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{F803BF1A-EB36-42A4-973C-AF4555EB8782}</ns0:policyID><ns0:policyFriendlyName>My PKI</ns0:policyFriendlyName><ns0:nextUpdateHours>1</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies xsi:nil="true" /></ns0:response><ns0:cAs xsi:nil="true" /><ns0:oIDs xsi:nil="true" /></ns0:GetPoliciesResponse>'  # noqa: E501
 
 
-def test_get_policies_with_nil_policies_returns_none():
+def test_get_policies_with_nil_policies_returns_none() -> None:
     """Tests that nil policies are handled gracefully in XML parsing.
 
     When the AD CS server returns a GetPoliciesResponse with
@@ -506,7 +506,7 @@ def test_get_policies_with_nil_policies_returns_none():
     assert templates is None
 
 
-def test_submit_operation_with_no_endpoints():
+def test_submit_operation_with_no_endpoints() -> None:
     """Tests that Submit handles None result when no endpoints are available.
 
     When the AD CS server returns a policy response with no enrollment
@@ -558,7 +558,7 @@ J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
         assert result == CertmongerResult.UNDERCONFIGURED
 
 
-def test_operations_needs_service_attribute():
+def test_operations_needs_service_attribute() -> None:
     """Tests that operations correctly declare whether they need a service.
 
     Operations that don't access the service (authentication) should have
@@ -584,7 +584,7 @@ def test_operations_needs_service_attribute():
     assert CertmongerOperations.FetchRoots.needs_service is True
 
 
-def test_operations_without_service_work_with_none():
+def test_operations_without_service_work_with_none() -> None:
     """Tests that operations work with service=None.
 
     This simulates the behavior during RPM installation when getcert add-ca
