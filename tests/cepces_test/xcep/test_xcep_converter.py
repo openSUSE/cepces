@@ -18,7 +18,7 @@
 import cepces.xcep.converter as converter
 
 
-def test_client_authentication_converter_from_none():
+def test_client_authentication_converter_from_none() -> None:
     """None as input should return None"""
     input = None
     c = converter.ClientAuthenticationConverter
@@ -26,7 +26,7 @@ def test_client_authentication_converter_from_none():
     assert c.from_string(input) is None
 
 
-def test_client_authentication_converter_from_string():
+def test_client_authentication_converter_from_string() -> None:
     """Valid input integer strings should return the correct string"""
     c = converter.ClientAuthenticationConverter
 
@@ -44,7 +44,7 @@ def test_client_authentication_converter_from_string():
         )
 
 
-def test_client_authentication_converter_to_none():
+def test_client_authentication_converter_to_none() -> None:
     """None as input should return None"""
     input = None
     result = converter.IntegerConverter.to_string(input)
@@ -52,13 +52,16 @@ def test_client_authentication_converter_to_none():
     assert result is None
 
 
-def test_client_authentication_converter_to_string():
+def test_client_authentication_converter_to_string() -> None:
     """A valid string should yield the correct stringified integer"""
     c = converter.ClientAuthenticationConverter
 
     for i in range(len(converter.ClientAuthenticationConverter.MAP)):
         value = converter.ClientAuthenticationConverter.MAP[i]
-        result = c.to_string(value[1])
+        # ClientAuthenticationConverter.to_string intentionally overrides
+        # parent to accept str instead of int (see type: ignore[override]
+        # in converter)
+        result = c.to_string(value[1])  # type: ignore[arg-type]
 
         assert isinstance(result, str)
         assert result == str(value[0])
