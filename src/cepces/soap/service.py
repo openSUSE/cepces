@@ -88,8 +88,8 @@ class Service(Base):
             data=data,
             headers=headers,
             verify=self._capath,
-            cert=self._auth.clientcertificate,
-            auth=self._auth.transport,
+            cert=self._auth.clientcertificate if self._auth else None,
+            auth=self._auth.transport if self._auth else None,
         )
 
         # If we get an internal server error (code 500), there's a chance that
