@@ -20,6 +20,7 @@
 
 import ctypes
 import re
+from typing import Any
 from cepces import Base as CoreBase
 from cepces.krb5 import types as ktypes
 from cepces.krb5 import functions as kfuncs
@@ -32,14 +33,14 @@ PRINCIPAL_EX = r"^(?P<primary>[^/]+)(?:/(?P<instance>.+))?@(?P<realm>.+)$"
 class Base(CoreBase):
     """Base class for any Kerberos wrapper class."""
 
-    def __init__(self, handle):
+    def __init__(self, handle: Any) -> None:
         super().__init__()
 
         self._logger.debug("Handle %s", handle)
         self._handle = handle
 
     @property
-    def handle(self):
+    def handle(self) -> Any:
         """Get the Kerberos context handle."""
         if hasattr(self, "_handle"):
             return self._handle
@@ -69,7 +70,15 @@ class PrincipalName(Base):
     is not specified, the local realm is used.
     """
 
-    def __init__(self, principal, name, context, host, service, service_type):
+    def __init__(
+        self,
+        principal: "Principal",
+        name: str | None,
+        context: "Context",
+        host: bytes | None,
+        service: bytes | None,
+        service_type: int,
+    ) -> None:
         super().__init__(None)
 
         if name:
@@ -125,12 +134,12 @@ class Principal(Base):
 
     def __init__(
         self,
-        context,
-        name=None,
-        host=None,
-        service=None,
-        service_type=ktypes.PrincipalType.KRB5_NT_SRV_HST,
-    ):
+        context: "Context",
+        name: str | None = None,
+        host: bytes | None = None,
+        service: bytes | None = None,
+        service_type: int = ktypes.PrincipalType.KRB5_NT_SRV_HST,
+    ) -> None:
         super().__init__(ktypes.krb5_principal())
 
         self._context = context
