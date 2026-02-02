@@ -1,9 +1,6 @@
 import _cython_3_2_4limitednofinalize
 from gssapi.raw.misc import GSSError as GSSError
-from gssapi.raw.named_tuples import (
-    UnwrapResult as UnwrapResult,
-    WrapResult as WrapResult,
-)
+from gssapi.raw.named_tuples import UnwrapResult as UnwrapResult, WrapResult as WrapResult
 
 GSSAPI: str
 __test__: dict

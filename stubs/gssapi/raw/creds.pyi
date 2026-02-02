@@ -1,11 +1,6 @@
 import _cython_3_2_4limitednofinalize
 from gssapi.raw.misc import GSSError as GSSError
-from gssapi.raw.named_tuples import (
-    AcquireCredResult as AcquireCredResult,
-    AddCredResult as AddCredResult,
-    InquireCredByMechResult as InquireCredByMechResult,
-    InquireCredResult as InquireCredResult,
-)
+from gssapi.raw.named_tuples import AcquireCredResult as AcquireCredResult, AddCredResult as AddCredResult, InquireCredByMechResult as InquireCredByMechResult, InquireCredResult as InquireCredResult
 from gssapi.raw.types import MechType as MechType, NameType as NameType
 
 GSSAPI: str

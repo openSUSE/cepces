@@ -1,31 +1,14 @@
 import typing as t
 from _typeshed import Incomplete
 from collections.abc import MutableMapping
-from gssapi.raw import (
-    NameType as NameType,
-    named_tuples as tuples,
-    names as rname,
-    oids as roids,
-)
+from gssapi.raw import NameType as NameType, named_tuples as tuples, names as rname, oids as roids
 
 rname_rfc6680: Incomplete
 rname_rfc6680_comp_oid: Incomplete
 
 class Name(rname.Name):
-    def __new__(
-        cls,
-        base: rname.Name | bytes | str | None = None,
-        name_type: roids.OID | None = None,
-        token: bytes | None = None,
-        composite: bool = False,
-    ) -> Name: ...
-    def __init__(
-        self,
-        base: rname.Name | bytes | str | None = None,
-        name_type: roids.OID | None = None,
-        token: bytes | None = None,
-        composite: bool = False,
-    ) -> None: ...
+    def __new__(cls, base: rname.Name | bytes | str | None = None, name_type: roids.OID | None = None, token: bytes | None = None, composite: bool = False) -> Name: ...
+    def __init__(self, base: rname.Name | bytes | str | None = None, name_type: roids.OID | None = None, token: bytes | None = None, composite: bool = False) -> None: ...
     def __unicode__(self) -> str: ...
     def __bytes__(self) -> bytes: ...
     def display_as(self, name_type: roids.OID) -> str: ...
@@ -46,14 +29,8 @@ class Name(rname.Name):
 
 class _NameAttributeMapping(MutableMapping):
     def __init__(self, name: Name) -> None: ...
-    def __getitem__(
-        self, key: bytes | str
-    ) -> tuples.GetNameAttributeResult: ...
-    def __setitem__(
-        self,
-        key: bytes | str,
-        value: tuples.GetNameAttributeResult | tuple[bytes, bool] | bytes,
-    ) -> None: ...
+    def __getitem__(self, key: bytes | str) -> tuples.GetNameAttributeResult: ...
+    def __setitem__(self, key: bytes | str, value: tuples.GetNameAttributeResult | tuple[bytes, bool] | bytes) -> None: ...
     def __delitem__(self, key: bytes | str) -> None: ...
     def __iter__(self) -> t.Iterator[bytes]: ...
     def __len__(self) -> int: ...

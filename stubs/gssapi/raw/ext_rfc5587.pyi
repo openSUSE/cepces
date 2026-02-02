@@ -1,16 +1,9 @@
 import _cython_3_2_4limitednofinalize
 from gssapi.raw.misc import GSSError as GSSError
-from gssapi.raw.named_tuples import (
-    DisplayAttrResult as DisplayAttrResult,
-    InquireAttrsResult as InquireAttrsResult,
-)
+from gssapi.raw.named_tuples import DisplayAttrResult as DisplayAttrResult, InquireAttrsResult as InquireAttrsResult
 
 GSSAPI: str
 __test__: dict
 display_mech_attr: _cython_3_2_4limitednofinalize.cython_function_or_method
-indicate_mechs_by_attrs: (
-    _cython_3_2_4limitednofinalize.cython_function_or_method
-)
-inquire_attrs_for_mech: (
-    _cython_3_2_4limitednofinalize.cython_function_or_method
-)
+indicate_mechs_by_attrs: _cython_3_2_4limitednofinalize.cython_function_or_method
+inquire_attrs_for_mech: _cython_3_2_4limitednofinalize.cython_function_or_method

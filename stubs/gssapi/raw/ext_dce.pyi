@@ -2,10 +2,7 @@ import _cython_3_2_4limitednofinalize
 import enum
 import gssapi.raw.types as gssapi_types
 from gssapi.raw._enum_extensions import ExtendableEnum as ExtendableEnum
-from gssapi.raw.ext_dce_aead import (
-    unwrap_aead as unwrap_aead,
-    wrap_aead as wrap_aead,
-)
+from gssapi.raw.ext_dce_aead import unwrap_aead as unwrap_aead, wrap_aead as wrap_aead
 from gssapi.raw.misc import GSSError as GSSError
 from gssapi.raw.named_tuples import IOVUnwrapResult as IOVUnwrapResult
 from typing import Callable, ClassVar

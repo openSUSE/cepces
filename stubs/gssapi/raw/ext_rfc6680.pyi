@@ -1,9 +1,6 @@
 import _cython_3_2_4limitednofinalize
 from gssapi.raw.misc import GSSError as GSSError
-from gssapi.raw.named_tuples import (
-    GetNameAttributeResult as GetNameAttributeResult,
-    InquireNameResult as InquireNameResult,
-)
+from gssapi.raw.named_tuples import GetNameAttributeResult as GetNameAttributeResult, InquireNameResult as InquireNameResult
 
 GSSAPI: str
 __test__: dict
