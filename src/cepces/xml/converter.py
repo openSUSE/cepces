@@ -19,6 +19,7 @@
 """This module contains converters for common XML data types."""
 
 from datetime import datetime, timedelta, tzinfo
+from typing import Any
 import re
 import textwrap
 
@@ -31,7 +32,7 @@ class Converter:
     """
 
     @staticmethod
-    def from_string(value, value_type=str):
+    def from_string(value: Any, value_type: type = str) -> Any:
         """Parse a string and convert it to a suitable type or format.
 
         :param value: the string to parse, or None
@@ -53,7 +54,7 @@ class Converter:
             return value
 
     @staticmethod
-    def to_string(value, value_type=str):
+    def to_string(value: Any, value_type: type = str) -> str | None:
         """Convert a value to an explicit string.
 
         :param value: the value to convert, or None
@@ -110,7 +111,7 @@ class BooleanConverter:
             return BooleanConverter.MAP[result]
 
     @staticmethod
-    def to_string(value):
+    def to_string(value: bool | None) -> str | None:
         """Converts a boolean to a string
 
         :param value: the boolean to convert, or None
@@ -119,7 +120,8 @@ class BooleanConverter:
         :return: the input as a string, or None if value is None
         """
         if value is not None:
-            return Converter.to_string(value, bool).lower()
+            result = Converter.to_string(value, bool)
+            return result.lower() if result else None
 
         return None
 
@@ -225,7 +227,7 @@ class SignedIntegerConverter(Converter):
     """
 
     @staticmethod
-    def from_string(value, value_type=str):
+    def from_string(value: Any, value_type: type = str) -> int | None:
         """Converts the input value to an integer, checking that it is within
         the allowed range.
 
@@ -239,7 +241,7 @@ class SignedIntegerConverter(Converter):
         return RangedIntegerConverter.from_string(value, -(2**31), 2**31 - 1)
 
     @staticmethod
-    def to_string(value, value_type=str):
+    def to_string(value: Any, value_type: type = str) -> str | None:
         """Converts the an integer to a string
 
         :param value: the integer to convert, or None
@@ -259,7 +261,7 @@ class UnsignedIntegerConverter(Converter):
     """
 
     @staticmethod
-    def from_string(value, value_type=str):
+    def from_string(value: Any, value_type: type = str) -> int | None:
         """Converts the input value to an integer, checking that it is within
         the allowed range.
 
@@ -273,7 +275,7 @@ class UnsignedIntegerConverter(Converter):
         return RangedIntegerConverter.from_string(value, 0, 2**32 - 1)
 
     @staticmethod
-    def to_string(value, value_type=str):
+    def to_string(value: Any, value_type: type = str) -> str | None:
         """Converts the an integer to a string
 
         :param value: the integer to convert, or None
@@ -320,7 +322,7 @@ class DateTimeConverter(Converter):
             return timedelta(0)
 
     @staticmethod
-    def from_string(value, value_type=str):
+    def from_string(value: Any, value_type: type = str) -> datetime | None:
         """Parse a datetime string and convert it to a datetime object.
 
         :param value: the datetime string to parse
@@ -427,17 +429,21 @@ class CertificateConverter:
     """Converts to and from PEM certificates."""
 
     @staticmethod
-    def from_string(value):
+    def from_string(value: str | None) -> str | None:
         """Converts the input value to a proper PEM certificate
 
         :param value: the value to convert, or None
         :return: the input as a string, or None if value is None
         """
+        text = Converter.from_string(value)
+        if text is None:
+            return None
+
         template = "{}\n{}\n{}"
 
         return template.format(
             "-----BEGIN CERTIFICATE-----",
-            textwrap.fill(Converter.from_string(value), 64),
+            textwrap.fill(text, 64),
             "-----END CERTIFICATE-----",
         )
 
