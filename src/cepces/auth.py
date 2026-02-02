@@ -106,7 +106,7 @@ class GSSAPIAuthenticationHandler(AuthenticationHandler):
         delegate = strtobool(section.get("delegate", True))
 
         # Decode all encryption types.
-        etypes = []
+        etypes: list[KerberosEncryptionType] = []
 
         for enctype in enctypes.strip().split("\n"):
             etype = "KRB5_ENCTYPE_{}".format(enctype.replace("-", "_").upper())
