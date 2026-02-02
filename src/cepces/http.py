@@ -44,11 +44,19 @@ class SSLAdapter(HTTPAdapter):
         self.ssl_context = ssl_context
         super().__init__(*args, **kwargs)
 
-    def init_poolmanager(self, *args: Any, **kwargs: Any) -> Any:
+    def init_poolmanager(
+        self,
+        connections: int,
+        maxsize: int,
+        block: bool = False,
+        **pool_kwargs: Any,
+    ) -> Any:
         """Initialize the pool manager with custom SSL context."""
         if self.ssl_context:
-            kwargs["ssl_context"] = self.ssl_context
-        return super().init_poolmanager(*args, **kwargs)
+            pool_kwargs["ssl_context"] = self.ssl_context
+        return super().init_poolmanager(  # type: ignore[no-untyped-call]
+            connections, maxsize, block, **pool_kwargs
+        )
 
 
 def create_session(openssl_ciphers: Optional[str] = None) -> requests.Session:
