@@ -111,7 +111,7 @@ class Service(Base):
             )
 
     @property
-    def templates(self):
+    def templates(self) -> list[str] | None:
         """Retrieve a list of available templates.
 
         Returns None if no policy endpoint is used or if no policies are
@@ -124,7 +124,7 @@ class Service(Base):
         if policies is None:
             return None
 
-        templates = []
+        templates: list[str] = []
 
         for policy in policies:
             templates.append(policy.attributes.common_name)
@@ -132,7 +132,7 @@ class Service(Base):
         return templates
 
     @property
-    def endpoints(self):
+    def endpoints(self) -> list["Service.Endpoint"] | None:
         """Retrieves a list of WSTEP suitable endpoints.
 
         Returns None if no policy endpoint is used or if no CAs are available
@@ -146,7 +146,7 @@ class Service(Base):
             return None
 
         config = self._config
-        endpoints = []
+        endpoints: list[Service.Endpoint] = []
 
         for ca in cas:
             for uri in [x for x in ca.uris if x.id in Configuration.AUTH_MAP]:
@@ -336,7 +336,7 @@ class Service(Base):
                                   cannot be retrieved. The exception contains
                                   the partial result.
         """
-        result = []
+        result: list[x509.Certificate] = []
         extension = x509.AuthorityInformationAccess
         oid = AuthorityInformationAccessOID
 
