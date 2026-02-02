@@ -24,20 +24,20 @@ from cepces.http import SSLAdapter, create_session
 class TestSSLAdapter:
     """Tests for the SSLAdapter class"""
 
-    def test_initialization_without_ssl_context(self):
+    def test_initialization_without_ssl_context(self) -> None:
         """Test SSLAdapter initialization without SSL context"""
         adapter = SSLAdapter()
 
         assert adapter.ssl_context is None
 
-    def test_initialization_with_ssl_context(self):
+    def test_initialization_with_ssl_context(self) -> None:
         """Test SSLAdapter initialization with SSL context"""
         mock_context = MagicMock(spec=ssl.SSLContext)
         adapter = SSLAdapter(ssl_context=mock_context)
 
         assert adapter.ssl_context is mock_context
 
-    def test_initialization_with_additional_args(self):
+    def test_initialization_with_additional_args(self) -> None:
         """Test SSLAdapter initialization with additional arguments"""
         mock_context = MagicMock(spec=ssl.SSLContext)
         adapter = SSLAdapter(
@@ -47,7 +47,9 @@ class TestSSLAdapter:
         assert adapter.ssl_context is mock_context
 
     @patch("cepces.http.HTTPAdapter.init_poolmanager")
-    def test_init_poolmanager_with_ssl_context(self, mock_super_init):
+    def test_init_poolmanager_with_ssl_context(
+        self, mock_super_init: MagicMock
+    ) -> None:
         """Test init_poolmanager adds ssl_context when present"""
         mock_context = MagicMock(spec=ssl.SSLContext)
         adapter = SSLAdapter(ssl_context=mock_context)
@@ -63,7 +65,9 @@ class TestSSLAdapter:
         assert call_kwargs["ssl_context"] is mock_context
 
     @patch("cepces.http.HTTPAdapter.init_poolmanager")
-    def test_init_poolmanager_without_ssl_context(self, mock_super_init):
+    def test_init_poolmanager_without_ssl_context(
+        self, mock_super_init: MagicMock
+    ) -> None:
         """Test init_poolmanager without ssl_context"""
         adapter = SSLAdapter()
 
@@ -77,7 +81,9 @@ class TestSSLAdapter:
         assert "ssl_context" not in call_kwargs
 
     @patch("cepces.http.HTTPAdapter.init_poolmanager")
-    def test_init_poolmanager_preserves_other_kwargs(self, mock_super_init):
+    def test_init_poolmanager_preserves_other_kwargs(
+        self, mock_super_init: MagicMock
+    ) -> None:
         """Test init_poolmanager preserves other keyword arguments"""
         mock_context = MagicMock(spec=ssl.SSLContext)
         adapter = SSLAdapter(ssl_context=mock_context)
@@ -98,7 +104,7 @@ class TestSSLAdapter:
 class TestCreateSession:
     """Tests for the create_session function"""
 
-    def test_create_session_without_ciphers(self):
+    def test_create_session_without_ciphers(self) -> None:
         """Test create_session without openssl_ciphers returns basic session"""
         session = create_session()
 
@@ -109,26 +115,28 @@ class TestCreateSession:
         # Default adapters are HTTPAdapter instances, not SSLAdapter
         assert type(adapter).__name__ in ["HTTPAdapter", "SSLAdapter"]
 
-    def test_create_session_with_none_ciphers(self):
+    def test_create_session_with_none_ciphers(self) -> None:
         """Test create_session with None openssl_ciphers"""
         session = create_session(openssl_ciphers=None)
 
         assert isinstance(session, requests.Session)
 
-    def test_create_session_with_empty_string_ciphers(self):
+    def test_create_session_with_empty_string_ciphers(self) -> None:
         """Test create_session with empty string openssl_ciphers"""
         session = create_session(openssl_ciphers="")
 
         assert isinstance(session, requests.Session)
 
-    def test_create_session_with_whitespace_only_ciphers(self):
+    def test_create_session_with_whitespace_only_ciphers(self) -> None:
         """Test create_session with whitespace-only openssl_ciphers"""
         session = create_session(openssl_ciphers="   ")
 
         assert isinstance(session, requests.Session)
 
     @patch("cepces.http.create_urllib3_context")
-    def test_create_session_with_valid_ciphers(self, mock_create_context):
+    def test_create_session_with_valid_ciphers(
+        self, mock_create_context: MagicMock
+    ) -> None:
         """Test create_session with valid openssl_ciphers"""
         mock_ssl_context = MagicMock(spec=ssl.SSLContext)
         mock_create_context.return_value = mock_ssl_context
@@ -152,7 +160,9 @@ class TestCreateSession:
         assert adapter.ssl_context is mock_ssl_context
 
     @patch("cepces.http.create_urllib3_context")
-    def test_create_session_with_custom_cipher_string(self, mock_create_ctx):
+    def test_create_session_with_custom_cipher_string(
+        self, mock_create_ctx: MagicMock
+    ) -> None:
         """Test create_session with custom cipher string"""
         mock_ssl_context = MagicMock(spec=ssl.SSLContext)
         mock_create_ctx.return_value = mock_ssl_context
@@ -165,8 +175,8 @@ class TestCreateSession:
 
     @patch("cepces.http.create_urllib3_context")
     def test_create_session_adapter_only_mounted_for_https(
-        self, mock_create_ctx
-    ):
+        self, mock_create_ctx: MagicMock
+    ) -> None:
         """Test that SSLAdapter is only mounted for https, not http"""
         mock_ssl_context = MagicMock(spec=ssl.SSLContext)
         mock_create_ctx.return_value = mock_ssl_context
@@ -182,8 +192,8 @@ class TestCreateSession:
 
     @patch("cepces.http.create_urllib3_context")
     def test_create_session_with_cipher_string_with_spaces(
-        self, mock_create_ctx
-    ):
+        self, mock_create_ctx: MagicMock
+    ) -> None:
         """Test create_session with cipher string that has leading/trailing
         spaces"""
         mock_ssl_context = MagicMock(spec=ssl.SSLContext)
@@ -196,7 +206,7 @@ class TestCreateSession:
         mock_ssl_context.set_ciphers.assert_called_once_with(cipher_string)
         assert isinstance(session, requests.Session)
 
-    def test_create_session_returns_requests_session(self):
+    def test_create_session_returns_requests_session(self) -> None:
         """Test that create_session always returns a requests.Session"""
         # Test with no arguments
         session1 = create_session()
@@ -211,7 +221,9 @@ class TestCreateSession:
         assert isinstance(session3, requests.Session)
 
     @patch("cepces.http.create_urllib3_context")
-    def test_create_session_ssl_context_configuration(self, mock_create_ctx):
+    def test_create_session_ssl_context_configuration(
+        self, mock_create_ctx: MagicMock
+    ) -> None:
         """Test that SSL context is properly configured and passed"""
         mock_ssl_context = MagicMock(spec=ssl.SSLContext)
         mock_create_ctx.return_value = mock_ssl_context
@@ -229,7 +241,7 @@ class TestCreateSession:
         adapter = session.get_adapter("https://example.com")
         assert adapter.ssl_context is mock_ssl_context  # type: ignore[attr-defined]  # noqa: E501
 
-    def test_create_session_with_invalid_cipher_string(self):
+    def test_create_session_with_invalid_cipher_string(self) -> None:
         """Test create_session raises SSLError for invalid cipher string"""
         import pytest
 
@@ -240,7 +252,7 @@ class TestCreateSession:
         assert "Invalid OpenSSL cipher string" in str(exc_info.value)
         assert "INVALID_CIPHER_STRING" in str(exc_info.value)
 
-    def test_create_session_with_empty_cipher_list(self):
+    def test_create_session_with_empty_cipher_list(self) -> None:
         """Test create_session raises SSLError when cipher string results
         in no valid ciphers"""
         import pytest
@@ -252,7 +264,9 @@ class TestCreateSession:
         assert "Invalid OpenSSL cipher string" in str(exc_info.value)
 
     @patch("cepces.http.create_urllib3_context")
-    def test_create_session_propagates_ssl_error(self, mock_create_ctx):
+    def test_create_session_propagates_ssl_error(
+        self, mock_create_ctx: MagicMock
+    ) -> None:
         """Test that SSLError from set_ciphers is properly wrapped and
         propagated"""
         import pytest
