@@ -19,6 +19,10 @@
 """Main application package."""
 
 import logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 __title__ = "cepces"
 __description__ = "CEP/CES library."
@@ -37,7 +41,7 @@ class Base:
     project.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self, logger: "Logger | None" = None) -> None:
         """Initialize the instance.
 
         The class uses either a supplied logger, or retrieves the default
