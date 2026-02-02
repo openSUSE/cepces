@@ -19,6 +19,7 @@
 
 from configparser import ConfigParser, ExtendedInterpolation
 from pathlib import Path
+from typing import TYPE_CHECKING
 import logging
 import re
 import socket
@@ -26,6 +27,10 @@ import os
 from cepces import Base
 from cepces import auth as CoreAuth
 from cepces.soap import auth as SOAPAuth
+
+if TYPE_CHECKING:
+    from cepces.auth import AuthenticationHandler
+    from cepces.soap.auth import Authentication
 
 DEFAULT_CONFIG_FILES = [
     "/etc/cepces/cepces.conf",
@@ -43,14 +48,14 @@ DEFAULT_CONFIG_DIRS = [
 class Configuration(Base):
     """Base configuration class."""
 
-    AUTH_HANDLER_MAP = {
+    AUTH_HANDLER_MAP: dict[str, type["AuthenticationHandler"]] = {
         "Anonymous": CoreAuth.AnonymousAuthenticationHandler,
         "Kerberos": CoreAuth.GSSAPIAuthenticationHandler,
         "UsernamePassword": CoreAuth.UsernamePasswordAuthenticationHandler,
         "Certificate": CoreAuth.CertificateAuthenticationHandler,
     }
 
-    AUTH_MAP = {
+    AUTH_MAP: dict[str, type["Authentication"]] = {
         "Anonymous": SOAPAuth.AnonymousAuthentication,
         "Kerberos": SOAPAuth.TransportGSSAPIAuthentication,
         "UsernamePassword": SOAPAuth.MessageUsernamePasswordAuthentication,
