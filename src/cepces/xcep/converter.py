@@ -30,8 +30,10 @@ class ClientAuthenticationConverter(IntegerConverter):
         (8, "Certificate"),
     ]
 
+    # This method intentionally returns str instead of int - it converts
+    # integer auth values to authentication method names.
     @staticmethod
-    def from_string(value):
+    def from_string(value):  # type: ignore[override]
         """Converts the stringified integer key to its string value
 
         :param value: the stringified integer to convert, or None
