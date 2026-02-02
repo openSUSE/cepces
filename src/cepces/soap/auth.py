@@ -20,7 +20,8 @@
 #
 """This module contains SOAP related authentication."""
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
+from typing import Any
 import base64
 import hashlib
 import os
@@ -36,18 +37,20 @@ from cepces.soap.types import Security as WSSecurity, UsernameToken
 class Authentication(Base, metaclass=ABCMeta):
     """Base class for handling authentication of SOAP endpoints."""
 
-    @abstractproperty
-    def transport(self):
+    @property
+    @abstractmethod
+    def transport(self) -> Any:
         """Property containing authentication mechanism for the transport layer
         (i.e. requests)."""
 
-    @abstractproperty
-    def clientcertificate(self):
+    @property
+    @abstractmethod
+    def clientcertificate(self) -> Any:
         """Property containing TLS client certificate ínformation for the
         transport layer (i.e. requests)."""
 
     @abstractmethod
-    def post_process(self, envelope):
+    def post_process(self, envelope: Any) -> Any:
         """Method for securing (post processing) a SOAP envelope."""
 
 
@@ -169,7 +172,7 @@ class TransportGSSAPIAuthentication(Authentication):
         self._transport = HTTPSPNEGOAuth(
             creds=creds,
             delegate=self._config["delegate"],
-            mech=gssapi.mechs.Mechanism.from_sasl_name("SPNEGO"),
+            mech=gssapi.Mechanism.from_sasl_name("SPNEGO"),
             channel_bindings="tls-server-end-point",
         )
 
