@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+from typing import Any
+
 import pytest
 from xml.etree import ElementTree
 from cepces.xml.binding import ListingMeta
@@ -24,17 +26,17 @@ from cepces.xml.binding import XMLElementList
 
 
 class MockXMLDescriptor(XMLDescriptor):
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         return instance._test_value
 
-    def __set__(self, instance, value):
+    def __set__(self, instance: Any, value: Any) -> None:
         instance._test_value = value
 
-    def __delete__(self, instance):
+    def __delete__(self, instance: Any) -> None:
         pass
 
 
-def test_xml_descriptor_only_name():
+def test_xml_descriptor_only_name() -> None:
     """Qualified name should be equal to name"""
     descriptor = MockXMLDescriptor("name")
 
@@ -43,7 +45,7 @@ def test_xml_descriptor_only_name():
     assert descriptor._qname == "name"
 
 
-def test_xml_descriptor_name_and_namespace():
+def test_xml_descriptor_name_and_namespace() -> None:
     """Qualified name should be in Clark's notation"""
     descriptor = MockXMLDescriptor("name", "namespace")
 
@@ -52,7 +54,7 @@ def test_xml_descriptor_name_and_namespace():
     assert descriptor._qname == "{namespace}name"
 
 
-def test_xml_descriptor_index_increment():
+def test_xml_descriptor_index_increment() -> None:
     """Static index should increase accordingly"""
     index = XMLDescriptor._index
 
@@ -68,7 +70,7 @@ def test_xml_descriptor_index_increment():
 
 
 @pytest.fixture
-def mock_class():
+def mock_class() -> type:
     """Create a dummy class for testing ListingMeta"""
 
     class MockClass(metaclass=ListingMeta):
@@ -79,12 +81,12 @@ def mock_class():
     return MockClass
 
 
-def test_listing_meta_listing_attribute(mock_class):
+def test_listing_meta_listing_attribute(mock_class: type) -> None:
     """Test that __listing__ attribute exists"""
     assert hasattr(mock_class, "__listing__")
 
 
-def test_listing_meta_ordered_listing(mock_class):
+def test_listing_meta_ordered_listing(mock_class: type) -> None:
     """Test that listing is ordered correctly"""
     dummy = mock_class
     listing = dummy.__listing__
@@ -121,7 +123,7 @@ class ParentNode(XMLNode):
         return ElementTree.Element("parent")
 
 
-def test_xml_element_list_missing_element_returns_none():
+def test_xml_element_list_missing_element_returns_none() -> None:
     """XMLElementList should return None when the element doesn't exist.
 
     This reproduces a bug where accessing .cas on a GetPoliciesResponse
@@ -141,7 +143,7 @@ def test_xml_element_list_missing_element_returns_none():
 NS_XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
 
-def test_xml_element_list_nil_element_returns_none():
+def test_xml_element_list_nil_element_returns_none() -> None:
     """XMLElementList should return None when the element has xsi:nil='true'.
 
     This reproduces the bug from certmonger where accessing .cas on a
