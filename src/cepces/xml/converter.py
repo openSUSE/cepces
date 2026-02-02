@@ -19,9 +19,28 @@
 """This module contains converters for common XML data types."""
 
 from datetime import datetime, timedelta, tzinfo
-from typing import Any
+from typing import Any, Protocol
 import re
 import textwrap
+
+
+class ConverterProtocol(Protocol):
+    """Protocol for converter classes.
+
+    This protocol defines the interface that all converters must implement.
+    It allows type checking without requiring inheritance, since converters
+    have varying method signatures.
+    """
+
+    @staticmethod
+    def from_string(value: Any) -> Any:
+        """Parse a string and convert it to a suitable type."""
+        ...
+
+    @staticmethod
+    def to_string(value: Any) -> str | None:
+        """Convert a value to a string."""
+        ...
 
 
 class Converter:

@@ -145,6 +145,8 @@ class Service(SOAPService):
         # Improve this handling since we're manually inserting an element here.
         qname = ElementTree.QName(NS_ENROLLMENT, "RequestID")
         element = ElementTree.Element(qname)  # type: ignore[type-var]
+        # _element is always set after SecurityTokenRequest.__init__
+        assert token._element is not None
         token._element.append(element)
         token.request_id = request_id
 

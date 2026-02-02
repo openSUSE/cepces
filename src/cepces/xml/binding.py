@@ -25,7 +25,7 @@ from xml.etree import ElementTree
 import inspect
 from abc import ABCMeta, abstractmethod
 from cepces.xml import ATTR_NIL, NS_XSI, util
-from cepces.xml.converter import Converter, StringConverter
+from cepces.xml.converter import ConverterProtocol, StringConverter
 
 T = TypeVar("T")
 
@@ -80,8 +80,13 @@ class ListingMeta(type):
     `XMLDescriptor` properties in their declared order.
     """
 
-    def __new__(cls, name, bases, class_dict):
-        def is_member(member):
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        class_dict: dict[str, Any],
+    ) -> type:
+        def is_member(member: Any) -> bool:
             """Checks if a member is an XMLDescriptor."""
             # Only return members that are instances of XMLDescriptor.
             result = isinstance(member, XMLDescriptor)
@@ -101,13 +106,13 @@ class ListingMeta(type):
 class XMLAttribute(XMLDescriptor):
     """This class binds to an attribute of an element."""
 
-    _converter: type[Converter]
+    _converter: type[ConverterProtocol]
 
     def __init__(
         self,
         name: str,
         namespace: str | None = None,
-        converter: type[Converter] | None = None,
+        converter: type[ConverterProtocol] | None = None,
     ) -> None:
         """Initializes a new `XMLAttribute`.
 
@@ -138,7 +143,7 @@ class XMLAttribute(XMLDescriptor):
 class XMLNode(metaclass=ListingMeta):
     """Base class for all binding nodes."""
 
-    def __init__(self, element=None):
+    def __init__(self, element: ElementTree.Element | None = None) -> None:
         """Initializes a new `XMLNode`.
         If no base element is provided, the instance is instructed to create a
         new element (and possibly child elements).
@@ -278,10 +283,16 @@ class XMLElementList(XMLElement):
     class List(MutableSequence[Any]):
         """Internal list."""
 
-        def __init__(self, parent, element, binder, qname):
+        def __init__(
+            self,
+            parent: "XMLElementList",
+            element: ElementTree.Element,
+            binder: Any,
+            qname: str,
+        ) -> None:
             super().__init__()
 
-            self._list = list()
+            self._list: list[Any] = list()
             self._parent = parent
             self._element = element
             self._binder = binder
@@ -292,19 +303,27 @@ class XMLElementList(XMLElement):
             for child in children:
                 self._list.append(self._binder(child))
 
-        def __len__(self):
+        def __len__(self) -> int:
             return len(self._list)
 
-        def __getitem__(self, key):
+        # MutableSequence expects __getitem__, __delitem__, __setitem__ to
+        # accept int | slice, but this implementation only supports int keys.
+        # Using type: ignore[override] to document this intentional limitation.
+        def __getitem__(self, key: int) -> Any:  # type: ignore[override]
             return self._list[key]
 
-        def __delitem__(self, key):
+        def __delitem__(self, key: int) -> None:  # type: ignore[override]
             item = self._list[key]
 
+            element: ElementTree.Element
             if isinstance(item, XMLNode):
-                item = item._element
+                # _element is set in XMLNode.__init__, so it's never None here
+                assert item._element is not None
+                element = item._element
+            else:
+                element = item
 
-            self._element.remove(item)
+            self._element.remove(element)
 
             del self._list[key]
 
@@ -313,7 +332,9 @@ class XMLElementList(XMLElement):
                     self._element.set(ATTR_NIL, "true")
                     self._element.text = None
 
-        def __setitem__(self, key, value):
+        def __setitem__(  # type: ignore[override]
+            self, key: int, value: Any
+        ) -> None:
             # Value has to be of the same type as the binder.
             if not isinstance(value, self._binder):
                 raise TypeError(
@@ -346,11 +367,11 @@ class XMLElementList(XMLElement):
         name: str,
         child_name: str,
         binder: Any,
-        namespace=None,
-        child_namespace=None,
-        required=True,
-        nillable=False,
-    ):
+        namespace: str | None = None,
+        child_namespace: str | None = None,
+        required: bool = True,
+        nillable: bool = False,
+    ) -> None:
         super().__init__(
             name=name,
             binder=None,
@@ -369,7 +390,7 @@ class XMLElementList(XMLElement):
         else:
             self._child_qname = child_name
 
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         binder = super().__get__(instance, _owner)
 
         if binder is None:
@@ -402,8 +423,13 @@ class XMLValue(XMLElement):
     """XML Value"""
 
     def __init__(
-        self, name, converter, namespace=None, required=True, nillable=False
-    ):
+        self,
+        name: str,
+        converter: type[ConverterProtocol],
+        namespace: str | None = None,
+        required: bool = True,
+        nillable: bool = False,
+    ) -> None:
         super().__init__(
             name,
             binder=None,
@@ -414,7 +440,7 @@ class XMLValue(XMLElement):
 
         self._converter = converter
 
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         element = super().__get__(instance, _owner)
 
         if element is None:
@@ -434,7 +460,7 @@ class XMLValue(XMLElement):
 
         return self._converter.from_string("")
 
-    def __set__(self, instance, value):
+    def __set__(self, instance: Any, value: Any) -> None:
         element = super().__get__(instance, None)
 
         if element is None:
@@ -461,10 +487,16 @@ class XMLValueList(XMLElement):
     class List(MutableSequence[Any]):
         """Internal list"""
 
-        def __init__(self, parent, element, converter, qname):
+        def __init__(
+            self,
+            parent: "XMLValueList",
+            element: ElementTree.Element,
+            converter: type[ConverterProtocol],
+            qname: str,
+        ) -> None:
             super().__init__()
 
-            self._list = list()
+            self._list: list[ElementTree.Element] = list()
             self._parent = parent
             self._element = element
             self._converter = converter
@@ -475,13 +507,16 @@ class XMLValueList(XMLElement):
             for child in children:
                 self._list.append(child)
 
-        def __len__(self):
+        def __len__(self) -> int:
             return len(self._list)
 
-        def __getitem__(self, key):
+        # MutableSequence expects __getitem__, __delitem__, __setitem__ to
+        # accept int | slice, but this implementation only supports int keys.
+        # Using type: ignore[override] to document this intentional limitation.
+        def __getitem__(self, key: int) -> Any:  # type: ignore[override]
             return self._converter.from_string(self._list[key].text)
 
-        def __delitem__(self, key):
+        def __delitem__(self, key: int) -> None:  # type: ignore[override]
             item = self._list[key]
             self._element.remove(item)
             del self._list[key]
@@ -491,7 +526,9 @@ class XMLValueList(XMLElement):
                     self._element.set(ATTR_NIL, "true")
                     self._element.text = None
 
-        def __setitem__(self, key, value):
+        def __setitem__(  # type: ignore[override]
+            self, key: int, value: Any
+        ) -> None:
             self._list[key].text = self._converter.to_string(value)
 
         def insert(self, index: int, value: Any) -> None:
@@ -511,14 +548,14 @@ class XMLValueList(XMLElement):
 
     def __init__(
         self,
-        name,
-        child_name,
-        converter,
-        namespace=None,
-        child_namespace=None,
-        required=True,
-        nillable=False,
-    ):
+        name: str,
+        child_name: str,
+        converter: type[ConverterProtocol],
+        namespace: str | None = None,
+        child_namespace: str | None = None,
+        required: bool = True,
+        nillable: bool = False,
+    ) -> None:
         super().__init__(
             name=name,
             binder=None,
@@ -537,7 +574,7 @@ class XMLValueList(XMLElement):
         else:
             self._child_qname = child_name
 
-    def __get__(self, instance, _owner=None):
+    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
         binder = super().__get__(instance, _owner)
 
         if binder is self:
