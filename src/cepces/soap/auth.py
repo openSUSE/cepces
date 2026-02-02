@@ -134,7 +134,10 @@ class TransportGSSAPIAuthentication(Authentication):
         self._init_transport(gssapi_cred)
 
     def _init_ccache(self) -> Any:
-        krb5_mech = gssapi.OID.from_int_seq("1.2.840.113554.1.2.2")
+        # gssapi stubs are incomplete (auto-generated)
+        krb5_mech = gssapi.OID.from_int_seq(  # type: ignore[no-untyped-call]
+            "1.2.840.113554.1.2.2"
+        )
         gss_name = gssapi.Name(self._config.principal, gssapi.NameType.user)
 
         os.environ["KRB5CCNAME"] = "MEMORY:cepces"
