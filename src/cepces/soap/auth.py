@@ -69,7 +69,7 @@ class AnonymousAuthentication(Authentication):
         transport layer (i.e. requests)."""
         return None
 
-    def post_process(self, envelope):
+    def post_process(self, envelope: Any) -> Any:
         # Nothing to be done here.
         return envelope
 
@@ -79,12 +79,12 @@ class TransportGSSAPIAuthentication(Authentication):
 
     def __init__(
         self,
-        principal_name=None,
-        init_ccache=True,
-        keytab=None,
-        enctypes=None,
-        delegate=True,
-    ):
+        principal_name: str | None = None,
+        init_ccache: bool = True,
+        keytab: str | None = None,
+        enctypes: list[str] | None = None,
+        delegate: bool = True,
+    ) -> None:
         super().__init__()
 
         self._config = {}
@@ -150,7 +150,7 @@ class TransportGSSAPIAuthentication(Authentication):
 
         return gssapi_cred
 
-    def _init_transport(self, gssapi_cred=None):
+    def _init_transport(self, gssapi_cred: Any = None) -> None:
         # If no "principal" was specified, krb5 will use the default principal
         # of the given credential cache (KRB5CCNAME).
         # This is important for usage with init_ccache=False.
@@ -184,7 +184,7 @@ class TransportGSSAPIAuthentication(Authentication):
     def clientcertificate(self):
         return None
 
-    def post_process(self, envelope):
+    def post_process(self, envelope: Any) -> Any:
         # Nothing to be done here.
         return envelope
 
@@ -192,7 +192,7 @@ class TransportGSSAPIAuthentication(Authentication):
 class MessageUsernamePasswordAuthentication(Authentication):
     """Message authentication using a username and a password."""
 
-    def __init__(self, username, password):
+    def __init__(self, username: str, password: str) -> None:
         super().__init__()
         self._username: str = username
         self._password: str = password
@@ -219,7 +219,7 @@ class MessageUsernamePasswordAuthentication(Authentication):
     def clientcertificate(self):
         return None
 
-    def post_process(self, envelope):
+    def post_process(self, envelope: Any) -> Any:
         envelope.header.element.append(WSSecurity.create())
 
         envelope.header.security.element.append(UsernameToken.create())
@@ -236,7 +236,7 @@ class MessageUsernamePasswordAuthentication(Authentication):
 class TransportCertificateAuthentication(Authentication):
     """Transport authentication using a client certificate."""
 
-    def __init__(self, certfile, keyfile):
+    def __init__(self, certfile: str, keyfile: str) -> None:
         super().__init__()
         self._certfile = certfile
         self._keyfile = keyfile
@@ -249,6 +249,6 @@ class TransportCertificateAuthentication(Authentication):
     def clientcertificate(self):
         return (self._certfile, self._keyfile)
 
-    def post_process(self, envelope):
+    def post_process(self, envelope: Any) -> Any:
         # Nothing to be done here.
         return envelope

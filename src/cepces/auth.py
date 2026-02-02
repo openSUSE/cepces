@@ -218,6 +218,10 @@ class UsernamePasswordAuthenticationHandler(AuthenticationHandler):
                         f"service {keyring_service}: {e}",
                     ) from e
 
+        if username is None or password is None:
+            raise RuntimeError(
+                "Username and password are required for UsernamePassword auth"
+            )
         return SOAPAuth.MessageUsernamePasswordAuthentication(
             username,
             password,
@@ -242,6 +246,10 @@ class CertificateAuthenticationHandler(AuthenticationHandler):
         certfile = section.get("certfile", None)
         keyfile = section.get("keyfile", None)
 
+        if certfile is None or keyfile is None:
+            raise RuntimeError(
+                "certfile and keyfile are required for Certificate auth"
+            )
         return SOAPAuth.TransportCertificateAuthentication(
             certfile,
             keyfile,
