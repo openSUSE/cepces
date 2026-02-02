@@ -22,6 +22,7 @@ from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import dsa
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -37,12 +38,12 @@ from cepces.wstep.service import Service as WSTEPService
 class PartialChainError(RuntimeError):
     """Error raised when a complete certificate chain cannot be retrieved."""
 
-    def __init__(self, msg, result):
+    def __init__(self, msg: str | Exception, result: list[x509.Certificate]):
         super().__init__(msg)
         self._result = result
 
     @property
-    def result(self):
+    def result(self) -> list[x509.Certificate]:
         """Return the result so far."""
         return self._result
 
@@ -53,7 +54,9 @@ class Service(Base):
     class Endpoint(Base):
         """Internal class representing potential endpoints."""
 
-        def __init__(self, url, priority, renewal_only):
+        def __init__(
+            self, url: str, priority: int, renewal_only: bool
+        ) -> None:
             super().__init__()
 
             self._url = url
@@ -61,24 +64,24 @@ class Service(Base):
             self._renewal_only = renewal_only
 
         @property
-        def url(self):
+        def url(self) -> str:
             """Get the URL."""
             return self._url
 
         @property
-        def priority(self):
+        def priority(self) -> int:
             """Get the priority."""
             return self._priority
 
         @property
-        def renewal_only(self):
+        def renewal_only(self) -> bool:
             """Can this endpoint be used only for renewals?"""
             return self._renewal_only
 
-        def __str__(self):
+        def __str__(self) -> str:
             return self.url
 
-    def __init__(self, config):
+    def __init__(self, config: Configuration) -> None:
         super().__init__()
 
         self._config = config
@@ -156,7 +159,9 @@ class Service(Base):
         return sorted(endpoints, key=lambda x: x.priority)
 
     @property
-    def certificate_chain(self, index=0):
+    def certificate_chain(
+        self, index: int = 0
+    ) -> list[x509.Certificate] | None:
         """Get the complete certification authority chain.
 
         This retrieves the certificate from the issuing endpoint service, and
@@ -182,9 +187,11 @@ class Service(Base):
         # certificates.
         data = cas[index].certificate
 
-        return reversed(self._resolve_chain(data))
+        return list(reversed(self._resolve_chain(data)))
 
-    def _request_ces(self, csr):
+    def _request_ces(
+        self, csr: x509.CertificateSigningRequest
+    ) -> "WSTEPService.Response | None":
         """Request a certificate with a CSR from a CES endpoint."""
         csr_bytes = csr.public_bytes(serialization.Encoding.PEM)
         csr_raw = csr_bytes.decode("utf-8").strip()
@@ -203,7 +210,9 @@ class Service(Base):
             return r
         return None
 
-    def _request_cep(self, csr, renew=False):
+    def _request_cep(
+        self, csr: x509.CertificateSigningRequest, renew: bool = False
+    ) -> "WSTEPService.Response | None":
         """Request a certificate with a CSR through a CEP endpoint."""
         endpoint = None
 
@@ -228,14 +237,18 @@ class Service(Base):
 
         return self._request_ces(csr)
 
-    def request(self, csr, renew=False):
+    def request(
+        self, csr: x509.CertificateSigningRequest, renew: bool = False
+    ) -> "WSTEPService.Response | None":
         """Request a certificate with a CSR."""
         if self._xcep:
             return self._request_cep(csr, renew)
         else:
             return self._request_ces(csr)
 
-    def poll(self, request_id, uri):
+    def poll(
+        self, request_id: int, uri: str
+    ) -> "WSTEPService.Response | None":
         """Poll the status of a previous request."""
         ces = WSTEPService(
             endpoint=uri,
@@ -259,7 +272,9 @@ class Service(Base):
             return r
         return None
 
-    def _verify_certificate_signature(self, cert, issuer):
+    def _verify_certificate_signature(
+        self, cert: x509.Certificate, issuer: x509.Certificate
+    ) -> bool:
         """Verify that the certificate is signed.
 
         :param cert: the certificate to verify
@@ -271,6 +286,10 @@ class Service(Base):
         sig_bytes = cert.signature
         sig_data = cert.tbs_certificate_bytes
         issuer_public_key = issuer.public_key()
+
+        # signature_hash_algorithm is None for signatures without hash (e.g.
+        # Ed25519), but we only support RSA and ECDSA which require a hash.
+        assert sig_hash_alg is not None
 
         # Check the type of public key
         if isinstance(issuer_public_key, rsa.RSAPublicKey):
@@ -286,16 +305,22 @@ class Service(Base):
                 sig_data,
                 ec.ECDSA(sig_hash_alg),
             )
-        else:
+        elif isinstance(issuer_public_key, dsa.DSAPublicKey):
             issuer_public_key.verify(
                 sig_bytes,
                 sig_data,
                 sig_hash_alg,
             )
+        else:
+            raise TypeError(
+                f"Unsupported public key type: {type(issuer_public_key)}"
+            )
 
         return True
 
-    def _resolve_chain(self, data, child=None):
+    def _resolve_chain(
+        self, data: str, child: x509.Certificate | None = None
+    ) -> list[x509.Certificate]:
         """Recursive method for resolving a certificate. This starts with the
         data for a certificate, and a possible child certificate that needs to
         be validated. This is a reversed approach as the process is to start
