@@ -25,6 +25,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import AuthorityInformationAccessOID
 import requests
 from cepces import Base
 from cepces.config import Configuration
@@ -206,7 +207,7 @@ class Service(Base):
         """Request a certificate with a CSR through a CEP endpoint."""
         endpoint = None
 
-        for candidate in self.endpoints:
+        for candidate in self.endpoints or []:
             # If not renewing and the endpoint only supports renewal, ignore
             # it.
             if renew and candidate.renewal_only or not candidate.renewal_only:
@@ -309,7 +310,7 @@ class Service(Base):
         """
         result = []
         extension = x509.AuthorityInformationAccess
-        oid = x509.oid.AuthorityInformationAccessOID
+        oid = AuthorityInformationAccessOID
 
         # Load the certificate.
         try:
