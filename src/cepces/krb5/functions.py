@@ -20,6 +20,7 @@
 
 import ctypes
 import functools
+from typing import Any, Callable
 from cepces.krb5 import types as ktypes
 from cepces.krb5.lib import (
     _shlib,  # pyright: ignore[reportAttributeAccessIssue]
@@ -31,7 +32,7 @@ assert _shlib is not None  # Guaranteed by RuntimeError in lib.py
 class Error(RuntimeError):
     """Generic error class, representing a runtime error from Kerberos."""
 
-    def __init__(self, context, code):
+    def __init__(self, context: Any, code: int) -> None:
         message_p = get_error_message(context, code)
 
         self._code = code
@@ -41,22 +42,22 @@ class Error(RuntimeError):
         free_error_message(context, message_p)
 
     @property
-    def code(self):
+    def code(self) -> int:
         """Get the error code."""
         return self._code
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._message
 
 
-def error_decorator(func):
+def error_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator for wrapping a function that raises errors on failed
     Kerberos calls."""
     if func.restype is not ktypes.krb5_error_code:
         return func
 
     @functools.wraps(func)
-    def wrapper(context, *args):
+    def wrapper(context: Any, *args: Any) -> Any:
         """Wrapper function."""
         result = func(context, *args)
 
