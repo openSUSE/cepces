@@ -229,3 +229,234 @@ class TestSecurityTokenResponseCollection:
         assert collection.responses[0].request_id == 1
         assert collection.responses[1].disposition_message == "Wait"
         assert collection.responses[1].request_id == 2
+
+
+class TestRequestedTokenText:
+    """Tests for RequestedToken.text (BinarySecurityToken with certificate)."""
+
+    def test_text_parses_certificate(self):
+        """RequestedToken.text parses base64 certificate to PEM format."""
+        # A minimal base64-encoded certificate content
+        # (just for testing parsing)
+        cert_b64 = "MIIB" + "A" * 100  # Simplified test data
+
+        xml = f"""<RequestedSecurityToken xmlns="{NS_WST}">
+        <BinarySecurityToken xmlns="{NS_WST_SECEXT}">{cert_b64}</BinarySecurityToken>
+        </RequestedSecurityToken>"""  # noqa: E501
+        element = ElementTree.fromstring(xml)
+        token = RequestedToken(element)
+
+        # CertificateConverter wraps in PEM format
+        assert token.text is not None
+        assert "-----BEGIN CERTIFICATE-----" in token.text
+        assert "-----END CERTIFICATE-----" in token.text
+
+    def test_text_returns_none_when_missing(self):
+        """RequestedToken.text should return None when element is missing."""
+        xml = f'<RequestedSecurityToken xmlns="{NS_WST}" />'
+        element = ElementTree.fromstring(xml)
+        token = RequestedToken(element)
+
+        assert token.text is None
+
+    def test_text_returns_string_type(self):
+        """RequestedToken.text should return str type (PEM certificate)."""
+        cert_b64 = "MIIB" + "A" * 100
+
+        xml = f"""<RequestedSecurityToken xmlns="{NS_WST}">
+        <BinarySecurityToken xmlns="{NS_WST_SECEXT}">{cert_b64}</BinarySecurityToken>
+        </RequestedSecurityToken>"""  # noqa: E501
+        element = ElementTree.fromstring(xml)
+        token = RequestedToken(element)
+
+        assert isinstance(token.text, str)
+
+
+class TestRequestedTokenReference:
+    """Tests for RequestedToken.token_reference chain access."""
+
+    def test_token_reference_parsing(self):
+        """RequestedToken should parse SecurityTokenReference child."""
+        xml = f"""<RequestedSecurityToken xmlns="{NS_WST}">
+        <SecurityTokenReference xmlns="{NS_WST_SECEXT}">
+            <Reference URI="#cert-123" />
+        </SecurityTokenReference>
+        </RequestedSecurityToken>"""
+        element = ElementTree.fromstring(xml)
+        token = RequestedToken(element)
+
+        assert token.token_reference is not None
+        assert isinstance(token.token_reference, SecurityTokenReference)
+
+    def test_token_reference_chain_access(self):
+        """Test full chain: token_reference.reference.uri access.
+
+        This is the access pattern used in service.py:135:
+        response.requested_token.token_reference.reference.uri
+        """
+        xml = f"""<RequestedSecurityToken xmlns="{NS_WST}">
+        <SecurityTokenReference xmlns="{NS_WST_SECEXT}">
+            <Reference URI="#binary-token-456" />
+        </SecurityTokenReference>
+        </RequestedSecurityToken>"""
+        element = ElementTree.fromstring(xml)
+        token = RequestedToken(element)
+
+        # Full chain access as used in service.py
+        assert token.token_reference is not None
+        assert token.token_reference.reference is not None
+        assert token.token_reference.reference.uri == "#binary-token-456"
+
+    def test_token_reference_returns_none_when_missing(self):
+        """RequestedToken.token_reference should return None when missing."""
+        xml = f'<RequestedSecurityToken xmlns="{NS_WST}" />'
+        element = ElementTree.fromstring(xml)
+        token = RequestedToken(element)
+
+        assert token.token_reference is None
+
+
+class TestSecurityTokenResponseRequestedToken:
+    """Tests for SecurityTokenResponse.requested_token access."""
+
+    def test_requested_token_parsing(self):
+        """SecurityTokenResponse should parse RequestedSecurityToken child."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">12345</RequestID>
+        <RequestedSecurityToken>
+            <BinarySecurityToken xmlns="{NS_WST_SECEXT}">MIIB{'A'*100}</BinarySecurityToken>
+        </RequestedSecurityToken>
+        </RequestSecurityTokenResponse>"""  # noqa: E501
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        assert response.requested_token is not None
+        assert isinstance(response.requested_token, RequestedToken)
+
+    def test_requested_token_text_access(self):
+        """Test response.requested_token.text access pattern.
+
+        This access pattern is used in service.py.
+        """
+        cert_b64 = "MIIB" + "A" * 100
+
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">12345</RequestID>
+        <RequestedSecurityToken>
+            <BinarySecurityToken xmlns="{NS_WST_SECEXT}">{cert_b64}</BinarySecurityToken>
+        </RequestedSecurityToken>
+        </RequestSecurityTokenResponse>"""  # noqa: E501
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        # Access pattern from service.py:121
+        token = response.requested_token
+        assert token.text is not None
+        assert "-----BEGIN CERTIFICATE-----" in token.text
+
+    def test_requested_token_full_chain(self):
+        """Test response.requested_token.token_reference.reference.uri.
+
+        This reproduces the exact access pattern from service.py:135-136.
+        """
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Pending</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">67890</RequestID>
+        <RequestedSecurityToken>
+            <SecurityTokenReference xmlns="{NS_WST_SECEXT}">
+                <Reference URI="#pending-request-ref" />
+            </SecurityTokenReference>
+        </RequestedSecurityToken>
+        </RequestSecurityTokenResponse>"""  # noqa: E501
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        # Exact access pattern from service.py:135-136
+        uri = response.requested_token.token_reference.reference.uri
+        assert uri == "#pending-request-ref"
+
+
+class TestTypePreservation:
+    """Tests verifying that descriptors return correct runtime types.
+
+    These tests ensure type safety is preserved through the descriptor
+    chain, which is critical before adding type stubs.
+    """
+
+    def test_request_id_returns_int(self):
+        """XMLValue with UnsignedIntegerConverter should return int."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">42</RequestID>
+        </RequestSecurityTokenResponse>"""
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        assert response.request_id == 42
+        assert isinstance(response.request_id, int)
+
+    def test_disposition_message_returns_str(self):
+        """XMLValue with StringConverter should return str."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">1</RequestID>
+        </RequestSecurityTokenResponse>"""
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        assert response.disposition_message == "Issued"
+        assert isinstance(response.disposition_message, str)
+
+    def test_uri_attribute_returns_str(self):
+        """XMLAttribute with StringConverter should return str."""
+        xml = f'<Reference xmlns="{NS_WST_SECEXT}" URI="#token-id" />'
+        element = ElementTree.fromstring(xml)
+        ref = Reference(element)
+
+        assert ref.uri == "#token-id"
+        assert isinstance(ref.uri, str)
+
+    def test_responses_returns_list(self):
+        """XMLElementList should return a list-like object."""
+        xml = f"""<RequestSecurityTokenResponseCollection xmlns="{NS_WST}">
+        <RequestSecurityTokenResponse>
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">1</RequestID>
+        </RequestSecurityTokenResponse>
+        </RequestSecurityTokenResponseCollection>"""
+        element = ElementTree.fromstring(xml)
+        collection = SecurityTokenResponseCollection(element)
+
+        assert collection.responses is not None
+        # Should be indexable like a list
+        assert collection.responses[0] is not None
+        assert isinstance(collection.responses[0], SecurityTokenResponse)
+
+    def test_nested_type_chain_preservation(self):
+        """Verify types are preserved through nested XMLElement access."""
+        xml = f"""<RequestSecurityTokenResponse xmlns="{NS_WST}">
+        <DispositionMessage xmlns="{NS_ENROLLMENT}">Pending</DispositionMessage>
+        <RequestID xmlns="{NS_ENROLLMENT}">999</RequestID>
+        <RequestedSecurityToken>
+            <SecurityTokenReference xmlns="{NS_WST_SECEXT}">
+                <Reference URI="#ref-abc" />
+            </SecurityTokenReference>
+        </RequestedSecurityToken>
+        </RequestSecurityTokenResponse>"""  # noqa: E501
+        element = ElementTree.fromstring(xml)
+        response = SecurityTokenResponse(element)
+
+        # Verify each step in the chain has correct type
+        assert isinstance(response, SecurityTokenResponse)
+        assert isinstance(response.requested_token, RequestedToken)
+        assert isinstance(
+            response.requested_token.token_reference, SecurityTokenReference
+        )
+        assert isinstance(
+            response.requested_token.token_reference.reference, Reference
+        )
+        assert isinstance(
+            response.requested_token.token_reference.reference.uri, str
+        )
