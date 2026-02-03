@@ -36,7 +36,7 @@ The @overload decorators distinguish between:
 - Instance access: Returns T | None (the bound value or None if missing)
 """
 
-from typing import Any, Callable, Generic, TypeVar, overload
+from typing import Any, Callable, Generic, TypeVar, cast, overload
 from collections.abc import MutableSequence
 from xml.etree import ElementTree
 import inspect
@@ -514,30 +514,37 @@ class XMLElementList(XMLElement[T]):
     def __get__(  # type: ignore[override]
         self, instance: Any, owner: type | None = None
     ) -> "XMLElementList[T] | XMLElementList.List | None":
-        binder = super().__get__(instance, owner)
+        result = super().__get__(instance, owner)
 
-        if binder is None:
+        if result is None:
             # Element doesn't exist, return None
             return None
-        elif binder is self:
+        elif result is self:
             return self
+
+        # After the above checks, result is the raw Element (since binder=None
+        # in __init__) or an already-wrapped List from the bindings cache.
+        if isinstance(result, XMLElementList.List):
+            return result
+
+        # At this point, result is an ElementTree.Element
+        element = cast(ElementTree.Element, result)
 
         # Check if nillable.
         if self._nillable:
-            if hasattr(binder, "attrib") and ATTR_NIL in binder.attrib:
-                if binder.get(ATTR_NIL) == "true":
+            if ATTR_NIL in element.attrib:
+                if element.get(ATTR_NIL) == "true":
                     # Since nil=true, return None.
                     return None
 
-        if not isinstance(binder, XMLElementList.List):
-            binder = XMLElementList.List(
-                parent=self,
-                element=binder,
-                binder=self._child_binder,
-                qname=self._child_qname,
-            )
+        binder = XMLElementList.List(
+            parent=self,
+            element=element,
+            binder=self._child_binder,
+            qname=self._child_qname,
+        )
 
-            instance._bindings[hash(self)] = binder
+        instance._bindings[hash(self)] = binder
 
         return binder
 
