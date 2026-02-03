@@ -791,21 +791,28 @@ class XMLValueList(XMLElement[T]):
     def __get__(  # type: ignore[override]
         self, instance: Any, owner: type | None = None
     ) -> "XMLValueList[T] | XMLValueList.List | None":
-        binder = super().__get__(instance, owner)
+        result = super().__get__(instance, owner)
 
-        if binder is self:
-            return self
-        elif binder is None:
+        if result is None:
             return None
-        elif not isinstance(binder, XMLValueList.List):
-            binder = XMLValueList.List(
-                parent=self,
-                element=binder,
-                converter=self._converter,
-                qname=self._child_qname,
-            )
+        elif result is self:
+            return self
 
-            instance._bindings[hash(self)] = binder
+        # After the above checks, result is the raw Element (since binder=None
+        # in __init__) or an already-wrapped List from the bindings cache.
+        if isinstance(result, XMLValueList.List):
+            return result
 
-            return binder
+        # At this point, result is an ElementTree.Element
+        element = cast(ElementTree.Element, result)
+
+        binder = XMLValueList.List(
+            parent=self,
+            element=element,
+            converter=self._converter,
+            qname=self._child_qname,
+        )
+
+        instance._bindings[hash(self)] = binder
+
         return binder
