@@ -467,6 +467,7 @@ class TestXMLElementGet:
         element = ElementTree.fromstring(xml)
         node = OuterNode(element)
 
+        assert node.inner is not None
         assert node.inner.value == "nested-content"
 
     def test_get_missing_element_returns_none(self) -> None:
@@ -523,9 +524,10 @@ class TestXMLElementSet:
 
         node.inner = inner_elem
 
-        assert node.inner is not None
-        assert isinstance(node.inner, InnerNode)
-        assert node.inner.value == "set-value"
+        inner = node.inner
+        assert inner is not None
+        assert isinstance(inner, InnerNode)
+        assert inner.value == "set-value"
 
 
 class TestXMLElementDelete:

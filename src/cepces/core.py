@@ -120,7 +120,11 @@ class Service(Base):
         if self._xcep is None:
             return None
 
-        policies = self._policies.response.policies
+        response = self._policies.response
+        if response is None:
+            return None
+
+        policies = response.policies
         if policies is None:
             return None
 

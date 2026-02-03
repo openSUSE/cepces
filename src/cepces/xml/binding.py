@@ -17,9 +17,26 @@
 #
 # pylint: disable=protected-access,too-few-public-methods,too-many-arguments
 # pylint: disable=too-many-ancestors
-"""Module containing XML bindings."""
+"""Module containing XML bindings.
 
-from typing import Any, TypeVar
+This module provides a descriptor-based system for binding Python objects
+to XML elements. The descriptors use Python's Generic type system to
+provide type inference for the values they return.
+
+Type System Design:
+- XMLElement[T]: Generic descriptor that returns instances of type T
+  (typically an XMLNode subclass) when accessing child elements.
+- XMLValue[T]: Generic descriptor that returns values of type T
+  (e.g., str, int, bool) after converting element text content.
+- XMLElementList[T]: Returns a mutable list of T instances.
+- XMLValueList[T]: Returns a mutable list of T values.
+
+The @overload decorators distinguish between:
+- Class access (instance=None): Returns the descriptor itself
+- Instance access: Returns T | None (the bound value or None if missing)
+"""
+
+from typing import Any, Callable, Generic, TypeVar, overload
 from collections.abc import MutableSequence
 from xml.etree import ElementTree
 import inspect
@@ -27,6 +44,9 @@ from abc import ABCMeta, abstractmethod
 from cepces.xml import ATTR_NIL, NS_XSI, util
 from cepces.xml.converter import ConverterProtocol, StringConverter
 
+# TypeVar for generic descriptors - represents the type returned by the
+# descriptor (e.g., an XMLNode subclass for XMLElement, or int for XMLValue
+# with IntegerConverter).
 T = TypeVar("T")
 
 
@@ -176,26 +196,48 @@ class XMLNode(metaclass=ListingMeta):
         raise NotImplementedError()
 
 
-class XMLElement(XMLDescriptor):
-    """Map an element to an XMLNode instance."""
+class XMLElement(XMLDescriptor, Generic[T]):
+    """Map an XML child element to a Python object instance.
+
+    This is a generic descriptor where T represents the type returned when
+    accessing the attribute on an instance. Typically T is an XMLNode
+    subclass that wraps the child element.
+
+    Example usage:
+        class Parent(XMLNode):
+            # child: XMLElement[Child] - accessing parent.child returns Child
+            child = XMLElement("child", binder=Child)
+
+    Type parameter T is inferred from the binder argument, which is a
+    callable that takes an ElementTree.Element and returns T.
+
+    The descriptor protocol (__get__/__set__/__delete__) is implemented
+    with @overload to properly type:
+    - Class access (Parent.child): Returns XMLElement[T] (the descriptor)
+    - Instance access (parent.child): Returns T | None (bound value or None)
+    """
+
+    # The binder is a callable (typically a class constructor) that takes
+    # an XML Element and returns an instance of type T.
+    _binder: Callable[[ElementTree.Element], T] | None
 
     def __init__(
         self,
         name: str,
-        binder: Any = None,
+        binder: Callable[[ElementTree.Element], T] | None = None,
         namespace: str | None = None,
         required: bool = True,
         nillable: bool = False,
     ) -> None:
+        """Initialize an XMLElement descriptor.
+
+        :param name: The XML element name to bind to.
+        :param binder: Callable that converts Element to T (usually a class).
+        :param namespace: Optional XML namespace for the element.
+        :param required: If True, deletion raises AttributeError.
+        :param nillable: If True, xsi:nil="true" returns None.
+        """
         super().__init__(name, namespace)
-
-        if binder is None:
-
-            def func(value: Any) -> Any:
-                """Simple pass-through function."""
-                return value
-
-            binder = func
 
         self._binder = binder
         self._required = required
@@ -224,13 +266,39 @@ class XMLElement(XMLDescriptor):
 
         return attr_index
 
-    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
+    # Overload 1: Class access (e.g., MyClass.attr) returns the descriptor.
+    @overload
+    def __get__(
+        self, instance: None, owner: type | None = None
+    ) -> "XMLElement[T]": ...
+
+    # Overload 2: Instance access (e.g., obj.attr) returns T or None.
+    @overload
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> T | None: ...
+
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLElement[T] | T | None":
+        """Get the bound value from an instance.
+
+        When accessed on the class, returns the descriptor itself.
+        When accessed on an instance, returns:
+        - The cached binder instance if previously accessed
+        - A new binder instance wrapping the child element
+        - None if the child element doesn't exist
+        """
         if instance is None:
+            # Class access - return the descriptor for introspection
             return self
 
-        # Get any previous binder.
+        # Check for cached binder from previous access
         if hash(self) in instance._bindings:
-            return instance._bindings[hash(self)]
+            # Bindings dict stores T instances but is typed as dict[str, Any]
+            # for flexibility. The binder ensures correct type at runtime.
+            result = instance._bindings[hash(self)]
+            return result  # type: ignore[no-any-return]
 
         # No previous binder found. Get the element, if it exists, and
         # instantiate a new one.
@@ -241,6 +309,11 @@ class XMLElement(XMLDescriptor):
             return None
 
         # Create a new binder for the existing element.
+        if self._binder is None:
+            # When no binder is provided, return raw Element. This path is
+            # used by XMLValue which overrides __get__ to handle conversion.
+            return element  # type: ignore[return-value]
+
         binder = self._binder(element)
         instance._bindings[hash(self)] = binder
 
@@ -251,10 +324,17 @@ class XMLElement(XMLDescriptor):
         if hash(self) in instance._bindings:
             del instance._bindings[hash(self)]
 
+        if self._binder is None:
+            # No binder - just store the value directly
+            instance._bindings[hash(self)] = value
+            return
+
         # If the value is None, set it to a new element. The binder is expected
         # to understand how to create a new, empty element.
         if value is None:
-            value = self._binder.create()
+            # _binder is typically an XMLNode subclass with a create() method.
+            # Using getattr since Callable type doesn't expose create().
+            value = getattr(self._binder, "create")()
 
         # Create a new binder based on the specified element.
         binder = self._binder(value)
@@ -277,17 +357,40 @@ class XMLElement(XMLDescriptor):
             instance._element.remove(element)
 
 
-class XMLElementList(XMLElement):
-    """XML Element List"""
+class XMLElementList(XMLElement[T]):
+    """Map a container element with repeated child elements to a list.
+
+    This descriptor handles XML structures like:
+        <items>
+            <item>...</item>
+            <item>...</item>
+        </items>
+
+    Generic type parameter T represents the type of items in the list.
+    Each child element is wrapped using the binder to create T instances.
+
+    Example usage:
+        class Container(XMLNode):
+            # items: XMLElementList[Item] - returns MutableSequence[Item]
+            items = XMLElementList("items", child_name="item", binder=Item)
+    """
 
     class List(MutableSequence[Any]):
-        """Internal list."""
+        """Internal mutable list implementation.
+
+        Wraps the XML element children and provides list-like access.
+        Modifications to the list are reflected in the XML structure.
+
+        Note: Uses Any instead of T to avoid TypeVar scope issues with
+        nested classes in Python's type system. Type safety for users is
+        provided by the outer XMLElementList descriptor's return type.
+        """
 
         def __init__(
             self,
-            parent: "XMLElementList",
+            parent: "XMLElementList[Any]",
             element: ElementTree.Element,
-            binder: Any,
+            binder: Callable[[ElementTree.Element], Any],
             qname: str,
         ) -> None:
             super().__init__()
@@ -321,6 +424,7 @@ class XMLElementList(XMLElement):
                 assert item._element is not None
                 element = item._element
             else:
+                # Item is not an XMLNode, assume it's an Element directly
                 element = item
 
             self._element.remove(element)
@@ -335,23 +439,26 @@ class XMLElementList(XMLElement):
         def __setitem__(  # type: ignore[override]
             self, key: int, value: Any
         ) -> None:
-            # Value has to be of the same type as the binder.
-            if not isinstance(value, self._binder):
-                raise TypeError(
-                    "Expected value of {0:s}".format(str(type(self._binder)))
-                )
-
             # If there is a previous value assigned, remove it.
             old = self._list[key]
 
             if old is not None:
-                self._element.remove(old._element)
+                # Access _element attribute - value is expected to be XMLNode
+                old_elem = getattr(old, "_element", None)
+                if old_elem is not None:
+                    self._element.remove(old_elem)
 
-            self._element.insert(key, value._element)
+            # Access _element attribute on value
+            value_elem = getattr(value, "_element", None)
+            if value_elem is not None:
+                self._element.insert(key, value_elem)
             self._list[key] = value
 
         def insert(self, index: int, value: Any) -> None:
-            self._element.insert(index, value._element)
+            # Access _element attribute - value is expected to be XMLNode
+            value_elem = getattr(value, "_element", None)
+            if value_elem is not None:
+                self._element.insert(index, value_elem)
             self._list.insert(index, value)
 
             # Check if nillable.
@@ -362,11 +469,13 @@ class XMLElementList(XMLElement):
         def __str__(self) -> str:
             return str(self._list)
 
+    _child_binder: Callable[[ElementTree.Element], T]
+
     def __init__(
         self,
         name: str,
         child_name: str,
-        binder: Any,
+        binder: Callable[[ElementTree.Element], T],
         namespace: str | None = None,
         child_namespace: str | None = None,
         required: bool = True,
@@ -390,14 +499,28 @@ class XMLElementList(XMLElement):
         else:
             self._child_qname = child_name
 
-    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
-        binder = super().__get__(instance, _owner)
+    @overload
+    def __get__(
+        self, instance: None, owner: type | None = None
+    ) -> "XMLElementList[T]": ...
+
+    @overload
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLElementList.List | None": ...
+
+    # Return type differs from XMLElement.__get__ - returns List instead of T.
+    # This is intentional as XMLElementList wraps elements in a List container.
+    def __get__(  # type: ignore[override]
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLElementList[T] | XMLElementList.List | None":
+        binder = super().__get__(instance, owner)
 
         if binder is None:
             # Element doesn't exist, return None
             return None
         elif binder is self:
-            return binder
+            return self
 
         # Check if nillable.
         if self._nillable:
@@ -419,20 +542,48 @@ class XMLElementList(XMLElement):
         return binder
 
 
-class XMLValue(XMLElement):
-    """XML Value"""
+class XMLValue(XMLElement[T]):
+    """Map an element's text content to a typed Python value.
+
+    Unlike XMLElement which wraps child elements in binder objects,
+    XMLValue extracts and converts the text content of an element.
+
+    Generic type parameter T represents the Python type produced by the
+    converter (e.g., str for StringConverter, int for IntegerConverter).
+
+    Example usage:
+        class Person(XMLNode):
+            # name: XMLValue[str] - accessing person.name returns str
+            name = XMLValue("name", converter=StringConverter)
+            # age: XMLValue[int] - accessing person.age returns int
+            age = XMLValue("age", converter=IntegerConverter)
+
+    The converter protocol defines from_string/to_string methods that
+    handle the conversion between XML text and Python types.
+    """
+
+    # The converter class that transforms between XML strings and type T
+    _converter: type[ConverterProtocol[T]]
 
     def __init__(
         self,
         name: str,
-        converter: type[ConverterProtocol],
+        converter: type[ConverterProtocol[T]],
         namespace: str | None = None,
         required: bool = True,
         nillable: bool = False,
     ) -> None:
+        """Initialize an XMLValue descriptor.
+
+        :param name: The XML element name containing the text value.
+        :param converter: Converter class for string<->T transformation.
+        :param namespace: Optional XML namespace for the element.
+        :param required: If True, setting None raises ValueError.
+        :param nillable: If True, None sets xsi:nil="true" on element.
+        """
         super().__init__(
             name,
-            binder=None,
+            binder=None,  # XMLValue doesn't use a binder - it uses converter
             namespace=namespace,
             required=required,
             nillable=nillable,
@@ -440,8 +591,20 @@ class XMLValue(XMLElement):
 
         self._converter = converter
 
-    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
-        element = super().__get__(instance, _owner)
+    @overload
+    def __get__(
+        self, instance: None, owner: type | None = None
+    ) -> "XMLValue[T]": ...
+
+    @overload
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> T | None: ...
+
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLValue[T] | T | None":
+        element = super().__get__(instance, owner)
 
         if element is None:
             return None
@@ -460,7 +623,7 @@ class XMLValue(XMLElement):
 
         return self._converter.from_string("")
 
-    def __set__(self, instance: Any, value: Any) -> None:
+    def __set__(self, instance: Any, value: T | None) -> None:
         element = super().__get__(instance, None)
 
         if element is None:
@@ -481,17 +644,44 @@ class XMLValue(XMLElement):
         element.text = self._converter.to_string(value)
 
 
-class XMLValueList(XMLElement):
-    """XML Value List"""
+class XMLValueList(XMLElement[T]):
+    """Map a container element with repeated value elements to a list.
+
+    Similar to XMLElementList, but for simple values instead of complex
+    elements. Each child element's text content is converted to type T.
+
+    Example XML:
+        <tags>
+            <tag>python</tag>
+            <tag>xml</tag>
+        </tags>
+
+    Example usage:
+        class Article(XMLNode):
+            # tags: XMLValueList[str] - returns MutableSequence[str]
+            tags = XMLValueList("tags", child_name="tag",
+                                converter=StringConverter)
+
+    Generic type parameter T represents the Python type produced by the
+    converter (e.g., str, int, bool).
+    """
 
     class List(MutableSequence[Any]):
-        """Internal list"""
+        """Internal mutable list implementation for value elements.
+
+        Wraps the XML child elements and provides list-like access.
+        Each element's text content is converted using the converter.
+
+        Note: Uses Any instead of T to avoid TypeVar scope issues with
+        nested classes in Python's type system. Type safety for users is
+        provided by the outer XMLValueList descriptor's return type.
+        """
 
         def __init__(
             self,
-            parent: "XMLValueList",
+            parent: "XMLValueList[Any]",
             element: ElementTree.Element,
-            converter: type[ConverterProtocol],
+            converter: type[ConverterProtocol[Any]],
             qname: str,
         ) -> None:
             super().__init__()
@@ -546,11 +736,13 @@ class XMLValueList(XMLElement):
         def __str__(self) -> str:
             return str(self._list)
 
+    _converter: type[ConverterProtocol[T]]
+
     def __init__(
         self,
         name: str,
         child_name: str,
-        converter: type[ConverterProtocol],
+        converter: type[ConverterProtocol[T]],
         namespace: str | None = None,
         child_namespace: str | None = None,
         required: bool = True,
@@ -574,11 +766,27 @@ class XMLValueList(XMLElement):
         else:
             self._child_qname = child_name
 
-    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
-        binder = super().__get__(instance, _owner)
+    @overload
+    def __get__(
+        self, instance: None, owner: type | None = None
+    ) -> "XMLValueList[T]": ...
+
+    @overload
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLValueList.List | None": ...
+
+    # Return type differs from XMLElement.__get__ - returns List instead of T.
+    # This is intentional as XMLValueList wraps values in a List container.
+    def __get__(  # type: ignore[override]
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLValueList[T] | XMLValueList.List | None":
+        binder = super().__get__(instance, owner)
 
         if binder is self:
-            return binder
+            return self
+        elif binder is None:
+            return None
         elif not isinstance(binder, XMLValueList.List):
             binder = XMLValueList.List(
                 parent=self,
@@ -590,4 +798,4 @@ class XMLValueList(XMLElement):
             instance._bindings[hash(self)] = binder
 
             return binder
-        return None
+        return binder

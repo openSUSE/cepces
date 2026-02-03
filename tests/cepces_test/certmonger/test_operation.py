@@ -497,9 +497,11 @@ def test_get_policies_with_nil_policies_returns_none() -> None:
     assert policies_response.cas is None
 
     # Demonstrate safe iteration pattern:
-    policies = policies_response.response.policies
+    response = policies_response.response
+    assert response is not None
+    policies = response.policies
     if policies is None:
-        templates = None
+        templates: list[str] | None = None
     else:
         templates = [p.attributes.common_name for p in policies]
 
