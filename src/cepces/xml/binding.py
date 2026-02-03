@@ -273,9 +273,12 @@ class XMLElement(XMLDescriptor, Generic[T]):
     def index(self, instance: Any) -> int:
         """Returns the element index of this descriptor for a given class."""
         if not isinstance(type(instance), ListingMeta):
+            # type(instance) is unknown since instance is Any, but we need
+            # its string representation for the error message
+            instance_type = type(instance)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
             raise TypeError(
                 "Expected type ListingMeta, got {0:s}".format(
-                    str(type(instance))
+                    str(instance_type)
                 )
             )
 
@@ -541,7 +544,9 @@ class XMLElementList(XMLElement[T]):
     def __get__(  # type: ignore[override]
         self, instance: Any, owner: type | None = None
     ) -> "XMLElementList[T] | XMLElementList.List | None":
-        result = super().__get__(instance, owner)
+        # Type is unknown here because parent's T is unbound; we cast after
+        # narrowing checks below
+        result = super().__get__(instance, owner)  # type: ignore[reportUnknownVariableType]  # noqa: E501  # noqa: E501
 
         if result is None:
             # Element doesn't exist, return None
@@ -638,7 +643,9 @@ class XMLValue(XMLElement[T]):
     def __get__(
         self, instance: Any, owner: type | None = None
     ) -> "XMLValue[T] | T | None":
-        result = super().__get__(instance, owner)
+        # Type is unknown here because parent's T is unbound; we cast after
+        # narrowing checks below
+        result = super().__get__(instance, owner)  # type: ignore[reportUnknownVariableType]  # noqa: E501
 
         if result is None:
             return None
@@ -659,7 +666,8 @@ class XMLValue(XMLElement[T]):
         return self._converter.from_string(element.text)
 
     def __set__(self, instance: Any, value: T | None) -> None:
-        result = super().__get__(instance, None)
+        # Type is unknown here because parent's T is unbound; we cast below
+        result = super().__get__(instance, None)  # type: ignore[reportUnknownVariableType]  # noqa: E501
 
         if result is None:
             element = ElementTree.Element(self._qname)
@@ -818,7 +826,9 @@ class XMLValueList(XMLElement[T]):
     def __get__(  # type: ignore[override]
         self, instance: Any, owner: type | None = None
     ) -> "XMLValueList[T] | XMLValueList.List | None":
-        result = super().__get__(instance, owner)
+        # Type is unknown here because parent's T is unbound; we cast after
+        # narrowing checks below
+        result = super().__get__(instance, owner)  # type: ignore[reportUnknownVariableType]  # noqa: E501
 
         if result is None:
             return None
