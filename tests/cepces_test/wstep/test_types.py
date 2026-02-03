@@ -374,8 +374,10 @@ class TestSecurityTokenResponseRequestedToken:
         response = SecurityTokenResponse(element)
 
         # Exact access pattern from service.py:135-136
-        uri = response.requested_token.token_reference.reference.uri
-        assert uri == "#pending-request-ref"
+        token_ref = response.requested_token.token_reference
+        assert token_ref is not None
+        assert token_ref.reference is not None
+        assert token_ref.reference.uri == "#pending-request-ref"
 
 
 class TestTypePreservation:

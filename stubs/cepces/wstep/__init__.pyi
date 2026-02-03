@@ -1,0 +1,11 @@
+# Type stubs for cepces.wstep
+
+NS_WST: str
+NS_WST_SECEXT: str
+NS_WST_UTILITY: str
+NS_ENROLLMENT: str
+TOKEN_TYPE: str
+ISSUE_REQUEST_TYPE: str
+QUERY_REQUEST_TYPE: str
+VALUE_TYPE: str
+ENCODING_TYPE: str
