@@ -19,22 +19,35 @@
 """This module contains converters for common XML data types."""
 
 from datetime import datetime, timedelta, tzinfo
-from typing import Any, Protocol
+from typing import Any, Protocol, TypeVar
 import re
 import textwrap
 
+# Type variable for generic converter protocol
+T = TypeVar("T", covariant=True)
 
-class ConverterProtocol(Protocol):
+
+class ConverterProtocol(Protocol[T]):
     """Protocol for converter classes.
 
     This protocol defines the interface that all converters must implement.
     It allows type checking without requiring inheritance, since converters
     have varying method signatures.
+
+    The generic parameter T represents the Python type that this converter
+    produces from XML string values.
+
+    Example:
+        class IntConverter(ConverterProtocol[int]):
+            @staticmethod
+            def from_string(value: str | None) -> int | None: ...
+            @staticmethod
+            def to_string(value: int | None) -> str | None: ...
     """
 
     @staticmethod
-    def from_string(value: Any) -> Any:
-        """Parse a string and convert it to a suitable type."""
+    def from_string(value: Any) -> T | None:
+        """Parse a string and convert it to type T."""
         ...
 
     @staticmethod
