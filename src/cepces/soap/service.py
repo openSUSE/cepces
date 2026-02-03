@@ -32,6 +32,9 @@ class SOAPFault(Exception):
     """Runtime error representing a SOAP fault."""
 
     def __init__(self, fault: Fault) -> None:
+        # code and reason are required elements in a SOAP Fault
+        assert fault.code is not None
+        assert fault.reason is not None
         self._code = fault.code.value
         self._reason = fault.reason.text
 
@@ -121,7 +124,13 @@ class Service(Base):
         # exception from requests.
         # if r.status_code == requests.codes.internal_server_error and \
         #     envelope.body.payload.tag == QNAME_FAULT:
-        if req.status_code == 500 and envelope.body.payload.tag == QNAME_FAULT:
+        # body is always set after Envelope.__init__
+        assert envelope.body is not None
+        if (
+            req.status_code == 500
+            and envelope.body.payload is not None
+            and envelope.body.payload.tag == QNAME_FAULT
+        ):
             fault = Fault(envelope.body.payload)
 
             raise SOAPFault(fault)

@@ -74,6 +74,9 @@ class Service(SOAPService):
 
     def _get_envelope(self, payload: Any) -> Envelope:
         envelope = Envelope()
+        # header and body are always set after Envelope.__init__
+        assert envelope.header is not None
+        assert envelope.body is not None
         envelope.header.action = ACTION
         envelope.header.message_id = "urn:uuid:{0:s}".format(str(uuid.uuid4()))
         envelope.header.to = self._endpoint
@@ -107,6 +110,9 @@ class Service(SOAPService):
         envelope = self._get_envelope(token)
         response = self.send(envelope)
 
+        # body is guaranteed by send(), payload is required by WSTEP protocol
+        if response.body is None or response.body.payload is None:
+            raise RuntimeError("WSTEP response missing body or payload")
         result = SecurityTokenResponseCollection(response.body.payload)
 
         # All responses has to be processed before hand, since they need to be
@@ -161,6 +167,9 @@ class Service(SOAPService):
         envelope = self._get_envelope(token)
         response = self.send(envelope)
 
+        # body is guaranteed by send(), payload is required by WSTEP protocol
+        if response.body is None or response.body.payload is None:
+            raise RuntimeError("WSTEP response missing body or payload")
         result = SecurityTokenResponseCollection(response.body.payload)
 
         # All responses has to be processed before hand, since they need to be
