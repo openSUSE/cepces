@@ -128,12 +128,14 @@ class Service(SOAPService):
                     ),
                 )
             else:
+                # token_reference and reference are expected to exist when
+                # there's no certificate (pending request case)
+                ref = response.requested_token.token_reference
+                assert ref is not None and ref.reference is not None
                 results.append(
                     Service.Response(
                         request_id=response.request_id,
-                        reference=(
-                            response.requested_token.token_reference.reference.uri  # noqa: E501
-                        ),
+                        reference=ref.reference.uri,
                     ),
                 )
 
@@ -154,7 +156,7 @@ class Service(SOAPService):
         # _element is always set after SecurityTokenRequest.__init__
         assert token._element is not None
         token._element.append(element)
-        token.request_id = request_id
+        token.request_id = int(request_id)
 
         envelope = self._get_envelope(token)
         response = self.send(envelope)
@@ -180,12 +182,14 @@ class Service(SOAPService):
                     ),
                 )
             else:
+                # token_reference and reference are expected to exist when
+                # there's no certificate (pending request case)
+                ref = response.requested_token.token_reference
+                assert ref is not None and ref.reference is not None
                 results.append(
                     Service.Response(
                         request_id=response.request_id,
-                        reference=(
-                            response.requested_token.token_reference.reference.uri  # noqa: E501
-                        ),
+                        reference=ref.reference.uri,
                     ),
                 )
 
