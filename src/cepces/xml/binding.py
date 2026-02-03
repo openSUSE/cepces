@@ -123,20 +123,32 @@ class ListingMeta(type):
         return klass
 
 
-class XMLAttribute(XMLDescriptor):
-    """This class binds to an attribute of an element."""
+class XMLAttribute(XMLDescriptor, Generic[T]):
+    """Bind an XML attribute to a typed Python value.
 
-    _converter: type[ConverterProtocol]
+    This is a generic descriptor where T represents the type returned when
+    accessing the attribute on an instance. The converter transforms between
+    XML string values and Python type T.
+
+    Example usage:
+        class Element(XMLNode):
+            # name: XMLAttribute[str] - accessing element.name returns str
+            name = XMLAttribute("name", converter=StringConverter)
+            # count: XMLAttribute[int] - accessing element.count returns int
+            count = XMLAttribute("count", converter=IntegerConverter)
+    """
+
+    _converter: type[ConverterProtocol[T]]
 
     def __init__(
         self,
         name: str,
         namespace: str | None = None,
-        converter: type[ConverterProtocol] | None = None,
+        converter: type[ConverterProtocol[T]] | None = None,
     ) -> None:
         """Initializes a new `XMLAttribute`.
 
-        :param name: The name of the element to bind with.
+        :param name: The name of the attribute to bind with.
         :param namespace: An optional namespace.
         :param converter: An optional data type converter.
         """
@@ -144,16 +156,31 @@ class XMLAttribute(XMLDescriptor):
 
         # Use a StringConverter if None is given.
         if converter is None:
-            converter = StringConverter
+            # Default to StringConverter, cast needed for type checker
+            self._converter = cast(type[ConverterProtocol[T]], StringConverter)
+        else:
+            self._converter = converter
 
-        self._converter = converter
+    @overload
+    def __get__(
+        self, instance: None, owner: type | None = None
+    ) -> "XMLAttribute[T]": ...
 
-    def __get__(self, instance: Any, _owner: type | None = None) -> Any:
+    @overload
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> T | None: ...
+
+    def __get__(
+        self, instance: Any, owner: type | None = None
+    ) -> "XMLAttribute[T] | T | None":
+        if instance is None:
+            return self
+
         attribute = instance._element.get(self._qname)
-
         return self._converter.from_string(attribute)
 
-    def __set__(self, instance: Any, value: Any) -> None:
+    def __set__(self, instance: Any, value: T | None) -> None:
         instance._element.set(self._qname, self._converter.to_string(value))
 
     def __delete__(self, instance: Any) -> None:
