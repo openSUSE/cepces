@@ -611,31 +611,34 @@ class XMLValue(XMLElement[T]):
     def __get__(
         self, instance: Any, owner: type | None = None
     ) -> "XMLValue[T] | T | None":
-        element = super().__get__(instance, owner)
+        result = super().__get__(instance, owner)
 
-        if element is None:
+        if result is None:
             return None
-        elif element is self:
+        elif result is self:
             return self
+
+        # After the above checks, result is the raw Element (since binder=None
+        # in __init__).
+        element = cast(ElementTree.Element, result)
 
         # Check if nillable.
         if self._nillable:
-            if hasattr(element, "attrib") and ATTR_NIL in element.attrib:
+            if ATTR_NIL in element.attrib:
                 if element.get(ATTR_NIL) == "true":
                     # Since nil=true, return None regardless of any text.
                     return None
 
-        if hasattr(element, "text"):
-            return self._converter.from_string(element.text)
-
-        return self._converter.from_string("")
+        return self._converter.from_string(element.text)
 
     def __set__(self, instance: Any, value: T | None) -> None:
-        element = super().__get__(instance, None)
+        result = super().__get__(instance, None)
 
-        if element is None:
+        if result is None:
             element = ElementTree.Element(self._qname)
             super().__set__(instance, element)
+        else:
+            element = cast(ElementTree.Element, result)
 
         if self._nillable:
             attr = "{{{0:s}}}{1:s}".format(NS_XSI, "nil")
