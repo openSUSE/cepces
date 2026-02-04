@@ -76,12 +76,11 @@ class Converter:
         if value is None:
             return None
         elif not isinstance(value, value_type):
-            raise TypeError(
-                "Unsupported type (got '{}', expected '{}')".format(
-                    type(value),
-                    value_type,
-                )
-            )
+            # type(value) returns type[Unknown] when value is Any
+            actual_type: type = type(value)  # type: ignore[assignment]
+            msg = f"Unsupported type (got '{actual_type}', "
+            msg += f"expected '{value_type}')"
+            raise TypeError(msg)
         else:
             return value
 
@@ -97,12 +96,11 @@ class Converter:
         if value is None:
             return None
         elif not isinstance(value, value_type):
-            raise TypeError(
-                "Unsupported type (got '{}', expected '{}')".format(
-                    type(value),
-                    value_type,
-                )
-            )
+            # type(value) returns type[Unknown] when value is Any
+            actual_type: type = type(value)  # type: ignore[assignment]
+            msg = f"Unsupported type (got '{actual_type}', "
+            msg += f"expected '{value_type}')"
+            raise TypeError(msg)
         else:
             return str(value)
 
