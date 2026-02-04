@@ -136,6 +136,11 @@ class Service(Base):
         return templates
 
     @property
+    def poll_interval(self) -> str | None:
+        """Get the poll interval from configuration."""
+        return self._config.poll_interval
+
+    @property
     def endpoints(self) -> list["Service.Endpoint"] | None:
         """Retrieves a list of WSTEP suitable endpoints.
 
