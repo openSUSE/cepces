@@ -87,11 +87,16 @@ reportUnknownMemberType = "error"
 reportUnknownArgumentType = "error"
 reportMissingParameterType = "error"
 
-# Ignore these for now
-reportMissingTypeStubs = "none"
+# Strict checks
+reportMissingTypeStubs = "error"
+reportPrivateUsage = "error"
+reportPrivateImportUsage = "error"
+reportUntypedFunctionDecorator = "error"
+
+# Allow private attribute access in tests (common testing pattern)
+[[tool.pyright.executionEnvironments]]
+root = "tests"
 reportPrivateUsage = "none"
-reportPrivateImportUsage = "none"
-reportUntypedFunctionDecorator = "none"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
