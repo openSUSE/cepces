@@ -154,14 +154,16 @@ class TransportGSSAPIAuthentication(Authentication):
             # b"ccache": "MEMORY:cepces",
         }
 
+        # gssapi stubs don't expose return type or 'store' parameter
         gssapi_cred = gssapi.raw.acquire_cred_from(  # type: ignore[call-arg]
-            store=store,  # type stub missing 'store' parameter
+            store=store,
             name=gss_name,
             mechs=[krb5_mech],
             usage="initiate",
         )
 
-        return gssapi_cred
+        # pyright: ignore - gssapi stubs don't expose AcquireCredResult type
+        return gssapi_cred  # pyright: ignore[reportUnknownVariableType]
 
     def _init_transport(self, gssapi_cred: Any = None) -> None:
         # If no "principal" was specified, krb5 will use the default principal
