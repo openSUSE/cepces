@@ -98,7 +98,8 @@ def test_listing_meta_listing_attribute(mock_class: type) -> None:
 def test_listing_meta_ordered_listing(mock_class: type) -> None:
     """Test that listing is ordered correctly"""
     dummy = mock_class
-    listing = dummy.__listing__
+    # __listing__ is dynamically added by ListingMeta metaclass
+    listing: list[tuple[str, XMLDescriptor]] = getattr(dummy, "__listing__")
 
     assert listing[0][0] == "first"
     assert listing[1][0] == "second"
