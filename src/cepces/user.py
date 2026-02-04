@@ -131,7 +131,12 @@ class UserEnrollment:
         csr = csr.add_extension(
             x509.UnrecognizedExtension(
                 oid=x509.ObjectIdentifier("1.3.6.1.4.1.311.20.2"),
-                value=encode(char.BMPString(profile)),
+                # pyasn1 stubs don't properly type BMPString
+                value=encode(
+                    char.BMPString(
+                        profile
+                    )  # pyright: ignore[reportUnknownArgumentType]
+                ),
             ),
             critical=False,
         )
