@@ -92,9 +92,9 @@ class TestSecurityTokenRequestCreate:
 
         encoding_type = token.get("EncodingType")
         assert encoding_type is not None, "EncodingType attribute is missing"
-        assert (
-            encoding_type == ENCODING_TYPE
-        ), f"EncodingType should be {ENCODING_TYPE}, got {encoding_type}"
+        assert encoding_type == ENCODING_TYPE, (
+            f"EncodingType should be {ENCODING_TYPE}, got {encoding_type}"
+        )
 
     def test_binary_security_token_has_wsu_id(self):
         """BinarySecurityToken must have wsu:Id attribute."""
@@ -116,7 +116,7 @@ class TestReference:
 
     def test_uri_attribute_parsing(self):
         """Reference should parse URI attribute."""
-        xml = f'<Reference xmlns="{NS_WST_SECEXT}" ' f'URI="#token123" />'
+        xml = f'<Reference xmlns="{NS_WST_SECEXT}" URI="#token123" />'
         element = ElementTree.fromstring(xml)
         ref = Reference(element)
 
@@ -325,7 +325,7 @@ class TestSecurityTokenResponseRequestedToken:
         <DispositionMessage xmlns="{NS_ENROLLMENT}">Issued</DispositionMessage>
         <RequestID xmlns="{NS_ENROLLMENT}">12345</RequestID>
         <RequestedSecurityToken>
-            <BinarySecurityToken xmlns="{NS_WST_SECEXT}">MIIB{'A'*100}</BinarySecurityToken>
+            <BinarySecurityToken xmlns="{NS_WST_SECEXT}">MIIB{"A" * 100}</BinarySecurityToken>
         </RequestedSecurityToken>
         </RequestSecurityTokenResponse>"""  # noqa: E501
         element = ElementTree.fromstring(xml)

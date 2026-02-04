@@ -30,7 +30,7 @@ from cepces.wstep.types import SecurityTokenRequest
 from cepces.wstep.types import SecurityTokenResponseCollection
 
 ACTION = (
-    "http://schemas.microsoft.com/windows/pki/2009/01/enrollment/" "RST/wstep"
+    "http://schemas.microsoft.com/windows/pki/2009/01/enrollment/RST/wstep"
 )
 
 

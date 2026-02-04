@@ -128,15 +128,12 @@ class UserEnrollment:
                 ]
             )
         )
+        # pyasn1 stubs don't properly type BMPString
+        bmp_string = char.BMPString(profile)
         csr = csr.add_extension(
             x509.UnrecognizedExtension(
                 oid=x509.ObjectIdentifier("1.3.6.1.4.1.311.20.2"),
-                # pyasn1 stubs don't properly type BMPString
-                value=encode(
-                    char.BMPString(
-                        profile
-                    )  # pyright: ignore[reportUnknownArgumentType]
-                ),
+                value=encode(bmp_string),  # pyright: ignore[reportUnknownArgumentType]
             ),
             critical=False,
         )

@@ -509,8 +509,7 @@ class KdialogBackend(CredentialBackend):
         """
         if not self._kdialog_available:
             self._logger.error(
-                "Cannot prompt for password: "
-                "kdialog utility is not available"
+                "Cannot prompt for password: kdialog utility is not available"
             )
             return None
 

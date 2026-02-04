@@ -220,9 +220,9 @@ class MessageUsernamePasswordAuthentication(Authentication):
 
         # m = hashlib.sha1()
         # m.update(self._nonce)
-        # m.update(self._created.strftime("%Y-%m-%dT%H:%M:%SZ").encode("utf-8"))
-        # m.update(self._password.encode("utf-8"))
-        # self._password = base64.b64encode(m.digest()).decode("utf-8")
+        # m.update(self._created.strftime("%Y-%m-%dT%H:%M:%SZ").encode())
+        # m.update(self._password.encode())
+        # self._password = base64.b64encode(m.digest()).decode()
 
         self._nonce = base64.b64encode(self._nonce).decode("utf-8")  # type: ignore[assignment]  # noqa: E501
 
