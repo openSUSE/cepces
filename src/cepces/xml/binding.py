@@ -273,13 +273,11 @@ class XMLElement(XMLDescriptor, Generic[T]):
     def index(self, instance: Any) -> int:
         """Returns the element index of this descriptor for a given class."""
         if not isinstance(type(instance), ListingMeta):
-            # type(instance) is unknown since instance is Any, but we need
-            # its string representation for the error message
-            instance_type = type(instance)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+            # type(instance) returns type[Unknown] since instance is Any.
+            # Cast to type for error message - we only need its string repr.
+            instance_type: type = type(instance)  # type: ignore[assignment]
             raise TypeError(
-                "Expected type ListingMeta, got {0:s}".format(
-                    str(instance_type)
-                )
+                f"Expected type ListingMeta, got {instance_type!s}"
             )
 
         # Get the index of the descriptor.
