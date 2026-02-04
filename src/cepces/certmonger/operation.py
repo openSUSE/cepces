@@ -160,7 +160,7 @@ class Submit(Operation):
         # Output a "cookie" that can be used to later poll the status.
         print(
             "{}\n{},{}".format(
-                service._config.poll_interval,
+                service.poll_interval,
                 result.request_id,
                 result.reference,
             ),
@@ -208,7 +208,7 @@ class Poll(Operation):
         # Output a "cookie" that can be used to later poll the status.
         print(
             "{}\n{},{}".format(
-                service._config.poll_interval,
+                service.poll_interval,
                 result.request_id,
                 result.reference,
             ),
