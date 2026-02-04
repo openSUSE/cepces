@@ -41,6 +41,7 @@ DEFAULT_CONFIG_FILES = [
 
 DEFAULT_CONFIG_DIRS = [
     "/etc/cepces/conf.d",
+    "/usr/etc/cepces/conf.d",
     "/usr/local/etc/cepces/conf.d",
     "conf/conf.d",
 ]
