@@ -27,6 +27,9 @@ from cepces.xml import NS_XSI
 from cepces.xml.binding import XMLElement, XMLNode, XMLValue
 from cepces.xml.converter import StringConverter, DateTimeConverter
 
+# Type alias for XML payload - when binder=None, XMLElement returns raw Element
+_PayloadElement = XMLElement[Element]
+
 
 class FaultSubcode(XMLNode):
     """SOAP Fault Subcode."""
@@ -199,7 +202,9 @@ class Header(XMLNode):
 class Body(XMLNode):
     """SOAP Body."""
 
-    payload = XMLElement("*", binder=None, required=False)
+    # payload returns raw Element when binder=None. Type annotation helps
+    # type checker understand the descriptor's return type.
+    payload: _PayloadElement = XMLElement("*", binder=None, required=False)
 
     @staticmethod
     def create() -> Element:
