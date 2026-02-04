@@ -203,9 +203,7 @@ class XMLNode(metaclass=ListingMeta):
             element = self.create()
         elif not isinstance(element, ElementTree.Element):
             raise TypeError(
-                "Expected {0:s}, got {1:s}".format(
-                    ElementTree.__name__, element.__class__.__name__
-                )
+                f"Expected Element, got {element.__class__.__name__}"
             )
 
         self._element: ElementTree.Element | None = element

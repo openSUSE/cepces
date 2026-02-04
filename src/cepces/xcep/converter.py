@@ -44,7 +44,7 @@ class ClientAuthenticationConverter(IntegerConverter):
         values = [v[0] for v in ClientAuthenticationConverter.MAP]
 
         if value is None:
-            return value
+            return None
         elif not isinstance(value, str):
             raise TypeError("Unsupported type.")
         elif int(value) not in values:

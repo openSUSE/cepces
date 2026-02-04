@@ -70,28 +70,11 @@ include = ["src", "tests"]
 exclude = ["stubs", "tests/manual"]
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
-typeCheckingMode = "standard"
-
-# Stubs are excluded from checking but used for type information
+typeCheckingMode = "strict"
 stubPath = "stubs"
 
-# Keep critical errors as errors
-reportIncompatibleMethodOverride = "error"
-reportGeneralTypeIssues = "error"
-reportMissingImports = "error"
-
-# Type annotation requirements - all as errors
-reportUnknownParameterType = "error"
-reportUnknownVariableType = "error"
-reportUnknownMemberType = "error"
-reportUnknownArgumentType = "error"
-reportMissingParameterType = "error"
-
-# Strict checks
-reportMissingTypeStubs = "error"
-reportPrivateUsage = "error"
-reportPrivateImportUsage = "error"
-reportUntypedFunctionDecorator = "error"
+# Allow isinstance checks for runtime validation even when type is known
+reportUnnecessaryIsInstance = "none"
 
 # Allow private attribute access in tests (common testing pattern)
 [[tool.pyright.executionEnvironments]]
