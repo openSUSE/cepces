@@ -275,7 +275,7 @@ def test_get_supported_templates_from_xml_response() -> None:
     assert policy.attributes.common_name == "Machine"
 
     # Extract templates the same way Service.templates property does
-    templates = []
+    templates: list[str | None] = []
     for policy in policies_response.response.policies:
         templates.append(policy.attributes.common_name)
 
