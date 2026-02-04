@@ -65,7 +65,7 @@ include = ["src", "tests"]
 exclude = ["stubs", "tests/manual"]
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
-typeCheckingMode = "basic"
+typeCheckingMode = "standard"
 
 # Stubs are excluded from checking but used for type information
 stubPath = "stubs"
@@ -75,11 +75,11 @@ reportIncompatibleMethodOverride = "error"
 reportGeneralTypeIssues = "error"
 reportMissingImports = "error"
 
-# Relax type annotation requirements to warnings
-reportUnknownParameterType = "warning"
-reportUnknownVariableType = "warning"
-reportUnknownMemberType = "warning"
-reportUnknownArgumentType = "warning"
+# Type annotation requirements - all as errors
+reportUnknownParameterType = "error"
+reportUnknownVariableType = "error"
+reportUnknownMemberType = "error"
+reportUnknownArgumentType = "error"
 reportMissingParameterType = "error"
 
 # Ignore these for now
