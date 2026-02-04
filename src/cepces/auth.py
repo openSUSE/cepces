@@ -55,7 +55,7 @@ def _get_display_config_from_parser(
     if display_value is None or display_value == "":
         return None
 
-    env_var = Configuration._detect_display_type(display_value)
+    env_var = Configuration.detect_display_type(display_value)
     return (env_var, display_value)
 
 
