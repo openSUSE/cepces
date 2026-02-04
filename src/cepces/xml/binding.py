@@ -270,6 +270,11 @@ class XMLElement(XMLDescriptor, Generic[T]):
         self._required = required
         self._nillable = nillable
 
+    @property
+    def nillable(self) -> bool:
+        """Whether this element supports xsi:nil."""
+        return self._nillable
+
     def index(self, instance: Any) -> int:
         """Returns the element index of this descriptor for a given class."""
         if not isinstance(type(instance), ListingMeta):
@@ -448,9 +453,9 @@ class XMLElementList(XMLElement[T]):
 
             element: ElementTree.Element
             if isinstance(item, XMLNode):
-                # _element is set in XMLNode.__init__, so it's never None here
-                assert item._element is not None
-                element = item._element
+                # element is set in XMLNode.__init__, so it's never None here
+                assert item.element is not None
+                element = item.element
             else:
                 # Item is not an XMLNode, assume it's an Element directly
                 element = item
@@ -459,7 +464,7 @@ class XMLElementList(XMLElement[T]):
 
             del self._list[key]
 
-            if self._parent._nillable:
+            if self._parent.nillable:
                 if not self._list:
                     self._element.set(ATTR_NIL, "true")
                     self._element.text = None
@@ -490,7 +495,7 @@ class XMLElementList(XMLElement[T]):
             self._list.insert(index, value)
 
             # Check if nillable.
-            if self._parent._nillable:
+            if self._parent.nillable:
                 if ATTR_NIL in self._element.attrib:
                     del self._element.attrib[ATTR_NIL]
 
@@ -754,7 +759,7 @@ class XMLValueList(XMLElement[T]):
             self._element.remove(item)
             del self._list[key]
 
-            if self._parent._nillable:
+            if self._parent.nillable:
                 if not self._list:
                     self._element.set(ATTR_NIL, "true")
                     self._element.text = None
@@ -772,7 +777,7 @@ class XMLValueList(XMLElement[T]):
             self._list.insert(index, element)
 
             # Check if nillable.
-            if self._parent._nillable:
+            if self._parent.nillable:
                 if ATTR_NIL in self._element.attrib:
                     del self._element.attrib[ATTR_NIL]
 
