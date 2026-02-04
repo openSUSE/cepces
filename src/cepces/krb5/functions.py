@@ -53,7 +53,8 @@ class Error(RuntimeError):
 def error_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator for wrapping a function that raises errors on failed
     Kerberos calls."""
-    if func.restype is not ktypes.krb5_error_code:
+    # restype is a ctypes function attribute, not on standard Callable
+    if getattr(func, "restype", None) is not ktypes.krb5_error_code:
         return func
 
     @functools.wraps(func)
