@@ -140,11 +140,11 @@ class Configuration(Base):
         if self._display is None or self._display == "":
             return None
 
-        env_var = self._detect_display_type(self._display)
+        env_var = self.detect_display_type(self._display)
         return (env_var, self._display)
 
     @staticmethod
-    def _detect_display_type(display_value: str) -> str:
+    def detect_display_type(display_value: str) -> str:
         """Detect whether a display value is for Xorg or Wayland.
 
         Args:
