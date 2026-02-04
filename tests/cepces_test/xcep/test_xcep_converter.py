@@ -33,11 +33,11 @@ def test_client_authentication_converter_from_string() -> None:
     for i in range(len(converter.ClientAuthenticationConverter.MAP)):
         result = c.from_string(str(1 << i))
 
-        assert (
-            converter.ClientAuthenticationConverter.MAP[i][1] == result
-        ), "{} should return {}".format(
-            str(i),
-            converter.ClientAuthenticationConverter.MAP[i][1],
+        assert converter.ClientAuthenticationConverter.MAP[i][1] == result, (
+            "{} should return {}".format(
+                str(i),
+                converter.ClientAuthenticationConverter.MAP[i][1],
+            )
         )
         assert isinstance(result, str), "{} should be of type str".format(
             str(i)

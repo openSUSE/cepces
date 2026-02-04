@@ -38,7 +38,7 @@ QUERY_REQUEST_TYPE = (
     "enrollment/QueryTokenStatus"
 )
 VALUE_TYPE = (
-    "http://schemas.microsoft.com/windows/pki/2009/01/" "enrollment#PKCS10"
+    "http://schemas.microsoft.com/windows/pki/2009/01/enrollment#PKCS10"
 )
 ENCODING_TYPE = (
     "http://docs.oasis-open.org/wss/2004/01/"
