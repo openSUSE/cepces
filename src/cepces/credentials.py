@@ -278,7 +278,7 @@ class PinentryBackend(CredentialBackend):
         """
         return False
 
-    def _run_pinentry(self, commands: list[str]) -> dict[str, str | bool]:
+    def run_pinentry(self, commands: list[str]) -> dict[str, str | bool]:
         """Run pinentry with the given commands.
 
         Args:
@@ -355,7 +355,7 @@ class PinentryBackend(CredentialBackend):
         ]
 
         try:
-            username_responses = self._run_pinentry(username_commands)
+            username_responses = self.run_pinentry(username_commands)
 
             if "error" in username_responses:
                 self._logger.debug("User cancelled username prompt")
@@ -398,7 +398,7 @@ class PinentryBackend(CredentialBackend):
         ]
 
         try:
-            responses = self._run_pinentry(commands)
+            responses = self.run_pinentry(commands)
 
             if "error" in responses:
                 self._logger.debug(
@@ -763,9 +763,9 @@ class CredentialsHandler(Base):
 
         This property is maintained for backward compatibility with tests.
         """
-        return self._pinentry_handler._pinentry_available
+        return self._pinentry_handler.is_supported()
 
-    def _run_pinentry(self, commands: list[str]) -> dict[str, str | bool]:
+    def run_pinentry(self, commands: list[str]) -> dict[str, str | bool]:
         """Run pinentry with the given commands.
 
         This method is maintained for backward compatibility with tests.
@@ -780,7 +780,7 @@ class CredentialsHandler(Base):
         Raises:
             CredentialsOperationError: If pinentry execution fails
         """
-        return self._pinentry_handler._run_pinentry(commands)
+        return self._pinentry_handler.run_pinentry(commands)
 
     def is_supported(self) -> bool:
         """Check if credential prompting is supported on this system.
