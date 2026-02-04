@@ -108,7 +108,7 @@ def test_credentials_handler_run_pinentry_success(
     )
 
     handler = CredentialsHandler()
-    responses = handler._run_pinentry(["GETPIN"])
+    responses = handler.run_pinentry(["GETPIN"])
 
     assert responses["data"] == "test_data"
     assert responses["ok"] is True
@@ -122,13 +122,13 @@ def test_credentials_handler_run_pinentry_success(
 def test_credentials_handler_run_pinentry_when_unavailable(
     mock_which: MagicMock,
 ) -> None:
-    """Test _run_pinentry when pinentry is unavailable"""
+    """Test run_pinentry when pinentry is unavailable"""
     mock_which.return_value = None
 
     handler = CredentialsHandler()
 
     with pytest.raises(CredentialsNotFoundError) as exc_info:
-        handler._run_pinentry(["GETPIN"])
+        handler.run_pinentry(["GETPIN"])
 
     assert "pinentry utility not found" in str(exc_info.value)
 
@@ -145,7 +145,7 @@ def test_credentials_handler_run_pinentry_error_response(
     )
 
     handler = CredentialsHandler()
-    responses = handler._run_pinentry(["GETPIN"])
+    responses = handler.run_pinentry(["GETPIN"])
 
     assert "error" in responses
     error = responses["error"]
@@ -342,14 +342,14 @@ def test_credentials_handler_prompt_credentials_when_unavailable(
 def test_credentials_handler_run_pinentry_file_not_found(
     mock_run: MagicMock, mock_which: MagicMock
 ) -> None:
-    """Test _run_pinentry when command raises FileNotFoundError"""
+    """Test run_pinentry when command raises FileNotFoundError"""
     mock_which.return_value = "/usr/bin/pinentry"
     mock_run.side_effect = FileNotFoundError()
 
     handler = CredentialsHandler()
 
     with pytest.raises(CredentialsNotFoundError) as exc_info:
-        handler._run_pinentry(["GETPIN"])
+        handler.run_pinentry(["GETPIN"])
 
     assert "pinentry utility not found" in str(exc_info.value)
 
