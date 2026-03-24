@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-03-24
 
 ### Added
 
@@ -230,7 +230,7 @@ No notable user-facing changes.
 - Basic XML binding and type converters.
 - krb5 credential cache integration.
 
-[Unreleased]: https://github.com/openSUSE/cepces/compare/v0.3.17...HEAD
+[0.4.0]: https://github.com/openSUSE/cepces/compare/v0.3.17...v0.4.0
 [0.3.17]: https://github.com/openSUSE/cepces/compare/v0.3.16...v0.3.17
 [0.3.16]: https://github.com/openSUSE/cepces/compare/v0.3.15...v0.3.16
 [0.3.15]: https://github.com/openSUSE/cepces/compare/v0.3.14...v0.3.15
