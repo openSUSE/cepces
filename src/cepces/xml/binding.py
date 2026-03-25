@@ -356,8 +356,12 @@ class XMLElement(XMLDescriptor, Generic[T]):
             del instance._bindings[hash(self)]
 
         if self._binder is None:
-            # No binder - just store the value directly
+            # No binder - store the value directly and insert into
+            # parent element.
             instance._bindings[hash(self)] = value
+            if value is not None:
+                index = self.index(instance)
+                instance._element.insert(index, value)
             return
 
         # If the value is None, set it to a new element. The binder is expected

@@ -530,6 +530,32 @@ class TestXMLElementSet:
         assert isinstance(inner, InnerNode)
         assert inner.value == "set-value"
 
+    def test_set_no_binder_inserts_into_parent_xml(self) -> None:
+        """XMLElement with binder=None should insert the value into the
+        parent XML element (regression test for issue #99)."""
+
+        class Container(XMLNode):
+            payload: XMLElement[ElementTree.Element] = XMLElement(
+                "*", binder=None, required=False
+            )
+
+            @staticmethod
+            def create() -> ElementTree.Element:
+                return ElementTree.Element("container")
+
+        container = Container()
+        child = ElementTree.Element("child")
+        child.text = "hello"
+
+        container.payload = child
+
+        assert container._element is not None
+        serialized = ElementTree.tostring(container._element).decode()
+        assert "<child>" in serialized, (
+            "Child element was not inserted into parent XML — "
+            "Body would be serialized as empty <Body />"
+        )
+
 
 class TestXMLElementDelete:
     """Tests for XMLElement.__delete__ behavior."""
