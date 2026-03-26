@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-03-26
+
+### Fixed
+
+- `XMLElement` with `binder=None` now correctly inserts the child element
+  into the parent XML tree. This was a regression in 0.4.0 that caused
+  `Body.payload` to produce an empty `<Body />`, breaking all
+  Enrollment-type configurations (#99).
+
 ## [0.4.0] - 2026-03-24
 
 ### Added
@@ -230,6 +239,7 @@ No notable user-facing changes.
 - Basic XML binding and type converters.
 - krb5 credential cache integration.
 
+[0.4.1]: https://github.com/openSUSE/cepces/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/openSUSE/cepces/compare/v0.3.17...v0.4.0
 [0.3.17]: https://github.com/openSUSE/cepces/compare/v0.3.16...v0.3.17
 [0.3.16]: https://github.com/openSUSE/cepces/compare/v0.3.15...v0.3.16
