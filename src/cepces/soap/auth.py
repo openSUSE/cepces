@@ -30,7 +30,6 @@ from datetime import datetime
 import gssapi
 from requests_gssapi import HTTPSPNEGOAuth
 from cepces import Base
-from cepces.krb5 import types as ktypes
 from cepces.krb5.core import Context, Principal, get_default_keytab_name
 from cepces.soap.types import Security as WSSecurity, UsernameToken
 
@@ -115,15 +114,8 @@ class TransportGSSAPIAuthentication(Authentication):
         # This is important for usage with init_ccache=False.
         if self._config.name is not None and self._config.name.strip() != "":
             # Create a valid principal using default realm if none is specified
-            principal = Principal(
-                context,
-                name=self._config.name,
-                service_type=ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL,
-            )
-            self._config.principal = "%s@%s" % (
-                principal.primary,
-                principal.realm,
-            )
+            principal = Principal(context, name=self._config.name)
+            self._config.principal = str(principal)
 
         # Only initialize a credential cache if requested. Otherwise, rely on
         # a credential cache already being available.

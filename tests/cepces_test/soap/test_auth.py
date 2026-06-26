@@ -17,7 +17,7 @@
 #
 """Tests for cepces.soap.auth module."""
 
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 
 from cepces.soap.auth import (
     TransportGSSAPIAuthentication,
@@ -73,14 +73,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_get_keytab.return_value = "/etc/krb5.keytab"
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
@@ -123,11 +116,8 @@ class TestTransportGSSAPIAuthentication:
         mock_context.return_value = mock_context_instance
 
         mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="myuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="TEST.REALM"
+        type(mock_principal_instance).__str__ = MagicMock(
+            return_value="myuser@TEST.REALM"
         )
         mock_principal.return_value = mock_principal_instance
 
@@ -139,10 +129,11 @@ class TestTransportGSSAPIAuthentication:
             principal_name="myuser@TEST.REALM"
         )
 
-        # Verify Principal was created with the specified name
+        # Verify Principal was created with the specified name, no service_type
         mock_principal.assert_called_once()
         call_kwargs = mock_principal.call_args[1]
         assert call_kwargs["name"] == "myuser@TEST.REALM"
+        assert "service_type" not in call_kwargs
 
     @patch("cepces.soap.auth.Context")
     @patch("cepces.soap.auth.Principal")
@@ -166,14 +157,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
 
@@ -216,14 +200,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_get_keytab.return_value = "/etc/krb5.keytab"
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
@@ -258,14 +235,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_get_keytab.return_value = "/etc/krb5.keytab"
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
@@ -301,14 +271,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_get_keytab.return_value = "/etc/krb5.keytab"
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
@@ -341,14 +304,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_get_keytab.return_value = "/etc/krb5.keytab"
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
@@ -384,14 +340,7 @@ class TestTransportGSSAPIAuthentication:
         mock_context_instance = MagicMock()
         mock_context.return_value = mock_context_instance
 
-        mock_principal_instance = MagicMock()
-        type(mock_principal_instance).primary = PropertyMock(
-            return_value="testuser"
-        )
-        type(mock_principal_instance).realm = PropertyMock(
-            return_value="EXAMPLE.COM"
-        )
-        mock_principal.return_value = mock_principal_instance
+        mock_principal.return_value = MagicMock()
 
         mock_get_keytab.return_value = "/etc/krb5.keytab"
         mock_acquire_cred.return_value = MagicMock(creds=MagicMock())
