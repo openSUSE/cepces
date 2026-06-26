@@ -77,7 +77,7 @@ class PrincipalName(Base):
         context: "Context",
         host: bytes | None,
         service: bytes | None,
-        service_type: int,
+        service_type: int | None,
     ) -> None:
         super().__init__(None)
 
@@ -92,7 +92,9 @@ class PrincipalName(Base):
                 context.handle,
                 host,
                 service,
-                service_type,
+                ktypes.PrincipalType.KRB5_NT_SRV_HST
+                if service_type is None
+                else service_type,
                 principal.handle,
             )
 
@@ -115,8 +117,27 @@ class PrincipalName(Base):
             raise ValueError(f"Invalid principal format: {name}")
 
         self._primary: str = primary
-        self._instance: str | None = match.group("instance")
         self._realm: str = realm
+
+        raw_instance = match.group("instance")
+        if raw_instance and "/" in raw_instance:
+            parts = raw_instance.split("/", 1)
+            self._instance: str | None = parts[0]
+            self._domain: str | None = parts[1]
+        else:
+            self._instance = raw_instance
+            self._domain = None
+
+        if service_type is not None:
+            self._service_type: int = service_type
+        elif self._domain is not None:
+            self._service_type = ktypes.PrincipalType.KRB5_NT_SRV_HST_DOMAIN
+        elif self._instance is not None:
+            self._service_type = ktypes.PrincipalType.KRB5_NT_SRV_HST
+        else:
+            self._service_type = (
+                ktypes.PrincipalType.KRB5_NT_ENTERPRISE_PRINCIPAL
+            )
 
     @property
     def primary(self) -> str:
@@ -129,9 +150,19 @@ class PrincipalName(Base):
         return self._instance
 
     @property
+    def domain(self) -> str | None:
+        """Get the domain component of a domain-based service name."""
+        return self._domain
+
+    @property
     def realm(self) -> str:
         """Get the realm component of the name."""
         return self._realm
+
+    @property
+    def service_type(self) -> int:
+        """Get the principal type."""
+        return self._service_type
 
 
 class Principal(Base):
@@ -143,7 +174,7 @@ class Principal(Base):
         name: str | None = None,
         host: bytes | None = None,
         service: bytes | None = None,
-        service_type: int = ktypes.PrincipalType.KRB5_NT_SRV_HST,
+        service_type: int | None = None,
     ) -> None:
         super().__init__(ktypes.krb5_principal())
 
@@ -162,6 +193,22 @@ class Principal(Base):
             # self._logger.debug("Freeing principal {}".format(self.handle))
             kfuncs.free_principal(self._context.handle, self.handle)
 
+    def __str__(self) -> str:
+        if self._name.domain:
+            return "%s/%s/%s@%s" % (
+                self._name.primary,
+                self._name.instance,
+                self._name.domain,
+                self._name.realm,
+            )
+        if self._name.instance:
+            return "%s/%s@%s" % (
+                self._name.primary,
+                self._name.instance,
+                self._name.realm,
+            )
+        return "%s@%s" % (self._name.primary, self._name.realm)
+
     @property
     def primary(self) -> str:
         """Get the primary component of the name."""
@@ -173,9 +220,19 @@ class Principal(Base):
         return self._name.instance
 
     @property
+    def domain(self) -> str | None:
+        """Get the domain component of a domain-based service name."""
+        return self._name.domain
+
+    @property
     def realm(self) -> str:
         """Get the realm component of the name."""
         return self._name.realm
+
+    @property
+    def service_type(self) -> int:
+        """Get the principal type."""
+        return self._name.service_type
 
 
 def get_default_keytab_name() -> str:
