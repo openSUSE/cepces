@@ -4,6 +4,7 @@ require {
     type certmonger_t;
     type kernel_t;
     type ldconfig_exec_t;
+    type sysctl_net_t;
 }
 
 type cepces_log_t;
@@ -13,4 +14,5 @@ allow certmonger_t cepces_log_t:dir { add_name search write };
 allow certmonger_t cepces_log_t:file { create open };
 
 allow certmonger_t kernel_t:system module_request;
+allow certmonger_t sysctl_net_t:dir search;
 allow certmonger_t ldconfig_exec_t:file { read execute open execute_no_trans };
