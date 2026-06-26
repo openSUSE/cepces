@@ -368,7 +368,7 @@ class TestTransportGSSAPIAuthentication:
     @patch("cepces.soap.auth.gssapi.Name")
     @patch("cepces.soap.auth.gssapi.Credentials")
     @patch("cepces.soap.auth.HTTPSPNEGOAuth")
-    @patch("cepces.soap.auth.os.environ", {})
+    @patch("cepces.soap.auth.os.environ", dict[str, str]())
     def test_init_ccache_sets_environment_variable(
         self,
         mock_http_spnego: MagicMock,
