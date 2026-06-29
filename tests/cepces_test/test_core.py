@@ -15,10 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with cepces.  If not, see <http://www.gnu.org/licenses/>.
 #
+import datetime
 import unittest
 import logging
 from xml.etree import ElementTree
 from unittest.mock import Mock, patch
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import AuthorityInformationAccessOID, NameOID
 from cepces import Base
 from cepces.core import Service
 from cepces.xcep.types import GetPoliciesResponse
@@ -186,3 +192,189 @@ def test_service_certificate_chain_with_empty_cas():
         chain = service.certificate_chain
 
         assert chain is None
+
+
+# ---------------------------------------------------------------------------
+# Helper for _resolve_chain tests
+# ---------------------------------------------------------------------------
+
+_AIA_URI = "http://ca.example.com/root.crt"
+
+
+def _make_test_chain():
+    """Generate a root CA + leaf cert pair for _resolve_chain tests.
+
+    Returns (root_cert, root_pem, root_der, leaf_cert, leaf_pem, leaf_der).
+    The leaf has an AIA extension pointing to _AIA_URI.
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+    later = now + datetime.timedelta(days=365)
+
+    root_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend(),
+    )
+    root_name = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "Test Root CA")]
+    )
+    root_cert = (
+        x509.CertificateBuilder()
+        .subject_name(root_name)
+        .issuer_name(root_name)
+        .public_key(root_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(later)
+        .add_extension(
+            x509.BasicConstraints(ca=True, path_length=None),
+            critical=True,
+        )
+        .sign(root_key, hashes.SHA256(), default_backend())
+    )
+    root_pem = root_cert.public_bytes(serialization.Encoding.PEM)
+    root_der = root_cert.public_bytes(serialization.Encoding.DER)
+
+    leaf_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend(),
+    )
+    leaf_name = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "Test Leaf")]
+    )
+    leaf_cert = (
+        x509.CertificateBuilder()
+        .subject_name(leaf_name)
+        .issuer_name(root_name)
+        .public_key(leaf_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(later)
+        .add_extension(
+            x509.AuthorityInformationAccess(
+                [
+                    x509.AccessDescription(
+                        AuthorityInformationAccessOID.CA_ISSUERS,
+                        x509.UniformResourceIdentifier(_AIA_URI),
+                    ),
+                ]
+            ),
+            critical=False,
+        )
+        .sign(root_key, hashes.SHA256(), default_backend())
+    )
+    leaf_pem = leaf_cert.public_bytes(serialization.Encoding.PEM)
+    leaf_der = leaf_cert.public_bytes(serialization.Encoding.DER)
+
+    return root_cert, root_pem, root_der, leaf_cert, leaf_pem, leaf_der
+
+
+def _make_service_with_mock_session():
+    """Return (service, mock_session) with XCEPService and session patched."""
+    mock_config = Mock()
+    mock_config.endpoint_type = "Policy"
+    mock_config.endpoint = "https://example.com/CEP"
+    mock_config.auth = Mock()
+    mock_config.cas = None
+    mock_config.openssl_ciphers = None
+
+    mock_session = Mock()
+
+    with (
+        patch("cepces.core.XCEPService") as mock_xcep_class,
+        patch("cepces.core.create_session", return_value=mock_session),
+    ):
+        mock_xcep = Mock()
+        mock_xcep.get_policies.return_value = Mock()
+        mock_xcep_class.return_value = mock_xcep
+
+        service = Service(mock_config)
+
+    return service, mock_session
+
+
+# ---------------------------------------------------------------------------
+# _resolve_chain tests
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_chain_pem_string_self_signed():
+    """_resolve_chain accepts a PEM string (the line-202 call-site format)."""
+    root_cert, root_pem, _root_der, *_ = _make_test_chain()
+    service, _ = _make_service_with_mock_session()
+
+    result = service._resolve_chain(root_pem.decode())
+
+    assert len(result) == 1
+    assert result[0].subject == root_cert.subject
+
+
+def test_resolve_chain_pem_bytes_self_signed():
+    """_resolve_chain accepts PEM bytes."""
+    root_cert, root_pem, _root_der, *_ = _make_test_chain()
+    service, _ = _make_service_with_mock_session()
+
+    result = service._resolve_chain(root_pem)
+
+    assert len(result) == 1
+    assert result[0].subject == root_cert.subject
+
+
+def test_resolve_chain_der_bytes_self_signed():
+    """_resolve_chain accepts raw DER bytes for a self-signed cert."""
+    root_cert, _root_pem, root_der, *_ = _make_test_chain()
+    service, _ = _make_service_with_mock_session()
+
+    result = service._resolve_chain(root_der)
+
+    assert len(result) == 1
+    assert result[0].subject == root_cert.subject
+
+
+def test_resolve_chain_self_signed_stops_recursion():
+    """_resolve_chain stops at a self-signed cert without any HTTP call."""
+    _root_cert, root_pem, _root_der, *_ = _make_test_chain()
+    service, mock_session = _make_service_with_mock_session()
+
+    service._resolve_chain(root_pem)
+
+    mock_session.get.assert_not_called()
+
+
+def test_resolve_chain_aia_with_pem_response():
+    """_resolve_chain follows AIA and handles a PEM-encoded intermediate."""
+    root_cert, root_pem, _root_der, leaf_cert, leaf_pem, _ = _make_test_chain()
+    service, mock_session = _make_service_with_mock_session()
+
+    mock_response = Mock()
+    mock_response.content = root_pem
+    mock_session.get.return_value = mock_response
+
+    result = service._resolve_chain(leaf_pem)
+
+    mock_session.get.assert_called_once_with(_AIA_URI)
+    assert len(result) == 2
+    assert result[0].subject == leaf_cert.subject
+    assert result[1].subject == root_cert.subject
+
+
+def test_resolve_chain_aia_with_der_response():
+    """_resolve_chain follows AIA and handles a DER-encoded intermediate.
+
+    This is the bug from https://github.com/openSUSE/cepces/issues/46:
+    using r.content (bytes) instead of r.text (str) preserves binary DER.
+    """
+    root_cert, _root_pem, root_der, leaf_cert, leaf_pem, _ = _make_test_chain()
+    service, mock_session = _make_service_with_mock_session()
+
+    mock_response = Mock()
+    mock_response.content = root_der
+    mock_session.get.return_value = mock_response
+
+    result = service._resolve_chain(leaf_pem)
+
+    mock_session.get.assert_called_once_with(_AIA_URI)
+    assert len(result) == 2
+    assert result[0].subject == leaf_cert.subject
+    assert result[1].subject == root_cert.subject

@@ -331,7 +331,9 @@ class Service(Base):
         return True
 
     def _resolve_chain(
-        self, data: str, child: x509.Certificate | None = None
+        self,
+        data: str | bytes,
+        child: x509.Certificate | None = None,
     ) -> list[x509.Certificate]:
         """Recursive method for resolving a certificate. This starts with the
         data for a certificate, and a possible child certificate that needs to
@@ -339,7 +341,8 @@ class Service(Base):
         with a issued certificate and validate it upwards, until the root
         CA is reached.
 
-        :param data: PEM encoded certificate to resolve.
+        :param data: PEM or DER encoded certificate. Accepts a PEM string,
+                     PEM bytes, or raw DER bytes.
         :param child: Optional child to validate.
         :raise PartialChainError: if no AIA is found, or the complete chain
                                   cannot be retrieved. The exception contains
@@ -349,16 +352,22 @@ class Service(Base):
         extension = x509.AuthorityInformationAccess
         oid = AuthorityInformationAccessOID
 
+        # Ensure we have bytes for the cryptography loaders.
+        if isinstance(data, str):
+            data_bytes = data.encode()
+        else:
+            data_bytes = data
+
         # Load the certificate.
         try:
             cert = x509.load_pem_x509_certificate(
-                data.encode(),
+                data_bytes,
                 default_backend(),
             )
         except ValueError:
             # The cert may be DER encoded instead
             cert = x509.load_der_x509_certificate(
-                data.encode(),
+                data_bytes,
                 default_backend(),
             )
 
@@ -397,7 +406,7 @@ class Service(Base):
                     r = self._session.get(uri)
                     r.raise_for_status()
 
-                    parent = self._resolve_chain(r.text, cert)
+                    parent = self._resolve_chain(r.content, cert)
 
                     if parent:
                         result.extend(parent)
