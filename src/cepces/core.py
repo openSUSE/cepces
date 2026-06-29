@@ -151,7 +151,7 @@ class Service(Base):
             return None
 
         cas = self._policies.cas
-        if cas is None:
+        if not cas:
             return None
 
         config = self._config
@@ -191,7 +191,7 @@ class Service(Base):
             return None
 
         cas = self._policies.cas
-        if cas is None:
+        if not cas:
             return None
 
         # Get the first certificate. Since is (or at least always should) be

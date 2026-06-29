@@ -26,6 +26,9 @@ from cepces.xcep.types import GetPoliciesResponse
 # GetPoliciesResponse with nil policies and CAs (no enrollment available)
 GET_POLICIES_NIL_POLICIES_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{F803BF1A-EB36-42A4-973C-AF4555EB8782}</ns0:policyID><ns0:policyFriendlyName>My PKI</ns0:policyFriendlyName><ns0:nextUpdateHours>1</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies xsi:nil="true" /></ns0:response><ns0:cAs xsi:nil="true" /><ns0:oIDs xsi:nil="true" /></ns0:GetPoliciesResponse>'  # noqa: E501
 
+# GetPoliciesResponse with empty CAs list (cAs present but no cA children)
+GET_POLICIES_EMPTY_CAS_XML = b'<ns0:GetPoliciesResponse xmlns:ns0="http://schemas.microsoft.com/windows/pki/2009/01/enrollmentpolicy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ns0:response><ns0:policyID>{F803BF1A-EB36-42A4-973C-AF4555EB8782}</ns0:policyID><ns0:policyFriendlyName>My PKI</ns0:policyFriendlyName><ns0:nextUpdateHours>1</ns0:nextUpdateHours><ns0:policiesNotChanged xsi:nil="true" /><ns0:policies xsi:nil="true" /></ns0:response><ns0:cAs></ns0:cAs><ns0:oIDs xsi:nil="true" /></ns0:GetPoliciesResponse>'  # noqa: E501
+
 
 class TestBase(unittest.TestCase):
     """Tests the Base class"""
@@ -117,3 +120,69 @@ def test_service_endpoints_with_nil_cas():
         endpoints = service.endpoints
 
         assert endpoints is None
+
+
+def test_service_endpoints_with_empty_cas():
+    """Tests that Service.endpoints handles an empty CAs list gracefully.
+
+    When the AD CS server returns a GetPoliciesResponse with an empty
+    '<ns0:cAs>' element (no <cA> children), accessing Service.endpoints
+    should return None instead of raising IndexError.
+    """
+    element = ElementTree.fromstring(GET_POLICIES_EMPTY_CAS_XML)
+    policies_response = GetPoliciesResponse(element)
+
+    mock_config = Mock()
+    mock_config.endpoint_type = "Policy"
+    mock_config.endpoint = "https://example.com/CEP"
+    mock_config.auth = Mock()
+    mock_config.cas = None
+    mock_config.openssl_ciphers = None
+
+    with (
+        patch("cepces.core.XCEPService") as mock_xcep_class,
+        patch("cepces.core.create_session"),
+    ):
+        mock_xcep = Mock()
+        mock_xcep.get_policies.return_value = policies_response
+        mock_xcep_class.return_value = mock_xcep
+
+        service = Service(mock_config)
+
+        endpoints = service.endpoints
+
+        assert endpoints is None
+
+
+def test_service_certificate_chain_with_empty_cas():
+    """Tests that Service.certificate_chain handles an empty CAs list.
+
+    When the AD CS server returns a GetPoliciesResponse with an empty
+    '<ns0:cAs>' element (no <cA> children), accessing Service.certificate_chain
+    should return None instead of raising IndexError.  This is the crash
+    reported in https://github.com/openSUSE/cepces/issues/8 for multi-forest
+    AD setups.
+    """
+    element = ElementTree.fromstring(GET_POLICIES_EMPTY_CAS_XML)
+    policies_response = GetPoliciesResponse(element)
+
+    mock_config = Mock()
+    mock_config.endpoint_type = "Policy"
+    mock_config.endpoint = "https://example.com/CEP"
+    mock_config.auth = Mock()
+    mock_config.cas = None
+    mock_config.openssl_ciphers = None
+
+    with (
+        patch("cepces.core.XCEPService") as mock_xcep_class,
+        patch("cepces.core.create_session"),
+    ):
+        mock_xcep = Mock()
+        mock_xcep.get_policies.return_value = policies_response
+        mock_xcep_class.return_value = mock_xcep
+
+        service = Service(mock_config)
+
+        chain = service.certificate_chain
+
+        assert chain is None
