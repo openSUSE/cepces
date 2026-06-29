@@ -226,28 +226,35 @@ class Service(Base):
         self, csr: x509.CertificateSigningRequest, renew: bool = False
     ) -> "WSTEPService.Response | None":
         """Request a certificate with a CSR through a CEP endpoint."""
-        endpoint = None
+        candidates = [
+            ep
+            for ep in (self.endpoints or [])
+            if renew and ep.renewal_only or not ep.renewal_only
+        ]
 
-        for candidate in self.endpoints or []:
-            # If not renewing and the endpoint only supports renewal, ignore
-            # it.
-            if renew and candidate.renewal_only or not candidate.renewal_only:
-                endpoint = candidate
-
-                break
-
-        # No endpoint found.
-        if not endpoint:
+        if not candidates:
             return None
 
-        self._ces = WSTEPService(
-            endpoint=str(endpoint),
-            auth=self._config.auth,
-            capath=self._config.cas,
-            openssl_ciphers=self._config.openssl_ciphers,
-        )
+        last_error: requests.exceptions.RequestException | None = None
 
-        return self._request_ces(csr)
+        for endpoint in candidates:
+            self._logger.debug("Trying CES endpoint: %s", endpoint.url)
+            self._ces = WSTEPService(
+                endpoint=str(endpoint),
+                auth=self._config.auth,
+                capath=self._config.cas,
+                openssl_ciphers=self._config.openssl_ciphers,
+            )
+            try:
+                return self._request_ces(csr)
+            except requests.exceptions.RequestException as e:
+                last_error = e
+                self._logger.warning(
+                    "CES endpoint %s failed: %s", endpoint.url, e
+                )
+
+        assert last_error is not None
+        raise last_error
 
     def request(
         self, csr: x509.CertificateSigningRequest, renew: bool = False

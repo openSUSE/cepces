@@ -19,7 +19,8 @@ import datetime
 import unittest
 import logging
 from xml.etree import ElementTree
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, PropertyMock
+import requests.exceptions
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
@@ -27,6 +28,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import AuthorityInformationAccessOID, NameOID
 from cepces import Base
 from cepces.core import Service
+from cepces.soap.service import SOAPFault
 from cepces.xcep.types import GetPoliciesResponse
 
 # GetPoliciesResponse with nil policies and CAs (no enrollment available)
@@ -378,3 +380,158 @@ def test_resolve_chain_aia_with_der_response():
     assert len(result) == 2
     assert result[0].subject == leaf_cert.subject
     assert result[1].subject == root_cert.subject
+
+
+# ---------------------------------------------------------------------------
+# _request_cep failover tests
+# ---------------------------------------------------------------------------
+
+
+def _make_service_for_failover():
+    """Return a Service in Policy mode without mocking endpoints."""
+    mock_config = Mock()
+    mock_config.endpoint_type = "Policy"
+    mock_config.endpoint = "https://example.com/CEP"
+    mock_config.auth = Mock()
+    mock_config.cas = None
+    mock_config.openssl_ciphers = None
+
+    with (
+        patch("cepces.core.XCEPService") as mock_xcep_class,
+        patch("cepces.core.create_session"),
+    ):
+        mock_xcep = Mock()
+        mock_xcep.get_policies.return_value = Mock()
+        mock_xcep_class.return_value = mock_xcep
+
+        service = Service(mock_config)
+
+    return service, mock_config
+
+
+def _make_endpoint(url: str) -> Mock:
+    ep = Mock()
+    ep.url = url
+    ep.renewal_only = False
+    return ep
+
+
+def test_request_cep_failover_to_second_endpoint():
+    """_request_cep retries the next endpoint when the first fails."""
+    service, _mock_config = _make_service_for_failover()
+
+    ep1 = _make_endpoint("https://ces1.example.com/CES")
+    ep2 = _make_endpoint("https://ces2.example.com/CES")
+    mock_response = Mock()
+
+    connection_error = requests.exceptions.ConnectionError("refused")
+
+    with (
+        patch.object(
+            type(service), "endpoints", new_callable=PropertyMock
+        ) as mock_endpoints,
+        patch.object(service, "_request_ces") as mock_request_ces,
+    ):
+        mock_endpoints.return_value = [ep1, ep2]
+        mock_request_ces.side_effect = [connection_error, mock_response]
+
+        result = service._request_cep(Mock())
+
+    assert result is mock_response
+    assert mock_request_ces.call_count == 2
+
+
+def test_request_cep_all_endpoints_fail():
+    """_request_cep re-raises the last exception when all endpoints fail."""
+    service, _mock_config = _make_service_for_failover()
+
+    ep1 = _make_endpoint("https://ces1.example.com/CES")
+    ep2 = _make_endpoint("https://ces2.example.com/CES")
+
+    error1 = requests.exceptions.ConnectionError("refused ces1")
+    error2 = requests.exceptions.ConnectionError("refused ces2")
+
+    with (
+        patch.object(
+            type(service), "endpoints", new_callable=PropertyMock
+        ) as mock_endpoints,
+        patch.object(service, "_request_ces") as mock_request_ces,
+    ):
+        mock_endpoints.return_value = [ep1, ep2]
+        mock_request_ces.side_effect = [error1, error2]
+
+        raised = None
+        try:
+            service._request_cep(Mock())
+        except requests.exceptions.ConnectionError as e:
+            raised = e
+
+    assert raised is error2
+    assert mock_request_ces.call_count == 2
+
+
+def test_request_cep_soap_fault_does_not_failover():
+    """_request_cep propagates SOAPFault without trying next endpoint."""
+    service, _mock_config = _make_service_for_failover()
+
+    ep1 = _make_endpoint("https://ces1.example.com/CES")
+    ep2 = _make_endpoint("https://ces2.example.com/CES")
+
+    mock_fault = Mock()
+    mock_fault.code.value = "env:Receiver"
+    mock_fault.code.subcode = None
+    mock_fault.reason.text = "Request denied"
+
+    with (
+        patch.object(
+            type(service), "endpoints", new_callable=PropertyMock
+        ) as mock_endpoints,
+        patch.object(service, "_request_ces") as mock_request_ces,
+    ):
+        mock_endpoints.return_value = [ep1, ep2]
+        mock_request_ces.side_effect = SOAPFault(mock_fault)
+
+        raised = None
+        try:
+            service._request_cep(Mock())
+        except SOAPFault as e:
+            raised = e
+
+    assert raised is not None
+    assert mock_request_ces.call_count == 1
+
+
+def test_request_cep_single_endpoint_success():
+    """_request_cep returns the response when the single endpoint succeeds."""
+    service, _mock_config = _make_service_for_failover()
+
+    ep = _make_endpoint("https://ces1.example.com/CES")
+    mock_response = Mock()
+
+    with (
+        patch.object(
+            type(service), "endpoints", new_callable=PropertyMock
+        ) as mock_endpoints,
+        patch.object(service, "_request_ces") as mock_request_ces,
+    ):
+        mock_endpoints.return_value = [ep]
+        mock_request_ces.return_value = mock_response
+
+        result = service._request_cep(Mock())
+
+    assert result is mock_response
+    assert mock_request_ces.call_count == 1
+
+
+def test_request_cep_no_endpoints_returns_none():
+    """_request_cep returns None when no endpoints match."""
+    service, _mock_config = _make_service_for_failover()
+
+    with patch.object(
+        type(service), "endpoints", new_callable=PropertyMock
+    ) as mock_endpoints:
+        mock_endpoints.return_value = []
+
+        result = service._request_cep(Mock())
+
+    assert result is None

@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
+import requests
 from cepces import __title__, __version__
 from cepces import Base
 from cepces.core import PartialChainError
@@ -137,6 +138,10 @@ class Submit(Operation):
             print(error, file=self._out)
 
             return CertmongerResult.REJECTED
+        except requests.exceptions.RequestException as error:
+            print(error, file=self._out)
+
+            return CertmongerResult.CONNECTERROR
 
         if result is None:
             self._logger.error(
@@ -190,6 +195,10 @@ class Poll(Operation):
             print(error, file=self._out)
 
             return CertmongerResult.REJECTED
+        except requests.exceptions.RequestException as error:
+            print(error, file=self._out)
+
+            return CertmongerResult.CONNECTERROR
 
         if result is None:
             self._logger.error("No result received from poll")

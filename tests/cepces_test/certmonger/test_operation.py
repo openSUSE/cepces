@@ -26,6 +26,7 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
 import io
+import requests.exceptions
 
 
 def test_get_default_template_call() -> None:
@@ -560,6 +561,72 @@ J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
         result = operation()
 
         assert result == CertmongerResult.UNDERCONFIGURED
+
+
+def test_submit_returns_connecterror_on_request_exception() -> None:
+    """Tests that Submit returns CONNECTERROR when a connection error
+    occurs."""
+    import os
+
+    with patch.dict(
+        os.environ,
+        {
+            "CERTMONGER_CSR": """-----BEGIN CERTIFICATE REQUEST-----
+MIIDgTCCAmkCAQAwEjEQMA4GA1UEAxMHZmVkb3JhMjCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBALhuaeeiXhuMyqCOWVpBeFBY+QqVKVWDz6tvW704uXOq
+/XxZDD4CGJEVNvuV3hRFhiHMiUoAKiqQYXSJ307sdfosLfhZllHmzB1G1AUbw3Le
+UnB7itt3KX8DdPeenpYo9GuUUCnv3rGzCCAHutFMwboI0FEmUQ+N0YrHc2K4kWFp
+CCdvVGsYCAyE3svdCMNcX1tDm9F4JG7oFkmyTxZunSPMXTBrqW/BiZJj5CcqHq54
+F56vsUeLnTnd6oapyOIpKH8yOFPpC6ckuTFg2kgzeV+5fDAYfA8yGB6HwKeFCSKx
++ziZFQ5uzBsZgCnTd246LrCogiGNULyYwghaCvPoF38CAwEAAaCCASgwKwYJKoZI
+hvcNAQkUMR4eHAAyADAAMgA1ADEAMgAxADkAMAA2ADMAMwAwADkwgfgGCSqGSIb3
+DQEJDjGB6jCB5zCBgwYDVR0RBHwweoIHZmVkb3JhMqAvBgorBgEEAYI3FAIDoCEM
+H2hvc3QvZmVkb3JhMkBNQVJTLk1JTEtZV0FZLlNJVEWgPgYGKwYBBQICoDQwMqAU
+GxJNQVJTLk1JTEtZV0FZLlNJVEWhGjAYoAMCAQGhETAPGwRob3N0GwdmZWRvcmEy
+MBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFEqI
+6jUIxqWQa0dElUmEzCgLpAX2MB0GCSsGAQQBgjcUAgQQHg4ATQBhAGMAaABpAG4A
+ZTANBgkqhkiG9w0BAQsFAAOCAQEAUKbuBaz9KtrbJ2TQ8UvMdRaNR7X1O6diZPcu
+UsNrw5W6eJX2LBdTcjxWCrB9oF6qwzNiGH2Kt79JkQoMSqAm0AoLJ1hBGN+e8ano
+ljR8NrQkLVnbsQMGKWrCjB7r5ycT42iH32foxwb1FaA5/mM05PQZ/syVFLyfjJLr
+IfGoQKCCi4nqcho+Ukfxa7i3ESoWuynVnqJzKOXnxie5/VHbNVVCJ372Kk3FbT3Z
+oMTDsPOVy3/SVhjVVl8eWs/ch6mJpnRlkkriOC1aQo/P606hCb+7+l9cc/31ENJj
+J9R2yTmwnWuSjm3k2/QOKOKYb+fO0iYXqCKeP4P7s4jGi02A5Q==
+-----END CERTIFICATE REQUEST-----
+"""
+        },
+    ):
+        mock_service = Mock()
+        mock_service.request.side_effect = requests.exceptions.ConnectionError(
+            "Connection refused"
+        )
+
+        out = io.StringIO()
+        operation = CertmongerOperations.Submit(mock_service, out=out)
+        result = operation()
+
+        assert result == CertmongerResult.CONNECTERROR
+        assert "Connection refused" in out.getvalue()
+
+
+def test_poll_returns_connecterror_on_request_exception() -> None:
+    """Tests that Poll returns CONNECTERROR when a connection error occurs."""
+    import os
+
+    with patch.dict(
+        os.environ,
+        {"CERTMONGER_CA_COOKIE": "27,https://ces1.example.com/CES"},
+    ):
+        mock_service = Mock()
+        mock_service.poll.side_effect = requests.exceptions.ConnectionError(
+            "Connection refused"
+        )
+
+        out = io.StringIO()
+        operation = CertmongerOperations.Poll(mock_service, out=out)
+        result = operation()
+
+        assert result == CertmongerResult.CONNECTERROR
+        assert "Connection refused" in out.getvalue()
 
 
 def test_operations_needs_service_attribute() -> None:
