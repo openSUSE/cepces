@@ -267,10 +267,10 @@ class Configuration(Base):
         # Override globals set from the command line
         if global_overrides is not None:
             for key, val in global_overrides.items():
-                config["global"][key] = val
+                config["global"][key] = val.replace("$", "$$")
         if krb5_overrides is not None:
             for key, val in krb5_overrides.items():
-                config["kerberos"][key] = val
+                config["kerberos"][key] = val.replace("$", "$$")
 
         return Configuration.from_parser(config)
 
