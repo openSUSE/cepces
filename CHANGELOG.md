@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-30
+
+### Added
+
+- CES endpoint failover: when operating in Policy mode, `cepces-submit` now
+  retries all matching CES endpoints in priority order on connection failure,
+  and returns `CONNECTERROR` to certmonger when all endpoints are unreachable
+  (#35).
+- `Principal.__str__` now produces the canonical Kerberos principal string and
+  infers the correct GSSAPI name type from its components (bare, service/host,
+  or service/host/domain).
+
+### Fixed
+
+- Kerberos principal reconstruction in SOAP authentication now correctly handles
+  all principal formats and name types, fixing authentication for
+  machine-account and domain-based principals (#103).
+- AIA chain resolution now reads response bytes instead of text so DER-encoded
+  intermediate certificates are not corrupted during download (#46).
+- CLI value overrides containing `$` (e.g. machine-account principals like
+  `VM1$@TEST.LOCAL`) no longer raise a `ValueError` from
+  `ExtendedInterpolation` (#27).
+- `Service.endpoints` and `Service.certificate_chain` no longer crash with
+  `IndexError` when the server returns an empty CA list, as can happen in
+  multi-forest setups (#8).
+- SELinux policy now allows `certmonger_t` to search `sysctl_net_t`
+  directories, fixing `EACCES` errors during Python network initialization
+  under enforcing mode.
+
 ## [0.4.1] - 2026-03-26
 
 ### Fixed
@@ -239,6 +268,7 @@ No notable user-facing changes.
 - Basic XML binding and type converters.
 - krb5 credential cache integration.
 
+[0.5.0]: https://github.com/openSUSE/cepces/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/openSUSE/cepces/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/openSUSE/cepces/compare/v0.3.17...v0.4.0
 [0.3.17]: https://github.com/openSUSE/cepces/compare/v0.3.16...v0.3.17
