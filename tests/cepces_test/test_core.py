@@ -28,6 +28,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import AuthorityInformationAccessOID, NameOID
 from cepces import Base
 from cepces.core import Service
+from cepces.soap import auth as SOAPAuth
 from cepces.soap.service import SOAPFault
 from cepces.xcep.types import GetPoliciesResponse
 
@@ -160,6 +161,157 @@ def test_service_endpoints_with_empty_cas():
         endpoints = service.endpoints
 
         assert endpoints is None
+
+
+def _make_ca_uri(uri: str, priority: int = 1) -> Mock:
+    """Build a mock CertificateAuthorityURI advertising Kerberos auth."""
+    ca_uri = Mock()
+    ca_uri.id = "Kerberos"
+    ca_uri.uri = uri
+    ca_uri.priority = priority
+    ca_uri.renewal_only = False
+    return ca_uri
+
+
+def _make_ca(uris: list[Mock]) -> Mock:
+    """Build a mock CertificateAuthority with the given CES URIs."""
+    ca = Mock()
+    ca.uris = uris
+    return ca
+
+
+def _make_service_with_cas(cep_endpoint: str, cas: list[Mock]) -> Service:
+    """Return a Policy-mode Service whose policy response has the given CAs."""
+    mock_config = Mock()
+    mock_config.endpoint_type = "Policy"
+    mock_config.endpoint = cep_endpoint
+    mock_config.auth = Mock(spec=SOAPAuth.TransportGSSAPIAuthentication)
+    mock_config.cas = None
+    mock_config.openssl_ciphers = None
+
+    with (
+        patch("cepces.core.XCEPService") as mock_xcep_class,
+        patch("cepces.core.create_session"),
+    ):
+        mock_xcep = Mock()
+        mock_policies = Mock()
+        mock_policies.cas = cas
+        mock_xcep.get_policies.return_value = mock_policies
+        mock_xcep_class.return_value = mock_xcep
+
+        service = Service(mock_config)
+
+    return service
+
+
+def test_service_endpoints_prefers_same_host_as_cep():
+    """When multiple CAs are advertised, endpoints on the same host as the
+    configured CEP endpoint are sorted first, preserving the administrator's
+    CA affinity (see GitHub issue openSUSE/cepces#111), while endpoints on
+    other hosts remain available as fallback.
+    """
+    ca1 = _make_ca([_make_ca_uri("https://sca-02.local/Sub-CA-02_CES/svc")])
+    ca2 = _make_ca([_make_ca_uri("https://sca-01.local/Sub-CA-01_CES/svc")])
+
+    service = _make_service_with_cas(
+        "https://sca-01.local/ADPolicyProvider_CEP_Kerberos/service.svc/CEP",
+        [ca1, ca2],
+    )
+
+    endpoints = service.endpoints
+
+    assert endpoints is not None
+    assert [e.url for e in endpoints] == [
+        "https://sca-01.local/Sub-CA-01_CES/svc",
+        "https://sca-02.local/Sub-CA-02_CES/svc",
+    ]
+
+
+def test_service_endpoints_falls_back_when_no_host_matches():
+    """When no CES endpoint shares a host with the CEP endpoint, all
+    endpoints are returned, preserving the pre-fix behaviour.
+    """
+    ca1 = _make_ca(
+        [_make_ca_uri("https://sca-02.local/Sub-CA-02_CES/svc", priority=2)]
+    )
+    ca2 = _make_ca(
+        [_make_ca_uri("https://sca-01.local/Sub-CA-01_CES/svc", priority=1)]
+    )
+
+    service = _make_service_with_cas(
+        "https://cep.local/ADPolicyProvider_CEP_Kerberos/service.svc/CEP",
+        [ca1, ca2],
+    )
+
+    endpoints = service.endpoints
+
+    assert endpoints is not None
+    assert [e.url for e in endpoints] == [
+        "https://sca-01.local/Sub-CA-01_CES/svc",
+        "https://sca-02.local/Sub-CA-02_CES/svc",
+    ]
+
+
+def test_service_endpoints_single_ca_unchanged():
+    """A single CA on a different host than CEP is still returned."""
+    ca = _make_ca([_make_ca_uri("https://sca-02.local/Sub-CA-02_CES/svc")])
+
+    service = _make_service_with_cas(
+        "https://sca-01.local/ADPolicyProvider_CEP_Kerberos/service.svc/CEP",
+        [ca],
+    )
+
+    endpoints = service.endpoints
+
+    assert endpoints is not None
+    assert [e.url for e in endpoints] == [
+        "https://sca-02.local/Sub-CA-02_CES/svc"
+    ]
+
+
+def test_service_endpoints_same_host_sorted_by_priority():
+    """Same-host endpoints are sorted by priority after host preference."""
+    ca1 = _make_ca(
+        [_make_ca_uri("https://sca-01.local/CA-High/svc", priority=5)]
+    )
+    ca2 = _make_ca(
+        [_make_ca_uri("https://sca-01.local/CA-Low/svc", priority=1)]
+    )
+
+    service = _make_service_with_cas(
+        "https://sca-01.local/CEP_Kerberos/service.svc/CEP",
+        [ca1, ca2],
+    )
+
+    endpoints = service.endpoints
+
+    assert endpoints is not None
+    assert [e.url for e in endpoints] == [
+        "https://sca-01.local/CA-Low/svc",
+        "https://sca-01.local/CA-High/svc",
+    ]
+
+
+def test_service_endpoints_unparseable_cep_falls_back():
+    """When the CEP endpoint has no parseable hostname, all endpoints are
+    returned sorted by priority alone.
+    """
+    ca1 = _make_ca(
+        [_make_ca_uri("https://sca-02.local/CA-02/svc", priority=2)]
+    )
+    ca2 = _make_ca(
+        [_make_ca_uri("https://sca-01.local/CA-01/svc", priority=1)]
+    )
+
+    service = _make_service_with_cas("/local/path/to/CEP", [ca1, ca2])
+
+    endpoints = service.endpoints
+
+    assert endpoints is not None
+    assert [e.url for e in endpoints] == [
+        "https://sca-01.local/CA-01/svc",
+        "https://sca-02.local/CA-02/svc",
+    ]
 
 
 def test_service_certificate_chain_with_empty_cas():

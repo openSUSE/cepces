@@ -18,6 +18,7 @@
 # pylint: disable=invalid-name,no-self-use
 """Module containing core classes and functionality."""
 
+from urllib.parse import urlparse
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
@@ -146,6 +147,12 @@ class Service(Base):
 
         Returns None if no policy endpoint is used or if no CAs are available
         (e.g., when the server returns xsi:nil="true" for cAs).
+
+        When CEP advertises CES endpoints on multiple hosts, endpoints on the
+        same host as the configured CEP endpoint are sorted first. This
+        honours the administrator's CA choice (expressed via the CEP server)
+        while keeping cross-host endpoints available as last-resort fallback
+        for the failover loop in _request_cep.
         """
         if self._xcep is None:
             return None
@@ -155,20 +162,34 @@ class Service(Base):
             return None
 
         config = self._config
+        cep_host = urlparse(config.endpoint).hostname
         endpoints: list[Service.Endpoint] = []
 
         for ca in cas:
             for uri in [x for x in ca.uris if x.id in Configuration.AUTH_MAP]:
                 if isinstance(config.auth, Configuration.AUTH_MAP[uri.id]):
-                    endpoints.append(
-                        Service.Endpoint(
-                            uri.uri,
-                            uri.priority,
-                            uri.renewal_only,
-                        ),
-                    )
+                    if (
+                        uri.uri is None
+                        or uri.priority is None
+                        or uri.renewal_only is None
+                    ):
+                        continue
 
-        return sorted(endpoints, key=lambda x: x.priority)
+                    uri_str: str = uri.uri
+                    endpoint = Service.Endpoint(
+                        uri_str,
+                        uri.priority,
+                        uri.renewal_only,
+                    )
+                    endpoints.append(endpoint)
+
+        return sorted(
+            endpoints,
+            key=lambda ep: (
+                urlparse(ep.url).hostname != cep_host,
+                ep.priority,
+            ),
+        )
 
     @property
     def certificate_chain(
