@@ -61,9 +61,13 @@ Set-ADUser -Identity $ces_username -Add @{"msDS-AllowedToDelegateTo"=@("HOST/$ca
 ### Install Certificate Service Windows Features
 
 ```
+$ProgressPreference = 'SilentlyContinue'
 Install-WindowsFeature -Name "RSAT-AD-PowerShell" –IncludeAllSubFeature
 Add-WindowsFeature -Name @('ADCS-Enroll-Web-Pol','ADCS-Enroll-Web-Svc','ADCS-Web-Enrollment') -IncludeManagementTools
 ```
+
+> **Note:** Setting `$ProgressPreference = 'SilentlyContinue'` avoids console
+> buffer errors when running over SSH.
 
 ### Add CES domain user to the local IIS_IUSRS group
 
@@ -92,6 +96,12 @@ net localgroup IIS_IUSRS
 ```
 $admin_creds = Get-Credential $domain\Administrator
 
+# For non-interactive use (e.g. over SSH), replace Get-Credential above with:
+# $admin_creds = New-Object System.Management.Automation.PSCredential(
+#     "$domain\Administrator",
+#     (ConvertTo-SecureString "<password>" -AsPlainText -Force)
+# )
+
 $params = @{
     CAType                  = "EnterpriseRootCA"
     CACommonName            = "$domain-ROOT-CA"
@@ -103,6 +113,7 @@ $params = @{
     Credential              = $admin_creds
     Force                   = $true
 }
+$ProgressPreference = 'SilentlyContinue'
 Add-WindowsFeature -Name @('ADCS-Cert-Authority') -IncludeManagementTools
 Install-AdcsCertificationAuthority @params
 ```
@@ -156,13 +167,18 @@ $certs = Get-ChildItem IIS:SSLBindings | Foreach-Object {
 }
 ```
 
-If there are more than 2 certificates, use the Thumb linked with Port 443 in
-`$certs`. Use it as `SSLCertThumbprint` in the next step.
+If there are multiple SSL bindings, filter for the one on port 443:
+
+```
+$thumb = ($certs | Where-Object { $_.Port -eq 443 }).Thumb
+```
+
+Use it as `SSLCertThumbprint` in the next steps.
 
 ```
 $params = @{
     AuthenticationType     = "Kerberos"
-    SSLCertThumbprint      = $certs.thumb
+    SSLCertThumbprint      = $thumb
     Credential             = $admin_creds
 }
 Install-AdcsEnrollmentPolicyWebService @params -Force
@@ -179,7 +195,7 @@ $caconfig = $caconfig_tmp.split('"')[1]
 $params = @{
     CAConfig               = $caconfig
     AuthenticationType     = "Kerberos"
-    SSLCertThumbprint      = $certs.thumb
+    SSLCertThumbprint      = $thumb
     ServiceAccountName     = $ces_domuser
     ServiceAccountPassword = $ces_secpasswd
     Credential             = $admin_creds
@@ -191,18 +207,68 @@ Install-AdcsEnrollmentWebService @params -Force
 
 ```
 Install-AdcsWebEnrollment -Credential $admin_creds -Force
+
+iisreset /restart
 ```
 
 ### Enable Kernel-mode Authentication for Kerberos
 
-In order to make Kerberos auth work for CES, you need to set
-the following option in the IIS Manager:
+In order to make Kerberos auth work for CES, you need to enable
+kernel-mode authentication on the CES Kerberos web application.
+
+> **Note:** The CES application name varies by environment (e.g.
+> `<SERVERNAME>-CA-1_CES_Kerberos`). You can discover it with:
+> ```
+> Get-WebApplication -Site "Default Web Site" | Where-Object { $_.path -like "*CES_Kerberos*" }
+> ```
+
+**Option A: Via IIS Manager (GUI)**
 
 - Left sidebar &lt;SERVERNAME&gt; -> "Sites" -> "Default Web Site"
   -> "&lt;SERVERNAME&gt;-CA-1_CES_Kerberos"
 - Main panel: "Authentication" -> "Windows Authentication"
   -> Right sidebar "Advanced Settings..."
 - Enable "Kernel-mode authentication" check box -> "OK"
+
+**Option B: Via PowerShell**
+
+```
+Import-Module WebAdministration
+
+$cesSite = (Get-WebApplication -Site "Default Web Site" |
+    Where-Object { $_.path -like "*CES_Kerberos*" }).path.TrimStart('/')
+
+Set-WebConfigurationProperty `
+    -Filter "system.webServer/security/authentication/windowsAuthentication" `
+    -Location "Default Web Site/$cesSite" `
+    -Name "useKernelMode" -Value $true
+```
+
+### Enable useAppPoolCredentials for CES Kerberos
+
+When kernel-mode authentication is enabled, IIS uses the machine account
+for Kerberos by default. Since the CES application pool runs as the
+`cepcessvc` service account (which holds the HTTP SPN), you must also
+enable `useAppPoolCredentials` to avoid an SPN mismatch.
+
+**Option A: Via IIS Manager (GUI)**
+
+- Left sidebar &lt;SERVERNAME&gt; -> "Sites" -> "Default Web Site"
+  -> "&lt;SERVERNAME&gt;-CA-1_CES_Kerberos"
+- Main panel: "Authentication" -> "Windows Authentication"
+  -> Right sidebar "Advanced Settings..."
+- Enable "Extended Protection" -> set "useAppPoolCredentials" to True -> "OK"
+
+**Option B: Via PowerShell**
+
+```
+Set-WebConfigurationProperty `
+    -Filter "system.webServer/security/authentication/windowsAuthentication" `
+    -Location "Default Web Site/$cesSite" `
+    -Name "useAppPoolCredentials" -Value $true
+
+iisreset /restart
+```
 
 ## On the Active Directory domain controller
 
