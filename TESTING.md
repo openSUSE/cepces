@@ -106,9 +106,11 @@ pytest fixtures can be used for test setup:
 ```python
 import pytest
 
+
 @pytest.fixture
 def my_fixture():
     return "test_data"
+
 
 def test_with_fixture(my_fixture):
     assert my_fixture == "test_data"
@@ -121,6 +123,7 @@ Use `pytest.raises()` to test exceptions:
 ```python
 import pytest
 
+
 def test_exception():
     with pytest.raises(ValueError):
         raise ValueError("error message")
@@ -132,6 +135,7 @@ The project uses `unittest.mock` for mocking:
 
 ```python
 from unittest.mock import patch
+
 
 @patch("module.function")
 def test_with_mock(mock_function):
